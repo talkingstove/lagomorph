@@ -6,16 +6,5 @@
     wrap: {
         startFile: 'start.frag.js',
         endFile: 'end.frag.js'
-    },
-    shim: {
-        'jQuery': {
-            exports: '$'
-        },
-        'lagomorph': {
-            exports: 'L'
-        },
-        'test2': {
-            exports: 'test2'
-        }
     }
 })
