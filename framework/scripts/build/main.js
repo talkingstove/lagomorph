@@ -1,1 +1,0 @@
-define("test2",["require","jquery"],function(e,n){return{hello2:function(){alert("yo")}}}),require(["require","jquery","test2"],function(e,n,r){return{hello:function(){alert("yo")}}}),define("L",function(){});

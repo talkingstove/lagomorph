@@ -1,5 +1,5 @@
 ({
-    baseUrl: '../js-app',
+    baseUrl: '../src',
   	out: '../out/L.js',
     include: ["lagomorph"],
   	shim: {
