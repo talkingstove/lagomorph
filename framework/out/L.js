@@ -1,1 +1,1 @@
-define("test2",["jquery"],function(e){return{bye:function(){alert("bye")}}}),define("lagomorph",["jquery","test2"],function(e,t){return{t2:t,hello:function(){alert("yo")},bye:function(){this.t2.bye()}}});
+!function(){define("test2",["jquery"],function(e){return{bye:function(){alert("bye")}}}),define("lagomorph",["jquery","test2"],function(e,n){var t={t2:n,hello:function(){alert("yo")},bye:function(){this.t2.bye()}};return window.L=t,t})}();
