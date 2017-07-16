@@ -1,4 +1,7 @@
-define(["jquery", "lagomorph"], function($, L) {
+// define(["jquery", "lagomorph"], function($, L) {
+// 		debugger;
+
+
 		
-    L.bye();
-});
+//     // L.start();
+// });

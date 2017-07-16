@@ -5,9 +5,16 @@
     <link rel='stylesheet' href='/stylesheets/style.css' />
      <!-- data-main attribute tells require.js to load
              scripts/main.js after require.js loads. -->
-     <script data-main="js/js-app" src="js/lib/require.js"></script>
+     <!--<script data-main="js/js-app" src="js/lib/require.js"></script>-->
+     <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+     <script src="js/lib/lagomorph/L.js"></script>
   </head>
   <body>
+    <script language="javascript">
+      $(function() {
+        L.start();
+      });
+    </script>
     {{{body}}}
   </body>
 </html>

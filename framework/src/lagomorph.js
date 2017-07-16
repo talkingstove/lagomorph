@@ -1,13 +1,10 @@
-define(["jquery", "test2"], function($, test2) {
+define(["scanner"], function(scanner) {
 
 	var framework = {
-		t2: test2,
+		scanner: scanner,
 
-  	hello: function() {
-  		alert('yo');
-  	},
-  	bye: function() {
-  		this.t2.bye();
+  	start: function() {
+  		this.scanner.scan();
   	}
 	}
 
