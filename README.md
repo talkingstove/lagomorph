@@ -10,3 +10,5 @@ TO BUILD FRAMEWORK:
 
 TO USE NEWLY-BUILT VERSION IN SAMPLE-APP:
 => cp ../out/L.js ../../sample-app/public/js/lib/lagomorph
+3) install Mongodb, see video here for instructions for mac https://youtu.be/_WJ8m5QHvwc (for windows: https://youtu.be/sBdaRlgb4N8)
+4) to run sample-app, go to /sample-app and run `npm install` and `node app.js`
