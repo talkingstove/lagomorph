@@ -1,25 +1,15 @@
-define(["Fiber", "LBase", "LModule", "scanner"], function(Fiber, LBase, LModule, scanner ) {
+define(["jquery", "underscore", "Fiber", "LBase", "LModule", "scanner"], function($, _, Fiber, LBase, LModule, scanner ) {
 
 	var framework = {
 		scanner: scanner,
 		LBase: LBase,
 		LModule: LModule,
+    $: $,
+    _: _,
 
   	start: function() {
-  		if (!window.$) {
-  			console.error("Lagomorph needs jQuery defined as $");
-  			return;
-  		}
-  		if (!window._) {
-  			console.error("Lagomorph needs underscore.js defined as _");
-  			return;
-  		}
-  		if (!window.Fiber) {
-  			console.error("Lagomorph needs fiber.js defined as Fiber");
-  			return;
-  		}
-
-  		this.scanner.scan();
+      
+      this.scanner.scan();
   	},
 
   	createApp: function() {
