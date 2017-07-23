@@ -24,7 +24,7 @@ require.config({
     'LBase': 'src/LBase',
     'LModule': 'src/LModule',
     'scanner': 'src/scanner',
-    'Fiber': 'src/Fiber'
+    'Fiber': 'lib/fiber.min'
   },
 
   // we have to kickoff jasmine, as it is asynchronous
