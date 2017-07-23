@@ -448,7 +448,7 @@ var requirejs, require, define;
 }());
 define("../lib/almond", function(){});
 
-define('Lbase',[], function() {
+define('LBase',[], function() {
 
 	return Fiber.extend(function(base) {
 		  return {
@@ -466,16 +466,18 @@ define('Lbase',[], function() {
 		  }
 	});
 });
-define('Lview',["Lbase"], function(Lbase) {
+define('LModule',["LBase"], function(LBase) {
 
-	return Lbase.extend(function(base) {
+	return LBase.extend(function(base) {
 		  return {
 		    // The `init` method serves as the constructor.
 		    init: function(params) {
 		        // Insert private functions here
-		        console.log('Lview with params:', params);
+		        console.log('L Module with params:', params);
+		    },
 
-		        //TODO: add default attrs like unique id, class name etc
+		    renderView: function(params) {
+
 		    }
 		    
 		  }
@@ -502,12 +504,12 @@ define('scanner',[], function() {
 
   }
 });
-define('lagomorph',["Lbase", "Lview", "scanner"], function(Lbase, Lview, scanner) {
+define('lagomorph',["LBase", "LModule", "scanner"], function(LBase, LModule, scanner) {
 
 	var framework = {
 		scanner: scanner,
-		Lbase: Lbase,
-		Lview: Lview,
+		LBase: LBase,
+		LModule: LModule,
 
   	start: function() {
   		if (!window.$) {
@@ -524,6 +526,10 @@ define('lagomorph',["Lbase", "Lview", "scanner"], function(Lbase, Lview, scanner
   		}
 
   		this.scanner.scan();
+  	},
+
+  	createApp: function() {
+  		//initiate a full single-page app with router, etc if desired
   	}
 	}
 

@@ -1,9 +1,9 @@
-define(["Lbase", "Lview", "scanner"], function(Lbase, Lview, scanner) {
+define(["LBase", "LModule", "scanner"], function(LBase, LModule, scanner) {
 
 	var framework = {
 		scanner: scanner,
-		Lbase: Lbase,
-		Lview: Lview,
+		LBase: LBase,
+		LModule: LModule,
 
   	start: function() {
   		if (!window.$) {
@@ -20,6 +20,10 @@ define(["Lbase", "Lview", "scanner"], function(Lbase, Lview, scanner) {
   		}
 
   		this.scanner.scan();
+  	},
+
+  	createApp: function() {
+  		//initiate a full single-page app with router, etc if desired
   	}
 	}
 
