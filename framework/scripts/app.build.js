@@ -9,6 +9,8 @@
     },
     optimize: 'none',
     paths: {
-    	'Fiber': '../lib/fiber.min'
+    	'Fiber': '../lib/fiber.min',
+    	'jquery': '../lib/jquery.min',
+        'underscore': '../lib/underscore-min'
   	}
 })
