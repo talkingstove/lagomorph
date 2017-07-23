@@ -448,6 +448,39 @@ var requirejs, require, define;
 }());
 define("../lib/almond", function(){});
 
+define('Lbase',[], function() {
+
+	return Fiber.extend(function(base) {
+		  return {
+		    // The `init` method serves as the constructor.
+		    init: function(params) {
+		        // Insert private functions here
+		        console.log('Lbase with params:', params);
+
+		        //TODO: add default attrs like unique id, class name etc
+		    },
+		    log: function(str) {
+		    	console.log(str);
+		    }
+		    
+		  }
+	});
+});
+define('Lview',["Lbase"], function(Lbase) {
+
+	return Lbase.extend(function(base) {
+		  return {
+		    // The `init` method serves as the constructor.
+		    init: function(params) {
+		        // Insert private functions here
+		        console.log('Lview with params:', params);
+
+		        //TODO: add default attrs like unique id, class name etc
+		    }
+		    
+		  }
+	});
+});
 define('scanner',[], function() {
 
 	return {
@@ -461,7 +494,6 @@ define('scanner',[], function() {
   			var $block = $(block);
   			var $components = $block.find('[data-lagomorph-component], [data-lc]');
 
-  			debugger;
 
   		}, this);
   	}
@@ -470,10 +502,12 @@ define('scanner',[], function() {
 
   }
 });
-define('lagomorph',["scanner"], function(scanner) {
+define('lagomorph',["Lbase", "Lview", "scanner"], function(Lbase, Lview, scanner) {
 
 	var framework = {
 		scanner: scanner,
+		Lbase: Lbase,
+		Lview: Lview,
 
   	start: function() {
   		if (!window.$) {

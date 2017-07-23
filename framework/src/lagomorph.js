@@ -1,7 +1,9 @@
-define(["scanner"], function(scanner) {
+define(["Lbase", "Lview", "scanner"], function(Lbase, Lview, scanner) {
 
 	var framework = {
 		scanner: scanner,
+		Lbase: Lbase,
+		Lview: Lview,
 
   	start: function() {
   		if (!window.$) {
