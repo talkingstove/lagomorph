@@ -1,6 +1,12 @@
 # lagomorph
-UNDER DEVELOPMENT. Please visit the wiki for an overview: 
+IN VERY EARLY DEVELOPMENT. 
+
+Please visit the wiki for an overview: 
 https://github.com/talkingstove/lagomorph/wiki/Overview-and-Principles
+
+And to read about what's here so far:
+https://github.com/talkingstove/lagomorph/wiki/So-Far
+
 
 Our goal is to create  multi-tenant-compatible, CMS-friendly, backend- and data-structure-agnostic, offline-work-capable, "use what you want" frontend framework.
 
