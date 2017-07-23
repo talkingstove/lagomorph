@@ -7,5 +7,8 @@
         startFile: 'start.frag.js',
         endFile: 'end.frag.js'
     },
-    optimize: 'none'
+    optimize: 'none',
+    paths: {
+    	'Fiber': '../lib/fiber.min'
+  	}
 })

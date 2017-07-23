@@ -1,4 +1,4 @@
-define(["LBase", "LModule", "scanner"], function(LBase, LModule, scanner) {
+define(["Fiber", "LBase", "LModule", "scanner"], function(Fiber, LBase, LModule, scanner ) {
 
 	var framework = {
 		scanner: scanner,
