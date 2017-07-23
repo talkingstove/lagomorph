@@ -15,5 +15,7 @@ TO USE NEWLY-BUILT VERSION IN SAMPLE-APP:
 
 TO RUN SAMPLE APP: 
 Install Mongodb if needed: see video here for instructions for mac https://youtu.be/_WJ8m5QHvwc (for windows: https://youtu.be/sBdaRlgb4N8)
+
 Run mongod from terminal
+
 Go to /sample-app and run `npm install` and `node app.js`
