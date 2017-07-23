@@ -1,4 +1,4 @@
-define([], function() {
+define(["Fiber"], function(Fiber) {
 
 	return Fiber.extend(function(base) {
 		  return {

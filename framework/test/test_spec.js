@@ -1,4 +1,4 @@
-define([], function() {
+define(["lagomorph"], function(L) {
 
     describe('just checking', function() {
 
