@@ -4,6 +4,7 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var mongo = require('mongodb').MongoClient;
 
 var index = require('./routes/index');
 var users = require('./routes/users');
@@ -43,12 +44,18 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-var server = app.listen(4000, function() {
-  var port = server.address().port;
-  console.log('server listening on port %s.', port);
+var url = 'mongodb://localhost:27017/lagomorph';
 
+mongo.connect(url, (err, db) => {
+    if(err) throw new Error(err);
+    console.log("Connected successfully to db");
+
+    var server = app.listen(4000, function() {
+      var port = server.address().port;
+      console.log('server listening on port %s.', port);
+
+    });
 });
-
 module.exports = app;
 
 
