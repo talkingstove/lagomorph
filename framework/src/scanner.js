@@ -11,6 +11,7 @@ define([], function() {
   			var $block = $(block);
   			var $components = $block.find('[data-lagomorph-component], [data-lc]');
 
+
   		}, this);
   	}
 
