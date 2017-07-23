@@ -19,6 +19,14 @@ require.config({
   // dynamically load all test files
   deps: allTestFiles,
 
+  paths: {
+    'lagomorph': 'src/lagomorph',
+    'LBase': 'src/LBase',
+    'LModule': 'src/LModule',
+    'scanner': 'src/scanner',
+    'Fiber': 'lib/fiber.min'
+  },
+
   // we have to kickoff jasmine, as it is asynchronous
   callback: window.__karma__.start
 })
