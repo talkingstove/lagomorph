@@ -7,9 +7,11 @@ define(["jquery", "underscore", "Handlebars", "Fiber", "LBase", "LModule", "scan
     $: $,
     _: _,
     Handlebars: Handlebars,
+    components: {
+    	L_List: L_List
+    },
 
   	start: function() {
-      
       this.scanner.scan();
   	},
 
