@@ -50,3 +50,5 @@ jspm_packages
 .yarn-integrity
 
 .idea/
+
+.sass-cache
