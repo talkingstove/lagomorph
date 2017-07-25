@@ -3955,7 +3955,24 @@
 
         };
     });
-    define('lagomorph', ["jquery", "underscore", "Handlebars", "Fiber", "LBase", "LModule", "scanner"], function ($, _, Handlebars, Fiber, LBase, LModule, scanner) {
+    define('L_List', ["LModule"], function (LModule) {
+
+        return LModule.extend(function (base) {
+            return {
+                // The `init` method serves as the constructor.
+                init: function (params) {
+                    // Insert private functions here
+                    console.log('L-List Module with params:', params);
+                },
+
+                //Handlebars template
+                //overridable via the JSON config of any given instance of the component
+                template: '\n\t\t\t\t\t  <div>\n\t\t\t\t\t    <span>Some HTML here for a list</span>\n\t\t\t\t\t  </div>\n\t\t\t\t\t'
+
+            };
+        });
+    });
+    define('lagomorph', ["jquery", "underscore", "Handlebars", "Fiber", "LBase", "LModule", "scanner", "L_List"], function ($, _, Handlebars, Fiber, LBase, LModule, scanner, L_List) {
 
         var framework = {
             scanner: scanner,
