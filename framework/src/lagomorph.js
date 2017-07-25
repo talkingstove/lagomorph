@@ -1,4 +1,4 @@
-define(["jquery", "underscore", "Fiber", "LBase", "LModule", "scanner"], function($, _, Fiber, LBase, LModule, scanner ) {
+define(["jquery", "underscore", "Handlebars", "Fiber", "LBase", "LModule", "scanner", "L_List"], function($, _, Handlebars, Fiber, LBase, LModule, scanner, L_List ) {
 
 	var framework = {
 		scanner: scanner,
@@ -6,9 +6,12 @@ define(["jquery", "underscore", "Fiber", "LBase", "LModule", "scanner"], functio
 		LModule: LModule,
     $: $,
     _: _,
+    Handlebars: Handlebars,
+    components: {
+    	L_List: L_List
+    },
 
   	start: function() {
-      
       this.scanner.scan();
   	},
 
