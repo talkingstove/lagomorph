@@ -2964,7 +2964,9 @@
             }
         };
 
-        window.L = framework; //expose global so require.js is not needed by end user
+        if (window) {
+            window.L = framework; //expose global so require.js is not needed by end user
+        }
 
         return framework;
     });
