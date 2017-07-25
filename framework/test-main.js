@@ -26,7 +26,8 @@ require.config({
     'scanner': 'src/scanner',
     'Fiber': 'lib/fiber.min',
     'jquery': 'lib/jquery.min',
-    'underscore': 'lib/underscore-min'
+    'underscore': 'lib/underscore-min',
+    'Handlebars': 'lib/handlebars.amd.min'
   },
 
   // we have to kickoff jasmine, as it is asynchronous
