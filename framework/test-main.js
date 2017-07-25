@@ -23,10 +23,12 @@ require.config({
     'lagomorph': 'src/lagomorph',
     'LBase': 'src/LBase',
     'LModule': 'src/LModule',
+    'L_List': 'src/components/L_List',
     'scanner': 'src/scanner',
     'Fiber': 'lib/fiber.min',
     'jquery': 'lib/jquery.min',
-    'underscore': 'lib/underscore-min'
+    'underscore': 'lib/underscore-min',
+    'Handlebars': 'lib/handlebars.min'
   },
 
   // we have to kickoff jasmine, as it is asynchronous

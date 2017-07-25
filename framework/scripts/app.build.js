@@ -11,6 +11,8 @@
     paths: {
     	'Fiber': '../lib/fiber.min',
     	'jquery': '../lib/jquery.min',
-        'underscore': '../lib/underscore-min'
+        'underscore': '../lib/underscore-min',
+        'Handlebars': '../lib/handlebars.min',
+        'L_List': '../src/components/L_List'
   	}
 })
