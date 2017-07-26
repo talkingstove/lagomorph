@@ -11,6 +11,21 @@ define([], function() {
   			var $block = $(block);
   			var $components = $block.find('[data-lagomorph-component], [data-lc]');
 
+        _.each($components, function(component) {
+          var $component = $(component);
+          var compData = $component.data('lagomorph-component'); //jquery converts to object for free
+
+          //todo: valid json check
+
+          var moduleClass = L.componentDefinitions[compData.type];
+          compData.$parentSelector = $component; //todo: bad name -- componentWrapper
+          var moduleInstance = new moduleClass(compData);
+
+          //todo: add module instance to global library for easy lookup (get by id, search data for, etc)
+
+          moduleInstance.renderView($component);
+
+        }, this);
 
   		}, this);
   	}

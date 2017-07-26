@@ -1,4 +1,4 @@
-define(["Handlebars", "LBase"], function(Handlebars, LBase) {
+define(["Handlebars", "LBase", "viewUtils"], function(Handlebars, LBase, viewUtils) {
 
 	return LBase.extend(function(base) {
 			
@@ -23,27 +23,17 @@ define(["Handlebars", "LBase"], function(Handlebars, LBase) {
 
 				compiledTemplate: null,
 
+				//put model here so we only ever need one of these????
+
 				/*
 				*
 				*/
 				renderView: function(targetSelector, templateParams) {
 					templateParams = templateParams || {};
-
 					var html = this.compiledTemplate(templateParams);
-					$(targetSelector).html(html);
-		    }
 
-		//     var theTemplateScript = "Welcome {{name}}, {{species}} from {{planet}} !!";
-
-  // // Compile the template directly as below
-  // var theTemplate = Handlebars.compile(theTemplateScript);
-
-  // // Pass your data to the template
-  // var theCompiledHtml = theTemplate(data);
-
-  // // Add the compiled html to the page
-  // $('.content-placeholder').html(theCompiledHtml); 
-		    
+					viewUtils.renderDomElement(targetSelector, html);
+		    }		    
 		}
 
 		return module;

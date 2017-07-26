@@ -7,9 +7,9 @@ define(["jquery", "underscore", "Handlebars", "Fiber", "LBase", "LModule", "scan
     $: $,
     _: _,
     Handlebars: Handlebars,
-    components: {
+    componentDefinitions: { //all available component classes that come standard with the framework
     	L_List: L_List
-    },
+    }, //todo: move to model
 
   	start: function() {
       this.scanner.scan();

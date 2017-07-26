@@ -4049,7 +4049,34 @@
 
         return LBase;
     });
-    define('LModule', ["Handlebars", "LBase"], function (Handlebars, LBase) {
+    define('viewUtils', ["jquery", "underscore", "Handlebars"], function ($, _, Handlebar) {
+
+        var viewUtils = {
+
+            /*
+            * abstracted from jQuery in case we ever want to remove it or even use React, etc
+            */
+            renderDomElement: function (containerSelector, html, renderType) {
+                renderType = renderType || 'replace';
+
+                switch (renderType) {
+                    case 'replace':
+                        if (_.isObject(containerSelector)) {
+                            //jquery obj passed in
+                            containerSelector.html(html);
+                        } else {
+                            $(containerSelector).html(html);
+                        }
+
+                        break;
+                }
+            }
+
+        };
+
+        return viewUtils;
+    });
+    define('LModule', ["Handlebars", "LBase", "viewUtils"], function (Handlebars, LBase, viewUtils) {
 
         return LBase.extend(function (base) {
 
@@ -4070,27 +4097,17 @@
 
                 compiledTemplate: null,
 
+                //put model here so we only ever need one of these????
+
                 /*
                 *
                 */
                 renderView: function (targetSelector, templateParams) {
                     templateParams = templateParams || {};
-
                     var html = this.compiledTemplate(templateParams);
-                    $(targetSelector).html(html);
+
+                    viewUtils.renderDomElement(targetSelector, html);
                 }
-
-                //     var theTemplateScript = "Welcome {{name}}, {{species}} from {{planet}} !!";
-
-                // // Compile the template directly as below
-                // var theTemplate = Handlebars.compile(theTemplateScript);
-
-                // // Pass your data to the template
-                // var theCompiledHtml = theTemplate(data);
-
-                // // Add the compiled html to the page
-                // $('.content-placeholder').html(theCompiledHtml); 
-
             };
 
             return module;
@@ -4108,6 +4125,20 @@
                 _.each($blocks, function (block) {
                     var $block = $(block);
                     var $components = $block.find('[data-lagomorph-component], [data-lc]');
+
+                    _.each($components, function (component) {
+                        var $component = $(component);
+                        var compData = $component.data('lagomorph-component'); //jquery converts to object for free
+
+                        //todo: valid json check
+
+                        var moduleClass = L.componentDefinitions[compData.type];
+                        var moduleInstance = new moduleClass(compData);
+
+                        //todo: add module instance to global library for easy lookup (get by id, search data for, etc)
+
+                        moduleInstance.renderView($component);
+                    }, this);
                 }, this);
             }
 
@@ -4119,17 +4150,46 @@
             return {
                 // The `init` method serves as the constructor.
                 init: function (params) {
+                    params = params || {};
+
                     base.init(params);
                     // Insert private functions here
                     console.log('L-List Module with params:', params);
 
-                    //give it it's own template not that of the superclass!!
+                    if (params.template) {
+                        //override template per instance when desired!
+                        this.template = params.template;
+                    }
+
+                    if (params.childTemplate) {
+                        //override template per instance when desired!
+                        this.childTemplate = params.childTemplate;
+                    }
+
+                    //give it its own template not that of the superclass!!
                     this.compiledTemplate = this.Handlebars.compile(this.template);
                 },
 
                 //Handlebars template
                 //overridable via the JSON config of any given instance of the component
-                template: '\n\t\t\t\t\t  <ul>\n\t\t\t\t\t    {{contents}}\n\t\t\t\t\t  </ul>\n\t\t\t\t\t'
+                //usage: this.renderView('h1', {contents: 'yo'});
+                template: '\n\t\t\t\t\t  <ul>\n\t\t\t\t\t    I am a list\n\t\t\t\t\t  </ul>\n\t\t\t\t\t',
+
+                childTemplate: '\n\t\t\t\t\t  <li>\n\t\t\t\t\t    {{childContents}}\n\t\t\t\t\t  </li>\n\t\t\t\t\t',
+
+                /*
+                * override to put children into contents
+                */
+                renderView: function (targetSelector, templateParams) {
+                    templateParams = templateParams || {};
+
+                    if (!templateParams.childrenData || !_.isArray(templateParams.childrenData)) {}
+
+                    var html = this.compiledTemplate(templateParams);
+                    $(targetSelector).html(html);
+
+                    //todo: now get the data for the list and render items
+                }
 
             };
         });
@@ -4143,13 +4203,11 @@
             $: $,
             _: _,
             Handlebars: Handlebars,
-            components: {
+            componentDefinitions: { //all available component classes that come standard with the framework
                 L_List: L_List
-            },
+            }, //todo: move to model
 
             start: function () {
-                debugger;
-
                 this.scanner.scan();
             },
 

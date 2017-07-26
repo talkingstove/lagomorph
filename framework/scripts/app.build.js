@@ -13,6 +13,7 @@
     	'jquery': '../lib/jquery.min',
         'underscore': '../lib/underscore-min',
         'Handlebars': '../lib/handlebars.min',
-        'L_List': '../src/components/L_List'
+        'L_List': '../src/components/L_List',
+        'viewUtils': '../src/utils/viewUtils'
   	}
 })
