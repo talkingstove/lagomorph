@@ -28,7 +28,8 @@ require.config({
     'Fiber': 'lib/fiber.min',
     'jquery': 'lib/jquery.min',
     'underscore': 'lib/underscore-min',
-    'Handlebars': 'lib/handlebars.min'
+    'Handlebars': 'lib/handlebars.min',
+    'viewUtils': 'src/utils/viewUtils'
   },
 
   // we have to kickoff jasmine, as it is asynchronous
