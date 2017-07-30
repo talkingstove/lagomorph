@@ -1,9 +1,12 @@
-define(["jquery", "underscore", "Handlebars", "Fiber", "dexie", "LBase", "LModule", "scanner", "L_List"], function($, _, Handlebars, Fiber, dexie, LBase, LModule, scanner, L_List ) {
+define(["jquery", "underscore", "Handlebars", "Fiber", "dexie", "bluebird", "himalaya", "LBase", "LModule", "scanner", "L_List"], function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, scanner, L_List ) {
 
 	var framework = {
 		scanner: scanner,
 		LBase: LBase,
 		LModule: LModule,
+		dexie: dexie, //api for indexedDB local storage DB -> http://dexie.org/docs/ 
+		bluebird: bluebird, //promise library -> http://bluebirdjs.com/
+		himalaya: himalaya, //html to json parser -> https://github.com/andrejewski/himalaya
     $: $,
     _: _,
     Handlebars: Handlebars,

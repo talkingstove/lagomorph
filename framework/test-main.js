@@ -30,6 +30,8 @@ require.config({
     'underscore': 'lib/underscore-min',
     'Handlebars': 'lib/handlebars.min',
     'dexie': 'lib/dexie',
+    'himalaya': 'lib/himalaya',
+    'bluebird': 'lib/bluebird',
     'viewUtils': 'src/utils/viewUtils'
   },
 

@@ -14,6 +14,8 @@
         'underscore': '../lib/underscore-min',
         'Handlebars': '../lib/handlebars.min',
         'dexie': '../lib/dexie',
+        'bluebird': '../lib/bluebird',
+        'himalaya': '../lib/himalaya',
         'L_List': '../src/components/L_List',
         'viewUtils': '../src/utils/viewUtils'
   	}
