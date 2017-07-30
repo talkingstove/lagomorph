@@ -29,6 +29,7 @@ require.config({
     'jquery': 'lib/jquery.min',
     'underscore': 'lib/underscore-min',
     'Handlebars': 'lib/handlebars.min',
+    'dexie': 'lib/dexie',
     'viewUtils': 'src/utils/viewUtils'
   },
 

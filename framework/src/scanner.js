@@ -23,7 +23,7 @@ define([], function() {
 
           //todo: add module instance to global library for easy lookup (get by id, search data for, etc)
 
-          moduleInstance.renderView($component);
+          moduleInstance.renderView($component); //todo: pre-render in case data is needed from server
 
         }, this);
 
