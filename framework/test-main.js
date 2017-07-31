@@ -32,7 +32,9 @@ require.config({
     'dexie': 'lib/dexie',
     'himalaya': 'lib/himalaya',
     'bluebird': 'lib/bluebird',
-    'viewUtils': 'src/utils/viewUtils'
+    'viewUtils': 'src/utils/viewUtils',
+    'componentInstanceLibrary': 'src/componentInstanceLibrary',
+    'LLibrary': 'src/library/LLibrary',
   },
 
   // we have to kickoff jasmine, as it is asynchronous

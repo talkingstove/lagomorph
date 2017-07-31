@@ -1,4 +1,4 @@
-define([], function() {
+define(["componentInstanceLibrary"], function(componentInstanceLibrary) {
 
 	return {
   	scan: function() {
@@ -13,17 +13,22 @@ define([], function() {
 
         _.each($components, function(component) {
           var $component = $(component);
+          
+          //definition must provide at minimum a type and id in the json
           var compData = $component.data('lagomorph-component'); //jquery converts to object for free
 
-          //todo: valid json check
+          if ( !(_.isObject(compData)) ) {
+            console.warn('Invalid data JSON for component:', component);
+            return;
+          }
 
-          var moduleClass = L.componentDefinitions[compData.type];
+          var moduleClass = L.componentDefinitions[compData.type];//todo: bad name -- component
           compData.$parentSelector = $component; //todo: bad name -- componentWrapper
           var moduleInstance = new moduleClass(compData);
 
           //todo: add module instance to global library for easy lookup (get by id, search data for, etc)
 
-          moduleInstance.renderView($component); //todo: pre-render in case data is needed from server
+          moduleInstance.loadComponent($component); //todo: pre-render in case data is needed from server
 
         }, this);
 

@@ -17,6 +17,7 @@
         'bluebird': '../lib/bluebird',
         'himalaya': '../lib/himalaya',
         'L_List': '../src/components/L_List',
+        'LLibrary': '../src/library/LLibrary',
         'viewUtils': '../src/utils/viewUtils'
   	}
 })

@@ -9,8 +9,8 @@ define(["Handlebars", "LBase", "viewUtils"], function(Handlebars, LBase, viewUti
 		    // The `init` method serves as the constructor.
 		    init: function(params) {
 		        // Insert private functions here
-		        console.log('L Module with params:', params);
-		        this.compiledTemplate = this.Handlebars.compile(this.template);
+		        base.init(params);
+		        this.compiledTemplate = this.Handlebars.compile(this.template); //TODO: cache standard templates in a libary
 		    },
 
 		    //Handlebars template
@@ -23,7 +23,13 @@ define(["Handlebars", "LBase", "viewUtils"], function(Handlebars, LBase, viewUti
 
 				compiledTemplate: null,
 
-				//put model here so we only ever need one of these????
+				/*
+				* get any necessary data and do anything else needed before rendering the view
+				*/
+				loadComponent: function(targetSelector, templateParams) {
+
+					this.renderView(targetSelector, templateParams);
+				},
 
 				/*
 				*

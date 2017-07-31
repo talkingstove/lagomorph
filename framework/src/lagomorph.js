@@ -1,6 +1,17 @@
-define(["jquery", "underscore", "Handlebars", "Fiber", "dexie", "bluebird", "himalaya", "LBase", "LModule", "scanner", "L_List"], function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, scanner, L_List ) {
+define([ "jquery", 
+				"underscore", 
+				"Handlebars", 
+				"Fiber", 
+				"dexie", 
+				"bluebird", 
+				"himalaya", 
+				"LBase", 
+				"LModule", 
+				"scanner", 
+				"L_List", 
+				"componentInstanceLibrary" ], function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary ) {
 
-	var framework = {
+	var framework = { //anything we want to expose on the window for the end user needs to be added here
 		scanner: scanner,
 		LBase: LBase,
 		LModule: LModule,
@@ -13,8 +24,10 @@ define(["jquery", "underscore", "Handlebars", "Fiber", "dexie", "bluebird", "him
     componentDefinitions: { //all available component classes that come standard with the framework
     	L_List: L_List
     }, //todo: move to model
+    componentInstanceLibrary: componentInstanceLibrary, //look up instances of components created on the current page/app
 
   	start: function() {
+  		this.componentInstanceLibrary.initializeComponentInstanceLibrary();
       this.scanner.scan();
   	},
 
