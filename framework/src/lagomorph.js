@@ -1,15 +1,18 @@
-define([ "jquery", 
-				"underscore", 
-				"Handlebars", 
-				"Fiber", 
-				"dexie", 
-				"bluebird", 
-				"himalaya", 
-				"LBase", 
-				"LModule", 
-				"scanner", 
-				"L_List", 
-				"componentInstanceLibrary" ], function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary ) {
+define([ 
+					"jquery", 
+					"underscore", 
+					"Handlebars", 
+					"Fiber", 
+					"dexie", 
+					"bluebird", 
+					"himalaya", 
+					"LBase", 
+					"LModule", 
+					"scanner", 
+					"L_List", 
+					"componentInstanceLibrary" 
+				], 
+function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary ) {
 
 	var framework = { //anything we want to expose on the window for the end user needs to be added here
 		scanner: scanner,

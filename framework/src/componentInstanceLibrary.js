@@ -18,6 +18,10 @@ define(["LLibrary"], function(LLibrary) {
       return ComponentInstanceLibrary;
     },
 
+    getComponentInstanceById: function(id) {
+      return this.getLibrary() ? this.getLibrary().storage[id] : null;
+    },
+
     registerComponent: function(component, overwriteInstance) {
       var id = component.id;
       overwriteInstance = overwriteInstance || false;
@@ -32,8 +36,7 @@ define(["LLibrary"], function(LLibrary) {
         return;
       }
 
-      ComponentInstanceLibrary.addItem(id, component);
-
+      this.getLibrary().addItem(id, component, overwriteInstance);
     }
 
 

@@ -27,9 +27,6 @@ define(["Fiber", "componentInstanceLibrary"], function(Fiber, componentInstanceL
 		        this.$parentSelector = $parentSelector;
 
 		        componentInstanceLibrary.registerComponent(this);
-		    },
-		    log: function(str) {
-		    	console.log(str);
 		    }
 		    
 		  }
