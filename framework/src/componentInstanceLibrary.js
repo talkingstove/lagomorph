@@ -36,6 +36,8 @@ define(["LLibrary"], function(LLibrary) {
         return;
       }
 
+      console.log('***registered component', component);
+
       this.getLibrary().addItem(id, component, overwriteInstance);
     }
 

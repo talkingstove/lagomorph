@@ -1282,29 +1282,38 @@ var currentIndex=stack.length-1;while(currentIndex>0){if(tagName===stack[current
 ;define('LLibrary',["Fiber"],function(Fiber){var LLibrary=Fiber.extend(function(base){return{// The `init` method serves as the constructor.
 init:function(params){},storage:{},//all items here
 getItem:function(id){return this.storage[id]||null;},addItem:function(id,item,overwriteItem){overwriteItem=overwriteItem||false;if(!overwriteItem&&ComponentInstanceLibrary.getItem(id)){console.error('attempted to register dupe component without overwriteItem=true with id:',id);return;}else if(overwriteItem&&this.storage[id]&&this.storage[id].destroy){this.storage[id].destroy();}this.storage[id]=item;},deleteItem:function(id){if(!this.storage[id]){console.warn('attempted to delete non-existent item with id',id);return;}if(this.storage[id].destroy){this.storage[id].destroy();}delete this.storage[id];}};});return LLibrary;});define('componentInstanceLibrary',["LLibrary"],function(LLibrary){//makes the component library singleton avaible to the global window.L, or via require
-return{ComponentInstanceLibrary:null,initializeComponentInstanceLibrary:function(){if(this.ComponentInstanceLibrary!==null){console.warn('ComponentInstanceLibrary singleton already initialized');return;}ComponentInstanceLibrary=new LLibrary();},getLibrary:function(){return ComponentInstanceLibrary;},getComponentInstanceById:function(id){return this.getLibrary()?this.getLibrary().storage[id]:null;},registerComponent:function(component,overwriteInstance){var id=component.id;overwriteInstance=overwriteInstance||false;if(!id){console.error('attempted to register component without id!');return;}if(!overwriteInstance&&ComponentInstanceLibrary.getItem(id)){console.error('attempted to register dupe component with id:',id);return;}this.getLibrary().addItem(id,component,overwriteInstance);}};});define('LBase',["Fiber","componentInstanceLibrary"],function(Fiber,componentInstanceLibrary){var LBase=Fiber.extend(function(base){return{// The `init` method serves as the constructor.
-init:function(params){// Insert private functions here
-console.log('Lbase with params:',params);//TODO: add default attrs like unique id, class name etc
-var id=params.id;var type=params.type;var $parentSelector=params.$parentSelector;if(!id){console.error('attempted to created component without id!');return;}if(!type){console.error('attempted to created component without type!');return;}this.id=id;this.type=type;this.$parentSelector=$parentSelector;componentInstanceLibrary.registerComponent(this);}};});return LBase;});define('viewUtils',["jquery","underscore","Handlebars"],function($,_,Handlebar){var viewUtils={/*
+return{ComponentInstanceLibrary:null,initializeComponentInstanceLibrary:function(){if(this.ComponentInstanceLibrary!==null){console.warn('ComponentInstanceLibrary singleton already initialized');return;}ComponentInstanceLibrary=new LLibrary();},getLibrary:function(){return ComponentInstanceLibrary;},getComponentInstanceById:function(id){return this.getLibrary()?this.getLibrary().storage[id]:null;},registerComponent:function(component,overwriteInstance){var id=component.id;overwriteInstance=overwriteInstance||false;if(!id){console.error('attempted to register component without id!');return;}if(!overwriteInstance&&ComponentInstanceLibrary.getItem(id)){console.error('attempted to register dupe component with id:',id);return;}console.log('***registered component',component);this.getLibrary().addItem(id,component,overwriteInstance);}};});/*
+* base module
+*/define('LBase',["Fiber","componentInstanceLibrary"],function(Fiber,componentInstanceLibrary){var LBase=Fiber.extend(function(base){return{// The `init` method serves as the constructor.
+init:function(params){var compViewData=params.viewParams;var compDataSources=params.dataSources||null;//TODO: add default attrs like unique id, class name etc
+var id=compViewData.id;var type=compViewData.type;var $parentSelector=compViewData.$parentSelector;if(!id){console.error('attempted to created component without id!');return;}if(!type){console.error('attempted to created component without type!');return;}this.id=id;this.type=type;this.$parentSelector=$parentSelector;this.dataSources=compDataSources;this.viewData=compViewData;componentInstanceLibrary.registerComponent(this);},destroy:function(){if(this.$parentSelector){this.$parentSelector.html('');this.$parentSelector=null;//remove coupling to DOM
+}}};});return LBase;});define('viewUtils',["Handlebars"],function(Handlebars){return{/*
     * abstracted from jQuery in case we ever want to remove it or even use React, etc
     */renderDomElement:function(containerSelector,html,renderType){renderType=renderType||'replace';switch(renderType){case'replace':if(_.isObject(containerSelector)){//jquery obj passed in
-containerSelector.html(html);}else{$(containerSelector).html(html);}break;}}};return viewUtils;});define('LModule',["Handlebars","LBase","viewUtils"],function(Handlebars,LBase,viewUtils){return LBase.extend(function(base){var module={self:this,Handlebars:Handlebars,// The `init` method serves as the constructor.
+containerSelector.html(html);}else{$(containerSelector).html(html);}break;}}};});define('LModule',["Handlebars","LBase","viewUtils"],function(Handlebars,LBase,viewUtils){return LBase.extend(function(base){var module={self:this,Handlebars:Handlebars,// The `init` method serves as the constructor.
 init:function(params){// Insert private functions here
 base.init(params);this.compiledTemplate=this.Handlebars.compile(this.template);//TODO: cache standard templates in a libary
 },//Handlebars template
 //overridable via the JSON config of any given instance of the component
 template:'\n\t\t\t\t\t  <div>\n\t\t\t\t\t    <span>Some HTML here</span>\n\t\t\t\t\t  </div>\n\t\t\t\t\t',compiledTemplate:null,/*
 				* get any necessary data and do anything else needed before rendering the view
-				*/loadComponent:function(targetSelector,templateParams){this.renderView(targetSelector,templateParams);},/*
+				*/loadComponent:function(targetSelector){// 			"dataSources": {
+// 	"listItems": {
+// 		"dataSource": "list_1_Items",
+// 		"lazyLoad": true
+// 	}
+// }
+this.renderView(targetSelector);},/*
 				*
-				*/renderView:function(targetSelector,templateParams){templateParams=templateParams||{};var html=this.compiledTemplate(templateParams);viewUtils.renderDomElement(targetSelector,html);}};return module;});});define('scanner',["componentInstanceLibrary"],function(componentInstanceLibrary){return{scan:function(){console.log('SCANNING...');//find Lagomorph blocks that may contain components
+				*/renderView:function(targetSelector){var html=this.compiledTemplate(this.viewData);viewUtils.renderDomElement(targetSelector,html);}};return module;});});define('scanner',["componentInstanceLibrary"],function(componentInstanceLibrary){return{scan:function(){console.log('SCANNING...');//find Lagomorph blocks that may contain components
 var $blocks=$('.lagomorph-block');_.each($blocks,function(block){var $block=$(block);var $components=$block.find('[data-lagomorph-component], [data-lc]');_.each($components,function(component){var $component=$(component);//definition must provide at minimum a type and id in the json
 var compData=$component.data('lagomorph-component');//jquery converts to object for free
-if(!_.isObject(compData)){console.warn('Invalid data JSON for component:',component);return;}var moduleClass=L.componentDefinitions[compData.type];//todo: bad name -- component
-compData.$parentSelector=$component;//todo: bad name -- componentWrapper
+if(!_.isObject(compData)){console.warn('Invalid data JSON for component:',component);return;}var compViewData=compData.viewParams;// var compDataSources = compData.dataSources;
+var moduleClass=L.componentDefinitions[compViewData.type];//todo: bad name -- component
+compViewData.$parentSelector=$component;//todo: bad name -- componentWrapper
 var moduleInstance=new moduleClass(compData);//todo: add module instance to global library for easy lookup (get by id, search data for, etc)
 moduleInstance.loadComponent($component);//todo: pre-render in case data is needed from server
-},this);},this);}};});define('L_List',["Handlebars","LModule"],function(Handlebars,LModule){return LModule.extend(function(base){return{// The `init` method serves as the constructor.
+},this);},this);}};});define('L_List',["Handlebars","underscore","LModule","viewUtils"],function(Handlebars,_,LModule,viewUtils){return LModule.extend(function(base){return{// The `init` method serves as the constructor.
 init:function(params){params=params||{};base.init(params);// Insert private functions here
 console.log('L-List Module with params:',params);if(params.template){//override template per instance when desired!
 this.template=params.template;}if(params.childTemplate){//override template per instance when desired!
@@ -1314,8 +1323,7 @@ this.compiledTemplate=this.Handlebars.compile(this.template);},//Handlebars temp
 //usage: this.renderView('h1', {contents: 'yo'});
 template:'\n\t\t\t\t\t  <ul>\n\t\t\t\t\t    I am a list\n\t\t\t\t\t  </ul>\n\t\t\t\t\t',childTemplate:'\n\t\t\t\t\t  <li>\n\t\t\t\t\t    {{childContents}}\n\t\t\t\t\t  </li>\n\t\t\t\t\t',/*
 				* override to put children into contents
-				*/renderView:function(targetSelector,templateParams){templateParams=templateParams||{};if(!templateParams.childrenData||!_.isArray(templateParams.childrenData)){}var html=this.compiledTemplate(templateParams);$(targetSelector).html(html);//todo: now get the data for the list and render items
-}};});});define('lagomorph',["jquery","underscore","Handlebars","Fiber","dexie","bluebird","himalaya","LBase","LModule","scanner","L_List","componentInstanceLibrary"],function($,_,Handlebars,Fiber,dexie,bluebird,himalaya,LBase,LModule,scanner,L_List,componentInstanceLibrary){var framework={//anything we want to expose on the window for the end user needs to be added here
+				*/renderView:function(targetSelector){var html=this.compiledTemplate(this.viewData);viewUtils.renderDomElement(targetSelector,html);}};});});define('lagomorph',["jquery","underscore","Handlebars","Fiber","dexie","bluebird","himalaya","LBase","LModule","scanner","L_List","componentInstanceLibrary","viewUtils"],function($,_,Handlebars,Fiber,dexie,bluebird,himalaya,LBase,LModule,scanner,L_List,componentInstanceLibrary,viewUtils){var framework={//anything we want to expose on the window for the end user needs to be added here
 scanner:scanner,LBase:LBase,LModule:LModule,dexie:dexie,//api for indexedDB local storage DB -> http://dexie.org/docs/ 
 bluebird:bluebird,//promise library -> http://bluebirdjs.com/
 himalaya:himalaya,//html to json parser -> https://github.com/andrejewski/himalaya

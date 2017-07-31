@@ -1,4 +1,4 @@
-define(["Handlebars", "LModule"], function(Handlebars, LModule) {
+define(["Handlebars", "underscore", "LModule", "viewUtils"], function(Handlebars, _,  LModule, viewUtils) {
 
 	return LModule.extend(function(base) {
 		  return {
@@ -40,18 +40,11 @@ define(["Handlebars", "LModule"], function(Handlebars, LModule) {
 				/*
 				* override to put children into contents
 				*/
-				renderView: function(targetSelector, templateParams) {
-					templateParams = templateParams || {};
+				renderView: function(targetSelector) {
+					var html = this.compiledTemplate(this.viewData);
 
-					if ( !templateParams.childrenData || !_.isArray(templateParams.childrenData) ) {
-
-					}
-
-					var html = this.compiledTemplate(templateParams);
-					$(targetSelector).html(html);
-
-					//todo: now get the data for the list and render items
-		    }	
+					viewUtils.renderDomElement(targetSelector, html);
+		    }		  
 		    
 		  }
 	});

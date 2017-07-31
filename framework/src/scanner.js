@@ -13,17 +13,21 @@ define(["componentInstanceLibrary"], function(componentInstanceLibrary) {
 
         _.each($components, function(component) {
           var $component = $(component);
-          
+
           //definition must provide at minimum a type and id in the json
           var compData = $component.data('lagomorph-component'); //jquery converts to object for free
+
 
           if ( !(_.isObject(compData)) ) {
             console.warn('Invalid data JSON for component:', component);
             return;
           }
 
-          var moduleClass = L.componentDefinitions[compData.type];//todo: bad name -- component
-          compData.$parentSelector = $component; //todo: bad name -- componentWrapper
+          var compViewData = compData.viewParams;
+          // var compDataSources = compData.dataSources;
+
+          var moduleClass = L.componentDefinitions[compViewData.type];//todo: bad name -- component
+          compViewData.$parentSelector = $component; //todo: bad name -- componentWrapper
           var moduleInstance = new moduleClass(compData);
 
           //todo: add module instance to global library for easy lookup (get by id, search data for, etc)

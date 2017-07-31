@@ -4,8 +4,16 @@
 <div class="lagomorph-block">
 
 	<div data-lagomorph-component='{
-		"type": "L_List",
-		"id": "list1"
+		"viewParams": {
+			"type": "L_List",
+			"id": "list1"
+		},	
+		"dataSources": {
+			"listItems": {
+				"dataSource": "generic_image_list_items",
+				"lazyLoad": true
+			}
+		}
 	}'>
 	</div>
 

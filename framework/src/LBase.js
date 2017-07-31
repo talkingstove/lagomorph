@@ -1,17 +1,20 @@
 
+/*
+* base module
+*/
 define(["Fiber", "componentInstanceLibrary"], function(Fiber, componentInstanceLibrary) {
 
 	var LBase = Fiber.extend(function(base) {
 		  return {
 		    // The `init` method serves as the constructor.
 		    init: function(params) {
-		        // Insert private functions here
-		        console.log('Lbase with params:', params);
+		        var compViewData = params.viewParams;
+          	var compDataSources = params.dataSources || null;
 
 		        //TODO: add default attrs like unique id, class name etc
-		        var id = params.id;
-		        var type = params.type;
-		        var $parentSelector = params.$parentSelector;
+		        var id = compViewData.id;
+		        var type = compViewData.type;
+		        var $parentSelector = compViewData.$parentSelector;
 
 		        if (!id) {
 		        	console.error('attempted to created component without id!');
@@ -25,8 +28,17 @@ define(["Fiber", "componentInstanceLibrary"], function(Fiber, componentInstanceL
 		        this.id = id;
 		        this.type = type;
 		        this.$parentSelector = $parentSelector;
+		        this.dataSources = compDataSources;
+		        this.viewData = compViewData;
 
 		        componentInstanceLibrary.registerComponent(this);
+		    },
+
+		    destroy: function() {
+		    	if (this.$parentSelector) {
+			    	this.$parentSelector.html('');
+			    	this.$parentSelector = null; //remove coupling to DOM
+			    }
 		    }
 		    
 		  }

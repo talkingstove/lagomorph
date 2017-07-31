@@ -26,17 +26,24 @@ define(["Handlebars", "LBase", "viewUtils"], function(Handlebars, LBase, viewUti
 				/*
 				* get any necessary data and do anything else needed before rendering the view
 				*/
-				loadComponent: function(targetSelector, templateParams) {
+				loadComponent: function(targetSelector) {
+		// 			"dataSources": {
+		// 	"listItems": {
+		// 		"dataSource": "list_1_Items",
+		// 		"lazyLoad": true
+		// 	}
+		// }
 
-					this.renderView(targetSelector, templateParams);
+
+
+					this.renderView(targetSelector);
 				},
 
 				/*
 				*
 				*/
-				renderView: function(targetSelector, templateParams) {
-					templateParams = templateParams || {};
-					var html = this.compiledTemplate(templateParams);
+				renderView: function(targetSelector) {
+					var html = this.compiledTemplate(this.viewData);
 
 					viewUtils.renderDomElement(targetSelector, html);
 		    }		    
@@ -45,3 +52,9 @@ define(["Handlebars", "LBase", "viewUtils"], function(Handlebars, LBase, viewUti
 		return module;
 	});
 });
+
+
+
+
+
+
