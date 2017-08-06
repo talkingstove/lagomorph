@@ -14,9 +14,11 @@ define([
 					"viewUtils",
 					"ajaxRequester",
 					"agreementsTester",
-					"Connector"
+					"Connector",
+					"dataSourceLibrary",
+					"connectorLibrary"
 				], 
-function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, Connector ) {
+function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, Connector, dataSourceLibrary, connectorLibrary ) {
 
 	var framework = { //anything we want to expose on the window for the end user needs to be added here
 		scanner: scanner,
@@ -33,6 +35,8 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
     	L_List: L_List
     }, //todo: move to model
     componentInstanceLibrary: componentInstanceLibrary, //look up instances of components created on the current page/app
+    dataSourceLibrary: dataSourceLibrary,
+    connectorLibrary: connectorLibrary,
 
     /*
     * componentConfig = json to instantiate components, in lieu of or addition to that in the html itself
@@ -60,6 +64,15 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
   		}
 
   		this.componentInstanceLibrary.initializeComponentInstanceLibrary(); //model that holds all instances of created components for lookup
+
+  		//data source library
+  		this.dataSourceLibrary.initializeDataSourceLibrary( params.dataSources );
+
+  		//connector library
+  		this.connectorLibrary.initializeConnectorLibrary( params.connectors );
+
+
+  		//user template library
 
       this.scanner.scan();
   	},

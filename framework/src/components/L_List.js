@@ -36,19 +36,25 @@ define(["Handlebars", "underscore", "LModule", "viewUtils"], function(Handlebars
 		    *
 		    * data maps and data sources can both be extermalized in json; end user can pick a "grouping" for a ready-made set
 		    */
-		    dataSourceInstructions: {
-		    	//??????????
-		    },
+		    // dataSourceInstructions: {
+		    // 	//??????????
+		    // },
 
+		    processedData: { 
+		    	listItems: null
+	    	},
+
+	    	 //listItems maps to the data which is returned from the Connector
 		    template: `
-					  <ul data-data_source_name="listItems">
+					  <ul data-data_binding="listItems">
 					    I am a list
 					  </ul>
 					`,
 
+				//probably overridden	
 				childTemplate: `
 					  <li>
-					    {{childContents}} //default to a simple list of strings
+					    {{childContents}}
 					  </li>
 					`,
 
@@ -56,6 +62,14 @@ define(["Handlebars", "underscore", "LModule", "viewUtils"], function(Handlebars
 				* override to put children into contents
 				*/
 				renderView: function(targetSelector) {
+												//      		processedData: { 
+		   //  	listItems: null
+	    // 	},
+
+	    // ^^^^^ knows specifically what to do with listItems bc it's a list: use the child template
+	    //***** it just generically puts them into child template, which is up to you
+
+
 					var html = this.compiledTemplate(this.viewData);
 
 					viewUtils.renderDomElement(targetSelector, html);

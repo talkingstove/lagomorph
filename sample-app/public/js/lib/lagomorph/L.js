@@ -1287,34 +1287,124 @@ init:function(params){}};});return LBase;});define('viewUtils',["Handlebars"],fu
     */renderDomElement:function(containerSelector,html,renderType){renderType=renderType||'replace';switch(renderType){case'replace':if(_.isObject(containerSelector)){//jquery obj passed in
 containerSelector.html(html);}else{$(containerSelector).html(html);}break;}}};});define('LLibrary',["Fiber"],function(Fiber){var LLibrary=Fiber.extend(function(base){return{// The `init` method serves as the constructor.
 init:function(params){},storage:{},//all items here
-getItem:function(id){return this.storage[id]||null;},addItem:function(id,item,overwriteItem){overwriteItem=overwriteItem||false;if(!overwriteItem&&ComponentInstanceLibrary.getItem(id)){console.error('attempted to register dupe component without overwriteItem=true with id:',id);return;}else if(overwriteItem&&this.storage[id]&&this.storage[id].destroy){this.storage[id].destroy();}this.storage[id]=item;},deleteItem:function(id){if(!this.storage[id]){console.warn('attempted to delete non-existent item with id',id);return;}if(this.storage[id].destroy){this.storage[id].destroy();}delete this.storage[id];}};});return LLibrary;});define('componentInstanceLibrary',["LLibrary"],function(LLibrary){//makes the component library singleton avaible to the global window.L, or via require
-return{ComponentInstanceLibrary:null,initializeComponentInstanceLibrary:function(){if(this.ComponentInstanceLibrary!==null){console.warn('ComponentInstanceLibrary singleton already initialized');return;}ComponentInstanceLibrary=new LLibrary();},getLibrary:function(){return ComponentInstanceLibrary;},getComponentInstanceById:function(id){return this.getLibrary()?this.getLibrary().storage[id]:null;},registerComponent:function(component,overwriteInstance){var id=component.id;overwriteInstance=overwriteInstance||false;if(!id){console.error('attempted to register component without id!');return;}if(!overwriteInstance&&ComponentInstanceLibrary.getItem(id)){console.error('attempted to register dupe component with id:',id);return;}console.log('***registered component',component);this.getLibrary().addItem(id,component,overwriteInstance);}};});define('LModule',["Handlebars","LBase","viewUtils","componentInstanceLibrary"],function(Handlebars,LBase,viewUtils,componentInstanceLibrary){return LBase.extend(function(base){var module={self:this,Handlebars:Handlebars,dataConnectors:[],//specifies remote data source(s) and specific ways they should be loaded into this module 
-//maps a componentDataInputDefinition obj that is a prop of this class to a dataSource definition from the library --- creates a "connector" containing data map and instructions to render in the view
-// The `init` method serves as the constructor.
-init:function(params){base.init(params);var compViewData=params.viewParams;var compDataSources=params.dataSources||null;//TODO: add default attrs like unique id, class name etc
-var id=compViewData.id;var type=compViewData.type;var $parentSelector=compViewData.$parentSelector;if(!id){console.error('attempted to created component without id!');return;}if(!type){console.error('attempted to created component without type!');return;}this.id=id;this.type=type;this.$parentSelector=$parentSelector;this.dataSources=compDataSources;this.viewData=compViewData;componentInstanceLibrary.registerComponent(this);this.dataConnectors=params.dataConnectors||[];this.compiledTemplate=this.Handlebars.compile(this.template);//TODO: cache standard templates in a libary
-},//always the same for every instance
-componentDataInputDefinitions:{// 'photosList': {
-// 	//map of data structure this component needs to print eg a photolist
+getItem:function(id){return this.storage[id]||null;},addMultipleItems:function(itemsMap,overwriteItems){overwriteItems=overwriteItems||false;_.each(itemsMap,function(item,key){this.addItem(key,item,overwriteItems);},this);},addItem:function(id,item,overwriteItem){overwriteItem=overwriteItem||false;if(!overwriteItem&&ComponentInstanceLibrary.getItem(id)){console.error('attempted to register dupe component without overwriteItem=true with id:',id);return;}else if(overwriteItem&&this.storage[id]&&this.storage[id].destroy){this.storage[id].destroy();}this.storage[id]=item;},deleteItem:function(id){if(!this.storage[id]){console.warn('attempted to delete non-existent item with id',id);return;}if(this.storage[id].destroy){this.storage[id].destroy();}delete this.storage[id];}};});return LLibrary;});define('componentInstanceLibrary',["LLibrary"],function(LLibrary){//makes the component library singleton avaible to the global window.L, or via require
+return{ComponentInstanceLibrary:null,initializeComponentInstanceLibrary:function(){if(this.ComponentInstanceLibrary!==null){console.warn('ComponentInstanceLibrary singleton already initialized');return;}ComponentInstanceLibrary=new LLibrary();},getLibrary:function(){return ComponentInstanceLibrary;},getComponentInstanceById:function(id){return this.getLibrary()?this.getLibrary().storage[id]:null;},registerComponent:function(component,overwriteInstance){var id=component.id;overwriteInstance=overwriteInstance||false;if(!id){console.error('attempted to register component without id!');return;}if(!overwriteInstance&&ComponentInstanceLibrary.getItem(id)){console.error('attempted to register dupe component with id:',id);return;}console.log('***registered component',component);this.getLibrary().addItem(id,component,overwriteInstance);}};});define('dataSourceLibrary',["LLibrary"],function(LLibrary){//makes the singleton avaible to the global window.L, or via require
+return{DataSourceLibrary:null,initializeDataSourceLibrary:function(dataSources){dataSources=dataSources||null;if(this.DataSourceLibrary!==null){console.warn('DataSourceLibrary singleton already initialized');return;}DataSourceLibrary=new LLibrary();if(dataSources){DataSourceLibrary.addMultipleItems(dataSources,true);}},getLibrary:function(){return DataSourceLibrary;},getDataSourceByName:function(name){return this.getLibrary()?this.getLibrary().storage[name]:null;}};});define('ajaxRequester',["jquery","underscore","dataSourceLibrary"],function($,_,dataSourceLibrary){return{// makeAjaxBatchCalls: function(callOptionsArray) {
+// 	var allRequests = [];
+// 	for (var i=0; i<callOptionsArray.length; i++) {
+// 		allRequests.push( this.makeAjaxCall( callOptionsArray[i] )  );
+// 	}
+// 	// var firstRequest = $.ajax({...});
+// 	// var secondRequest = $.ajax({...});
+// 	Promise.all(allRequests).then(function(result) {
+// 	    debugger;
+// 	});
+// },
+// var  x = L.ajaxRequester.createAjaxCallPromise({url: 'https://httpbin.org/get'});
+//   $.when(x).done(function(value) {
+// 	    alert(value);
+// 	});
+createAjaxCallPromise:function(dataSourceName){//look up datasource from library and get options to create the promise
+var dataSourceDefinition=dataSourceLibrary.getDataSourceByName(dataSourceName);if(!dataSourceDefinition){console.error("Cannot make AJAX request; can't find datasource with name:",dataSourceName);return;}var options=dataSourceDefinition;var method=options.method||'GET';var url=options.url;var dataTypeReturned=options.dataTypeReturned||'json';var successHandler=options.successHandler||null;var afterSuccessCallback=options.afterSuccessCallback||null;var doneCallback=options.doneCallback||null;var errorHandler=options.errorHandler||$.noop;//N.defaultAjaxErrorHandler;
+var requestParams=options.requestParams||{};var jsonToHtmlHandlers=options.jsonToHtmlHandlers||null;//array of classes
+var dataAgreements=options.dataAgreements||null;var deferred=$.Deferred();$.ajax({type:method,url:url,dataType:dataTypeReturned,data:requestParams}).success(function(data){//if we have one or more agreements about what data was expected from the server,
+//check to see that they have been met
+// if (dataAgreements && dataAgreements.length) { 
+// 	var failedAgreements = [];
+// 	_.each(dataAgreements, function(dataAgreement) {
+// 		var agreementResult = N.Agreements.testAgreement(dataAgreement, data).doesAgreementPass;
+// 		if (!agreementResult) {
+// 			failedAgreements.push(dataAgreement.name);
+// 		}
+// 	});
+// 	if (failedAgreements.length) {
+// 		console.error('Agreements failed on JSON call!');
+// 		deferred.reject();
+// 		return;
+// 	}
+// 	else {
+// 		console.log('All agreements passed!');
+// 	}
 // }
+// if (successHandler) {
+// 	successHandler(data);
+// }
+// if (jsonToHtmlHandlers) {
+// 	for (var i=0; i<jsonToHtmlHandlers.length; i++) {
+// 		jsonToHtmlHandlers[i].execute(data);
+// 	}
+// }
+// if (afterSuccessCallback) {
+// 	afterSuccessCallback(data);
+// }
+deferred.resolve(data);}).error(function(){// errorHandler();
+deferred.reject();});return deferred.promise();}// $.when( $.ajax( "/page1.php" ), $.ajax( "/page2.php" ) )
+// .then( myFunc, myFailure );
+//   $.when(getData()).done(function(value) {
+//     alert(value);
+// });
+// getData().then(function(value) {
+// 	alert(value);
+// });
+/*****************
+		** SAMPLE:
+		* N.Ajax.makeAjaxCall({
+		*	type: 'GET',
+		* 	url: '/data/test-data.php?page=1',
+		* successHandler: function(data) { console.log(data) }	
+		* });
+		*******/};});define('connectorLibrary',["LLibrary"],function(LLibrary){//makes the singleton avaible to the global window.L, or via require
+return{ConnectorLibrary:null,initializeConnectorLibrary:function(connectors){connectors=connectors||null;if(this.ConnectorLibrary!==null){console.warn('ConnectorLibrary singleton already initialized');return;}ConnectorLibrary=new LLibrary();if(connectors){ConnectorLibrary.addMultipleItems(connectors,true);}},getLibrary:function(){return ConnectorLibrary;},getConnectorByName:function(name){return this.getLibrary()?this.getLibrary().storage[name]:null;}};});define('LModule',["Handlebars","LBase","viewUtils","componentInstanceLibrary","ajaxRequester","connectorLibrary"],function(Handlebars,LBase,viewUtils,componentInstanceLibrary,ajaxRequester,connectorLibrary){return LBase.extend(function(base){var module={self:this,Handlebars:Handlebars,dataConnectors:[],//specifies remote data source(s) and specific ways they should be loaded into this module 
+//maps a componentDataInputDefinition obj that is a prop of this class to a dataSource definition from the library --- creates a "connector" containing data map and instructions to render in the view
+//**** TODO: proper model with getters and setters
+//**** TODO: each one should be associated with passable render method
+processedData:{//after connector does its work, data is deposited here with predictible names for every instance of N component 
+},// The `init` method serves as the constructor.
+init:function(params){base.init(params);var compViewData=params.viewParams;var compDataContracts=params.dataContracts||null;//TODO: add default attrs like unique id, class name etc
+var id=compViewData.id;var type=compViewData.type;var $parentSelector=compViewData.$parentSelector;if(!id){console.error('attempted to created component without id!');return;}if(!type){console.error('attempted to created component without type!');return;}this.id=id;this.type=type;this.$parentSelector=$parentSelector;this.dataContracts=compDataContracts;this.viewData=compViewData;componentInstanceLibrary.registerComponent(this);// this.dataConnectors = params.dataConnectors || [];
+this.compiledTemplate=this.Handlebars.compile(this.template);//TODO: cache standard templates in a libary
 },//Handlebars template
 //overridable via the JSON config of any given instance of the component
 template:'\n\t\t\t\t\t  <div>\n\t\t\t\t\t    <span>Some HTML here</span>\n\t\t\t\t\t  </div>\n\t\t\t\t\t',compiledTemplate:null,/*
 				* entry point from scanner.js (or called directly)
 				* get any necessary data and do anything else needed before rendering the view to the DOM
-				*/loadComponent:function(targetSelector){// 			"dataSources": {
-// 	"listItems": { //name that the compoent knows about as a "hole" to put things in
-// 		"dataSource": "list_1_Items",
-// 		"lazyLoad": true
+				*/loadComponent:function(targetSelector){var self=this;/*
+					* Component instantiator gave us one or more data contracts
+					* We must fulfill them before we can render the view
+					* at the end, data will be added to this.processedData
+					* for view data, name will map to 1-N data-data_source_name's in html template
+					*/var allPromises=[];//if no promises it resolves immediately
+for(var i=0;i<this.dataContracts.length;i++){var thisContract=this.dataContracts[i];var promise=ajaxRequester.createAjaxCallPromise(thisContract.dataSource);allPromises.push(promise);}//use dataSourceInstructions.dataSourceName to get the info on the ajax call
+$.when.all(allPromises).then(function(schemas){console.log("DONE",this,schemas);// 'schemas' is now an array
+//untested assumption: when.all returns schemas in matching order
+for(var j=0;j<schemas.length;j++){var thisDataContract=self.dataContracts[j];var connector=connectorLibrary.getConnectorByName(thisDataContract.connector);//... look up connector from library, make transformation
+//... connector obj tells us where it goes, what to do
+// connector has a processedData name, it puts it there and then renderView takes over
+// 				     		connectors: {
+// 	"list1PhotoListConnector": {
+// 		"objectMap": {
+// 			"srcPath": "data.photos",
+// 			"destinationPath": "listItems", //goes to processedData with this name, then module renders it
+// 			"objectParams": {
+// 				"dataType": "array",
+// 				"eachChildDefinition": { //child of an array, defined relative to the object root
+// 					"dataType": "object",
+// 					"srcPath": null, //=root
+// 					"destinationPath": null
+// 				}
+// 			}
+// 		}
 // 	}
 // }
-if(this.dataConnectors.length){var allPromises=[];//use dataSourceInstructions.dataSourceName to get the info on the ajax call
-$.when.all(allPromises).then(function(schemas){console.log("DONE",this,schemas);// 'schemas' is now an array
-debugger;//when we have the data from the server and its valid, run it thro the connector and into the view
+}//when we have the data from the server and its valid, run it thro the connector and into the view
 //make data from ajax calls ready to be included in the view, then render it
-this.renderView(targetSelector);//self???
-},function(e){console.log("My ajax failed");});}else{this.renderView(targetSelector);}},// loadDataSource: function(instructions) {
-// },
+self.renderView(targetSelector);},function(e){console.log("My ajax failed");});},// dataContracts": [
+// 	{	
+// 		
+// 		"dataSource": "samplePhotoListInfo", //resuable, looks up from library, maybe used mutiple times
+// 		"connector": "list1PhotoListConnector" //resuable, looks up from library, maybe used mutiple times, but same dataSource could be connected to different 
+// 	}		
+// ]
 /*
 				*
 				*/renderView:function(targetSelector){var html=this.compiledTemplate(this.viewData);viewUtils.renderDomElement(targetSelector,html);},destroy:function(){if(this.$parentSelector){this.$parentSelector.html('');this.$parentSelector=null;//remove coupling to DOM
@@ -1345,44 +1435,19 @@ this.compiledTemplate=this.Handlebars.compile(this.template);},/*
 		    * in this case, "listItems" can be anything, it just needs data that matches up to the childTemplate
 		    *
 		    * data maps and data sources can both be extermalized in json; end user can pick a "grouping" for a ready-made set
-		    */dataSourceInstructions:{//??????????
-},template:'\n\t\t\t\t\t  <ul data-data_source_name="listItems">\n\t\t\t\t\t    I am a list\n\t\t\t\t\t  </ul>\n\t\t\t\t\t',childTemplate:'\n\t\t\t\t\t  <li>\n\t\t\t\t\t    {{childContents}} //default to a simple list of strings\n\t\t\t\t\t  </li>\n\t\t\t\t\t',/*
-				* override to put children into contents
-				*/renderView:function(targetSelector){var html=this.compiledTemplate(this.viewData);viewUtils.renderDomElement(targetSelector,html);}};});});define('ajaxRequester',["jquery","underscore"],function($,_){return{// makeAjaxBatchCalls: function(callOptionsArray) {
-// 	var allRequests = [];
-// 	for (var i=0; i<callOptionsArray.length; i++) {
-// 		allRequests.push( this.makeAjaxCall( callOptionsArray[i] )  );
-// 	}
-// 	// var firstRequest = $.ajax({...});
-// 	// var secondRequest = $.ajax({...});
-// 	Promise.all(allRequests).then(function(result) {
-// 	    debugger;
-// 	});
+		    */// dataSourceInstructions: {
+// 	//??????????
 // },
-// var  x = L.ajaxRequester.createAjaxCallPromise({url: 'https://httpbin.org/get'});
-//   $.when(x).done(function(value) {
-// 	    alert(value);
-// 	});
-createAjaxCallPromise:function(options){var type=options.type||'GET';var url=options.url;var dataTypeReturned=options.dataTypeReturned||'json';var successHandler=options.successHandler||null;var afterSuccessCallback=options.afterSuccessCallback||null;var doneCallback=options.doneCallback||null;var errorHandler=options.errorHandler||$.noop;//N.defaultAjaxErrorHandler;
-var requestParams=options.requestParams||{};var jsonToHtmlHandlers=options.jsonToHtmlHandlers||null;//array of classes
-var dataAgreements=options.dataAgreements||null;var deferred=$.Deferred();$.ajax({type:type,url:url,dataType:dataTypeReturned,data:requestParams}).success(function(data){//if we have one or more agreements about what data was expected from the server,
-//check to see that they have been met
-if(dataAgreements&&dataAgreements.length){var failedAgreements=[];_.each(dataAgreements,function(dataAgreement){var agreementResult=N.Agreements.testAgreement(dataAgreement,data).doesAgreementPass;if(!agreementResult){failedAgreements.push(dataAgreement.name);}});if(failedAgreements.length){console.error('Agreements failed on JSON call!');deferred.reject();return;}else{console.log('All agreements passed!');}}if(successHandler){successHandler(data);}if(jsonToHtmlHandlers){for(var i=0;i<jsonToHtmlHandlers.length;i++){jsonToHtmlHandlers[i].execute(data);}}if(afterSuccessCallback){afterSuccessCallback(data);}deferred.resolve(data);}).error(function(){errorHandler();deferred.reject();});return deferred.promise();}// $.when( $.ajax( "/page1.php" ), $.ajax( "/page2.php" ) )
-// .then( myFunc, myFailure );
-//   $.when(getData()).done(function(value) {
-//     alert(value);
-// });
-// getData().then(function(value) {
-// 	alert(value);
-// });
-/*****************
-		** SAMPLE:
-		* N.Ajax.makeAjaxCall({
-		*	type: 'GET',
-		* 	url: '/data/test-data.php?page=1',
-		* successHandler: function(data) { console.log(data) }	
-		* });
-		*******/};});define('agreementsTester',["underscore"],function(_){return{testAgreement:function(agreement,ajaxResult){var failureMessages=[];//see if the main data object is where and what it should be
+processedData:{listItems:null},//listItems maps to the data which is returned from the Connector
+template:'\n\t\t\t\t\t  <ul data-data_binding="listItems">\n\t\t\t\t\t    I am a list\n\t\t\t\t\t  </ul>\n\t\t\t\t\t',//probably overridden	
+childTemplate:'\n\t\t\t\t\t  <li>\n\t\t\t\t\t    {{childContents}}\n\t\t\t\t\t  </li>\n\t\t\t\t\t',/*
+				* override to put children into contents
+				*/renderView:function(targetSelector){//      		processedData: { 
+//  	listItems: null
+// 	},
+// ^^^^^ knows specifically what to do with listItems bc it's a list: use the child template
+//***** it just generically puts them into child template, which is up to you
+var html=this.compiledTemplate(this.viewData);viewUtils.renderDomElement(targetSelector,html);}};});});define('agreementsTester',["underscore"],function(_){return{testAgreement:function(agreement,ajaxResult){var failureMessages=[];//see if the main data object is where and what it should be
 var rootObject=this.findObjectAttributeByName(ajaxResult,agreement.objectRoot.path);var isRootObjectCorrectType=this.testDataType(rootObject,agreement.objectRoot.dataType);if(_.isUndefined(rootObject)||!isRootObjectCorrectType){failureMessages.push('Root object not found at path'+agreement.objectRoot.path+'or wrong data type');return{doesAgreementPass:!failureMessages.length,failureMessages:failureMessages};}if(agreement.objectRoot.dataType==='array'||agreement.objectRoot.dataType==='object'){var i=0;_.each(rootObject,function(rootObjectItem){//test each one of the data set
 testObjectStructure(rootObjectItem,agreement.objectRoot.dataItemStructure,i);i++;});}//TODO: is else case even necessary???
 console.log('failures:',failureMessages);return{doesAgreementPass:!failureMessages.length,failureMessages:failureMessages//subfunction - called recursively if object
@@ -1390,15 +1455,22 @@ console.log('failures:',failureMessages);return{doesAgreementPass:!failureMessag
 };function testObjectStructure(objectToTest,structureToMatch,indexOfItemTested){_.each(structureToMatch,function(dataTypeToMatchOrSubobject,name){if(_.isObject(dataTypeToMatchOrSubobject)){//an actual object, not the name of a data type like others!
 if(!objectToTest[name]){//check if subobject exists
 failureMessages.push('Bad structure: cant find subobject '+name);return;}testObjectStructure(objectToTest[name],dataTypeToMatchOrSubobject,indexOfItemTested);//will this work on nested objs? maybe
-}else{var result=this.testDataType(objectToTest[name],dataTypeToMatchOrSubobject);if(!result){failureMessages.push('Bad structure: '+objectToTest[name]+' was expected to be: '+dataTypeToMatchOrSubobject+' in tested item '+indexOfItemTested);}}});}},testDataType:function(dataToTest,dataTypeToMatch){switch(dataTypeToMatch){case'string':return _.isString(dataToTest);break;case'array':return _.isArray(dataToTest);break;case'object':return _.isObject(dataToTest);break;case'number':return _.isNumber(dataToTest);break;case'boolean':return _.isBoolean(dataToTest);break;}},findObjectAttributeByName:function(objToParse,nameString){var nameArray=nameString.split('.');var currentObject=objToParse;for(var i=0;i<nameArray.length;i++){if(typeof currentObject[nameArray[i]]=='undefined'){currentObject=null;break;}else{currentObject=currentObject[nameArray[i]];}}return currentObject;}};});define('Connector',["Handlebars","LBase","viewUtils","componentInstanceLibrary"],function(Handlebars,LBase,viewUtils,componentInstanceLibrary){return LBase.extend(function(base){return{// The `init` method serves as the constructor.
-init:function(params){}};});});define('lagomorph',["jquery","underscore","Handlebars","Fiber","dexie","bluebird","himalaya","LBase","LModule","scanner","L_List","componentInstanceLibrary","viewUtils","ajaxRequester","agreementsTester","Connector"],function($,_,Handlebars,Fiber,dexie,bluebird,himalaya,LBase,LModule,scanner,L_List,componentInstanceLibrary,viewUtils,ajaxRequester,agreementsTester,Connector){var framework={//anything we want to expose on the window for the end user needs to be added here
+}else{var result=this.testDataType(objectToTest[name],dataTypeToMatchOrSubobject);if(!result){failureMessages.push('Bad structure: '+objectToTest[name]+' was expected to be: '+dataTypeToMatchOrSubobject+' in tested item '+indexOfItemTested);}}});}},testDataType:function(dataToTest,dataTypeToMatch){switch(dataTypeToMatch){case'string':return _.isString(dataToTest);break;case'array':return _.isArray(dataToTest);break;case'object':return _.isObject(dataToTest);break;case'number':return _.isNumber(dataToTest);break;case'boolean':return _.isBoolean(dataToTest);break;}},findObjectAttributeByName:function(objToParse,nameString){var nameArray=nameString.split('.');var currentObject=objToParse;for(var i=0;i<nameArray.length;i++){if(typeof currentObject[nameArray[i]]=='undefined'){currentObject=null;break;}else{currentObject=currentObject[nameArray[i]];}}return currentObject;}};});define('Connector',["Handlebars","LBase","viewUtils","componentInstanceLibrary"],function(Handlebars,LBase,viewUtils,componentInstanceLibrary){return LBase.extend(function(base){return{serverDataStructure:null,//as json
+componentDataStructure:null,//as json
+targetInView:null,//string
+// The `init` method serves as the constructor.
+init:function(params){if(!params.serverDataStructure){console.error('Connector requires serverDataStructure');}if(!params.componentDataStructure){console.error('Connector requires componentDataStructure');}this.serverDataStructure=params.serverDataStructure;this.componentDataStructure=params.componentDataStructure;},/*
+		    * an ajax call, etc has just returned
+		    * using the JSON maps that were instantiated when the class was created,
+		    * transform the data into the structure needed by the component and return it for UI use
+		    */trasformServerDataForComponent:function(serverData){}};});});define('lagomorph',["jquery","underscore","Handlebars","Fiber","dexie","bluebird","himalaya","LBase","LModule","scanner","L_List","componentInstanceLibrary","viewUtils","ajaxRequester","agreementsTester","Connector","dataSourceLibrary","connectorLibrary"],function($,_,Handlebars,Fiber,dexie,bluebird,himalaya,LBase,LModule,scanner,L_List,componentInstanceLibrary,viewUtils,ajaxRequester,agreementsTester,Connector,dataSourceLibrary,connectorLibrary){var framework={//anything we want to expose on the window for the end user needs to be added here
 scanner:scanner,ajaxRequester:ajaxRequester,LBase:LBase,LModule:LModule,dexie:dexie,//api for indexedDB local storage DB -> http://dexie.org/docs/ 
 bluebird:bluebird,//promise library -> http://bluebirdjs.com/
 himalaya:himalaya,//html to json parser -> https://github.com/andrejewski/himalaya
 $:$,_:_,Handlebars:Handlebars,componentDefinitions:{//all available component classes that come standard with the framework
 L_List:L_List},//todo: move to model
 componentInstanceLibrary:componentInstanceLibrary,//look up instances of components created on the current page/app
-/*
+dataSourceLibrary:dataSourceLibrary,connectorLibrary:connectorLibrary,/*
     * componentConfig = json to instantiate components, in lieu of or addition to that in the html itself
     * dataSources = json config of endpoints, including data contracts of what to expect from the server
     * these could literally be generated into json from an api doc!
@@ -1410,6 +1482,9 @@ componentInstanceLibrary:componentInstanceLibrary,//look up instances of compone
     * i18nDataSource = user-passed internationalization data for use in a "noneolith"
     *
     **/start:function(params){params=params||{};if(!params.componentConfig){console.log('Lagomorph started with no component config');}if(!params.dataSources){console.log('Lagomorph started with no dataSources config');}if(!params.i18nDataSource){console.log('Lagomorph started with no i18nDataSource config');}this.componentInstanceLibrary.initializeComponentInstanceLibrary();//model that holds all instances of created components for lookup
+//data source library
+this.dataSourceLibrary.initializeDataSourceLibrary(params.dataSources);//connector library
+this.connectorLibrary.initializeConnectorLibrary(params.connectors);//user template library
 this.scanner.scan();},createApp:function(){//initiate a full single-page app with router, etc if desired
 }};if($.when.all===undefined){$.when.all=function(deferreds){var deferred=new $.Deferred();$.when.apply($,deferreds).then(function(){deferred.resolve(Array.prototype.slice.call(arguments));},function(){deferred.fail(Array.prototype.slice.call(arguments));});return deferred;};}if(window){window.L=framework;//expose global so require.js is not needed by end user
 }return framework;});//The modules for your project will be inlined above

@@ -1,4 +1,4 @@
-define(["jquery", "underscore"], function($, _) {
+define(["jquery", "underscore", "dataSourceLibrary"], function($, _, dataSourceLibrary) {
 
 	return {
 
@@ -23,8 +23,18 @@ define(["jquery", "underscore"], function($, _) {
 		// 	    alert(value);
 		// 	});
 
-    createAjaxCallPromise: function(options) {
-			var type = options.type || 'GET';
+    createAjaxCallPromise: function(dataSourceName) {
+    	//look up datasource from library and get options to create the promise
+    	var dataSourceDefinition = dataSourceLibrary.getDataSourceByName(dataSourceName);
+
+    	if (!dataSourceDefinition) {
+    		console.error("Cannot make AJAX request; can't find datasource with name:", dataSourceName);
+    		return;
+    	}
+
+    	var options = dataSourceDefinition;
+
+			var method = options.method || 'GET';
 			var url = options.url;
 			var dataTypeReturned = options.dataTypeReturned || 'json';
 			var successHandler = options.successHandler || null;
@@ -38,7 +48,7 @@ define(["jquery", "underscore"], function($, _) {
 			var deferred = $.Deferred();
 
 			$.ajax({
-				type: type,
+				type: method,
 				url: url,
 				dataType: dataTypeReturned,
 				data: requestParams
@@ -46,45 +56,45 @@ define(["jquery", "underscore"], function($, _) {
 			.success(function(data) {
 				//if we have one or more agreements about what data was expected from the server,
 				//check to see that they have been met
-				if (dataAgreements && dataAgreements.length) { 
-					var failedAgreements = [];
+				// if (dataAgreements && dataAgreements.length) { 
+				// 	var failedAgreements = [];
 
-					_.each(dataAgreements, function(dataAgreement) {
-						var agreementResult = N.Agreements.testAgreement(dataAgreement, data).doesAgreementPass;
+				// 	_.each(dataAgreements, function(dataAgreement) {
+				// 		var agreementResult = N.Agreements.testAgreement(dataAgreement, data).doesAgreementPass;
 
-						if (!agreementResult) {
-							failedAgreements.push(dataAgreement.name);
-						}
-					});
+				// 		if (!agreementResult) {
+				// 			failedAgreements.push(dataAgreement.name);
+				// 		}
+				// 	});
 
-					if (failedAgreements.length) {
-						console.error('Agreements failed on JSON call!');
-						deferred.reject();
-						return;
-					}
-					else {
-						console.log('All agreements passed!');
-					}
-				}
+				// 	if (failedAgreements.length) {
+				// 		console.error('Agreements failed on JSON call!');
+				// 		deferred.reject();
+				// 		return;
+				// 	}
+				// 	else {
+				// 		console.log('All agreements passed!');
+				// 	}
+				// }
 
-				if (successHandler) {
-					successHandler(data);
-				}
+				// if (successHandler) {
+				// 	successHandler(data);
+				// }
 
-				if (jsonToHtmlHandlers) {
-					for (var i=0; i<jsonToHtmlHandlers.length; i++) {
-						jsonToHtmlHandlers[i].execute(data);
-					}
-				}
+				// if (jsonToHtmlHandlers) {
+				// 	for (var i=0; i<jsonToHtmlHandlers.length; i++) {
+				// 		jsonToHtmlHandlers[i].execute(data);
+				// 	}
+				// }
 
-				if (afterSuccessCallback) {
-					afterSuccessCallback(data);
-				}
+				// if (afterSuccessCallback) {
+				// 	afterSuccessCallback(data);
+				// }
 
 				deferred.resolve(data);
 			})
 			.error(function() {
-				errorHandler();
+				// errorHandler();
 				deferred.reject();
 			});
 

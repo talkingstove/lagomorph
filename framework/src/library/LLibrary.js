@@ -13,6 +13,14 @@ define(["Fiber"], function(Fiber) {
 		    	return this.storage[id] || null;
 		    },
 
+		    addMultipleItems: function(itemsMap, overwriteItems) {
+		    	overwriteItems = overwriteItems || false;
+
+		    	_.each(itemsMap, function(item, key) {
+		    		this.addItem(key, item, overwriteItems);
+		    	}, this);
+		    },
+
 		    addItem: function(id, item, overwriteItem) {
 		    	overwriteItem = overwriteItem || false;
 

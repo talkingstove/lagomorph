@@ -34,10 +34,12 @@ require.config({
     'bluebird': 'lib/bluebird',
     'viewUtils': 'src/utils/viewUtils',
     'componentInstanceLibrary': 'src/componentInstanceLibrary',
+    'dataSourceLibrary': 'src/dataSourceLibrary',
     'LLibrary': 'src/library/LLibrary',
     'ajaxRequester': 'src/ajax/ajaxRequester',
     'agreementsTester': 'src/ajax/agreements/agreementsTester',
-    'Connector': 'src/ajax/connector/Connector'
+    'Connector': 'src/ajax/connector/Connector',
+    'connectorLibrary': 'src/connectorLibrary'
   },
 
   // we have to kickoff jasmine, as it is asynchronous
