@@ -11,9 +11,10 @@ define([
 					"scanner", 
 					"L_List", 
 					"componentInstanceLibrary",
-					"viewUtils"
+					"viewUtils",
+					"agreementsTester"
 				], 
-function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils ) {
+function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, agreementsTester ) {
 
 	var framework = { //anything we want to expose on the window for the end user needs to be added here
 		scanner: scanner,

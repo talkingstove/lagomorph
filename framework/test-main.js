@@ -35,6 +35,7 @@ require.config({
     'viewUtils': 'src/utils/viewUtils',
     'componentInstanceLibrary': 'src/componentInstanceLibrary',
     'LLibrary': 'src/library/LLibrary',
+    'agreementsTester': 'src/ajax/agreements/agreementsTester'
   },
 
   // we have to kickoff jasmine, as it is asynchronous

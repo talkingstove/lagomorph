@@ -1290,20 +1290,22 @@ var id=compViewData.id;var type=compViewData.type;var $parentSelector=compViewDa
 }}};});return LBase;});define('viewUtils',["Handlebars"],function(Handlebars){return{/*
     * abstracted from jQuery in case we ever want to remove it or even use React, etc
     */renderDomElement:function(containerSelector,html,renderType){renderType=renderType||'replace';switch(renderType){case'replace':if(_.isObject(containerSelector)){//jquery obj passed in
-containerSelector.html(html);}else{$(containerSelector).html(html);}break;}}};});define('LModule',["Handlebars","LBase","viewUtils"],function(Handlebars,LBase,viewUtils){return LBase.extend(function(base){var module={self:this,Handlebars:Handlebars,// The `init` method serves as the constructor.
-init:function(params){// Insert private functions here
-base.init(params);this.compiledTemplate=this.Handlebars.compile(this.template);//TODO: cache standard templates in a libary
+containerSelector.html(html);}else{$(containerSelector).html(html);}break;}}};});define('LModule',["Handlebars","LBase","viewUtils"],function(Handlebars,LBase,viewUtils){return LBase.extend(function(base){var module={self:this,Handlebars:Handlebars,dataSourceInstructions:[],//specifies data source(s) and specific ways they should be loaded into this module
+// The `init` method serves as the constructor.
+init:function(params){base.init(params);this.dataSourceInstructions=params.dataSourceInstructions||[];this.compiledTemplate=this.Handlebars.compile(this.template);//TODO: cache standard templates in a libary
 },//Handlebars template
 //overridable via the JSON config of any given instance of the component
 template:'\n\t\t\t\t\t  <div>\n\t\t\t\t\t    <span>Some HTML here</span>\n\t\t\t\t\t  </div>\n\t\t\t\t\t',compiledTemplate:null,/*
-				* get any necessary data and do anything else needed before rendering the view
+				* entry point from scanner.js (or called directly)
+				* get any necessary data and do anything else needed before rendering the view to the DOM
 				*/loadComponent:function(targetSelector){// 			"dataSources": {
 // 	"listItems": { //name that the compoent knows about as a "hole" to put things in
 // 		"dataSource": "list_1_Items",
 // 		"lazyLoad": true
 // 	}
 // }
-this.renderView(targetSelector);},/*
+if(this.dataSourceInstructions.length){//promise to load all data sources and render view only when finished
+for(var i=0;i<this.dataSourceInstructions.length;i++){this.loadDataSource(this.dataSourceInstructions[i]);}}else{this.renderView(targetSelector);}},loadDataSource:function(instructions){},/*
 				*
 				*/renderView:function(targetSelector){var html=this.compiledTemplate(this.viewData);viewUtils.renderDomElement(targetSelector,html);}};return module;});});define('scanner',["componentInstanceLibrary"],function(componentInstanceLibrary){return{scan:function(){console.log('SCANNING...');//find Lagomorph blocks that may contain components
 var $blocks=$('.lagomorph-block');_.each($blocks,function(block){var $block=$(block);var $components=$block.find('[data-lagomorph-component], [data-lc]');_.each($components,function(component){var $component=$(component);//definition must provide at minimum a type and id in the json
@@ -1335,7 +1337,15 @@ this.compiledTemplate=this.Handlebars.compile(this.template);},/*
 		    */dataSourceInstructions:{//??????????
 },template:'\n\t\t\t\t\t  <ul data-data_source_name="listItems">\n\t\t\t\t\t    I am a list\n\t\t\t\t\t  </ul>\n\t\t\t\t\t',childTemplate:'\n\t\t\t\t\t  <li>\n\t\t\t\t\t    {{childContents}} //default to a simple list of strings\n\t\t\t\t\t  </li>\n\t\t\t\t\t',/*
 				* override to put children into contents
-				*/renderView:function(targetSelector){var html=this.compiledTemplate(this.viewData);viewUtils.renderDomElement(targetSelector,html);}};});});define('lagomorph',["jquery","underscore","Handlebars","Fiber","dexie","bluebird","himalaya","LBase","LModule","scanner","L_List","componentInstanceLibrary","viewUtils"],function($,_,Handlebars,Fiber,dexie,bluebird,himalaya,LBase,LModule,scanner,L_List,componentInstanceLibrary,viewUtils){var framework={//anything we want to expose on the window for the end user needs to be added here
+				*/renderView:function(targetSelector){var html=this.compiledTemplate(this.viewData);viewUtils.renderDomElement(targetSelector,html);}};});});define('agreementsTester',["underscore"],function(_){return{testAgreement:function(agreement,ajaxResult){var failureMessages=[];//see if the main data object is where and what it should be
+var rootObject=this.findObjectAttributeByName(ajaxResult,agreement.objectRoot.path);var isRootObjectCorrectType=this.testDataType(rootObject,agreement.objectRoot.dataType);if(_.isUndefined(rootObject)||!isRootObjectCorrectType){failureMessages.push('Root object not found at path'+agreement.objectRoot.path+'or wrong data type');return{doesAgreementPass:!failureMessages.length,failureMessages:failureMessages};}if(agreement.objectRoot.dataType==='array'||agreement.objectRoot.dataType==='object'){var i=0;_.each(rootObject,function(rootObjectItem){//test each one of the data set
+testObjectStructure(rootObjectItem,agreement.objectRoot.dataItemStructure,i);i++;});}//TODO: is else case even necessary???
+console.log('failures:',failureMessages);return{doesAgreementPass:!failureMessages.length,failureMessages:failureMessages//subfunction - called recursively if object
+//TODO: test inside of arrays using mock-sub-objects
+};function testObjectStructure(objectToTest,structureToMatch,indexOfItemTested){_.each(structureToMatch,function(dataTypeToMatchOrSubobject,name){if(_.isObject(dataTypeToMatchOrSubobject)){//an actual object, not the name of a data type like others!
+if(!objectToTest[name]){//check if subobject exists
+failureMessages.push('Bad structure: cant find subobject '+name);return;}testObjectStructure(objectToTest[name],dataTypeToMatchOrSubobject,indexOfItemTested);//will this work on nested objs? maybe
+}else{var result=this.testDataType(objectToTest[name],dataTypeToMatchOrSubobject);if(!result){failureMessages.push('Bad structure: '+objectToTest[name]+' was expected to be: '+dataTypeToMatchOrSubobject+' in tested item '+indexOfItemTested);}}});}},testDataType:function(dataToTest,dataTypeToMatch){switch(dataTypeToMatch){case'string':return _.isString(dataToTest);break;case'array':return _.isArray(dataToTest);break;case'object':return _.isObject(dataToTest);break;case'number':return _.isNumber(dataToTest);break;case'boolean':return _.isBoolean(dataToTest);break;}},findObjectAttributeByName:function(objToParse,nameString){var nameArray=nameString.split('.');var currentObject=objToParse;for(var i=0;i<nameArray.length;i++){if(typeof currentObject[nameArray[i]]=='undefined'){currentObject=null;break;}else{currentObject=currentObject[nameArray[i]];}}return currentObject;}};});define('lagomorph',["jquery","underscore","Handlebars","Fiber","dexie","bluebird","himalaya","LBase","LModule","scanner","L_List","componentInstanceLibrary","viewUtils","agreementsTester"],function($,_,Handlebars,Fiber,dexie,bluebird,himalaya,LBase,LModule,scanner,L_List,componentInstanceLibrary,viewUtils,agreementsTester){var framework={//anything we want to expose on the window for the end user needs to be added here
 scanner:scanner,LBase:LBase,LModule:LModule,dexie:dexie,//api for indexedDB local storage DB -> http://dexie.org/docs/ 
 bluebird:bluebird,//promise library -> http://bluebirdjs.com/
 himalaya:himalaya,//html to json parser -> https://github.com/andrejewski/himalaya

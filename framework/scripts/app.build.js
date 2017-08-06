@@ -18,6 +18,7 @@
         'himalaya': '../lib/himalaya',
         'L_List': '../src/components/L_List',
         'LLibrary': '../src/library/LLibrary',
-        'viewUtils': '../src/utils/viewUtils'
+        'viewUtils': '../src/utils/viewUtils',
+        'agreementsTester': '../src/ajax/agreements/agreementsTester'
   	}
 })
