@@ -30,8 +30,31 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
     }, //todo: move to model
     componentInstanceLibrary: componentInstanceLibrary, //look up instances of components created on the current page/app
 
-  	start: function() {
-  		this.componentInstanceLibrary.initializeComponentInstanceLibrary();
+    /*
+    * componentConfig = json to instantiate components, in lieu of or addition to that in the html itself
+    * dataSources = json config of endpoints, including data contracts of what to expect from the server
+    * data from dataSources may be further transformed from the expected server return by a map on the individual componentConfig
+    * thus, one endpoint can be used by different components with varying data structures
+    *
+    * userComponents = custom Lagomorph component classes created by end user (??)
+    * i18nDataSource = user-passed internationalization data for use in a "noneolith"
+    *
+    **/
+  	start: function(params) {
+  		params = params || {};
+
+  		if (!params.componentConfig) {
+  			console.log('Lagomorph started with no component config');
+  		}
+  		if (!params.dataSources) {
+  			console.log('Lagomorph started with no dataSources config');
+  		}
+  		if (!params.i18nDataSource) {
+  			console.log('Lagomorph started with no i18nDataSource config');
+  		}
+
+  		this.componentInstanceLibrary.initializeComponentInstanceLibrary(); //model that holds all instances of created components for lookup
+
       this.scanner.scan();
   	},
 

@@ -28,7 +28,7 @@ define(["Handlebars", "LBase", "viewUtils"], function(Handlebars, LBase, viewUti
 				*/
 				loadComponent: function(targetSelector) {
 		// 			"dataSources": {
-		// 	"listItems": {
+		// 	"listItems": { //name that the compoent knows about as a "hole" to put things in
 		// 		"dataSource": "list_1_Items",
 		// 		"lazyLoad": true
 		// 	}

@@ -1298,7 +1298,7 @@ base.init(params);this.compiledTemplate=this.Handlebars.compile(this.template);/
 template:'\n\t\t\t\t\t  <div>\n\t\t\t\t\t    <span>Some HTML here</span>\n\t\t\t\t\t  </div>\n\t\t\t\t\t',compiledTemplate:null,/*
 				* get any necessary data and do anything else needed before rendering the view
 				*/loadComponent:function(targetSelector){// 			"dataSources": {
-// 	"listItems": {
+// 	"listItems": { //name that the compoent knows about as a "hole" to put things in
 // 		"dataSource": "list_1_Items",
 // 		"lazyLoad": true
 // 	}
@@ -1314,14 +1314,26 @@ compViewData.$parentSelector=$component;//todo: bad name -- componentWrapper
 var moduleInstance=new moduleClass(compData);//todo: add module instance to global library for easy lookup (get by id, search data for, etc)
 moduleInstance.loadComponent($component);//todo: pre-render in case data is needed from server
 },this);},this);}};});define('L_List',["Handlebars","underscore","LModule","viewUtils"],function(Handlebars,_,LModule,viewUtils){return LModule.extend(function(base){return{// The `init` method serves as the constructor.
-init:function(params){params=params||{};base.init(params);// Insert private functions here
-console.log('L-List Module with params:',params);if(params.template){//override template per instance when desired!
+init:function(params){params=params||{};base.init(params);if(params.template){//override template per instance when desired!
 this.template=params.template;}if(params.childTemplate){//override template per instance when desired!
 this.childTemplate=params.childTemplate;}//give it its own template not that of the superclass!!
-this.compiledTemplate=this.Handlebars.compile(this.template);},//Handlebars template
-//overridable via the JSON config of any given instance of the component
-//usage: this.renderView('h1', {contents: 'yo'});
-template:'\n\t\t\t\t\t  <ul>\n\t\t\t\t\t    I am a list\n\t\t\t\t\t  </ul>\n\t\t\t\t\t',childTemplate:'\n\t\t\t\t\t  <li>\n\t\t\t\t\t    {{childContents}}\n\t\t\t\t\t  </li>\n\t\t\t\t\t',/*
+this.compiledTemplate=this.Handlebars.compile(this.template);},/*
+		    * the datasource instructions in the json tell us about an endpoint and
+		    * the contract so we know what to expect from the backend
+		    *
+		    * the instructions on the module tell us how to put that expected data into a useful stucture for this component
+		    * and then render it
+		    *
+		    * a middleware component like "activeUser" sets its expectations here so it can be stacked onto others
+		    * the user needs to pass in their own activeUser endpoint which includes maps to activeUser component props
+		    * eg new ActiveUserModule(activeUserEndpoint, map{fn: firstname})
+		    * ^^^^ ActiveUserModule needs to provide the template for the map so it can tell us what it needs
+		    *
+		    * in this case, "listItems" can be anything, it just needs data that matches up to the childTemplate
+		    *
+		    * data maps and data sources can both be extermalized in json; end user can pick a "grouping" for a ready-made set
+		    */dataSourceInstructions:{//??????????
+},template:'\n\t\t\t\t\t  <ul data-data_source_name="listItems">\n\t\t\t\t\t    I am a list\n\t\t\t\t\t  </ul>\n\t\t\t\t\t',childTemplate:'\n\t\t\t\t\t  <li>\n\t\t\t\t\t    {{childContents}} //default to a simple list of strings\n\t\t\t\t\t  </li>\n\t\t\t\t\t',/*
 				* override to put children into contents
 				*/renderView:function(targetSelector){var html=this.compiledTemplate(this.viewData);viewUtils.renderDomElement(targetSelector,html);}};});});define('lagomorph',["jquery","underscore","Handlebars","Fiber","dexie","bluebird","himalaya","LBase","LModule","scanner","L_List","componentInstanceLibrary","viewUtils"],function($,_,Handlebars,Fiber,dexie,bluebird,himalaya,LBase,LModule,scanner,L_List,componentInstanceLibrary,viewUtils){var framework={//anything we want to expose on the window for the end user needs to be added here
 scanner:scanner,LBase:LBase,LModule:LModule,dexie:dexie,//api for indexedDB local storage DB -> http://dexie.org/docs/ 
@@ -1330,7 +1342,17 @@ himalaya:himalaya,//html to json parser -> https://github.com/andrejewski/himala
 $:$,_:_,Handlebars:Handlebars,componentDefinitions:{//all available component classes that come standard with the framework
 L_List:L_List},//todo: move to model
 componentInstanceLibrary:componentInstanceLibrary,//look up instances of components created on the current page/app
-start:function(){this.componentInstanceLibrary.initializeComponentInstanceLibrary();this.scanner.scan();},createApp:function(){//initiate a full single-page app with router, etc if desired
+/*
+    * componentConfig = json to instantiate components, in lieu of or addition to that in the html itself
+    * dataSources = json config of endpoints, including data contracts of what to expect from the server
+    * data from dataSources may be further transformed from the expected server return by a map on the individual componentConfig
+    * thus, one endpoint can be used by different components with varying data structures
+    *
+    * userComponents = custom Lagomorph component classes created by end user (??)
+    * i18nDataSource = user-passed internationalization data for use in a "noneolith"
+    *
+    **/start:function(params){params=params||{};if(!params.componentConfig){console.log('Lagomorph started with no component config');}if(!params.dataSources){console.log('Lagomorph started with no dataSources config');}if(!params.i18nDataSource){console.log('Lagomorph started with no i18nDataSource config');}this.componentInstanceLibrary.initializeComponentInstanceLibrary();//model that holds all instances of created components for lookup
+this.scanner.scan();},createApp:function(){//initiate a full single-page app with router, etc if desired
 }};if(window){window.L=framework;//expose global so require.js is not needed by end user
 }return framework;});//The modules for your project will be inlined above
 //this snippet. Ask almond to synchronously require the
