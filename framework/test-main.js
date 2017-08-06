@@ -36,7 +36,8 @@ require.config({
     'componentInstanceLibrary': 'src/componentInstanceLibrary',
     'LLibrary': 'src/library/LLibrary',
     'ajaxRequester': 'src/ajax/ajaxRequester',
-    'agreementsTester': 'src/ajax/agreements/agreementsTester'
+    'agreementsTester': 'src/ajax/agreements/agreementsTester',
+    'Connector': 'src/ajax/connector/Connector'
   },
 
   // we have to kickoff jasmine, as it is asynchronous

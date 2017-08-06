@@ -20,6 +20,7 @@
         'LLibrary': '../src/library/LLibrary',
         'viewUtils': '../src/utils/viewUtils',
         'ajaxRequester': '../src/ajax/ajaxRequester',
-        'agreementsTester': '../src/ajax/agreements/agreementsTester'
+        'agreementsTester': '../src/ajax/agreements/agreementsTester',
+        'Connector': '../src/ajax/connector/Connector'
   	}
 })
