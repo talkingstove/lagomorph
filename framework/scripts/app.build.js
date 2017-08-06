@@ -19,6 +19,7 @@
         'L_List': '../src/components/L_List',
         'LLibrary': '../src/library/LLibrary',
         'viewUtils': '../src/utils/viewUtils',
+        'ajaxRequester': '../src/ajax/ajaxRequester',
         'agreementsTester': '../src/ajax/agreements/agreementsTester'
   	}
 })

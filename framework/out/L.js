@@ -1279,20 +1279,24 @@ var words=[];// "key", "key=value", "key='value'", etc
 var len=str.length;while(cursor<len){var char=str.charAt(cursor);if(quote){var isQuoteEnd=char===quote;if(isQuoteEnd){quote=null;}cursor++;continue;}var isTagEnd=char==='/'||char==='>';if(isTagEnd){if(cursor!==wordBegin){words.push(str.slice(wordBegin,cursor));}break;}var isWordEnd=isWhitespaceChar(char);if(isWordEnd){if(cursor!==wordBegin){words.push(str.slice(wordBegin,cursor));}wordBegin=cursor+1;cursor++;continue;}var isQuoteStart=char==='\''||char==='"';if(isQuoteStart){quote=char;cursor++;continue;}cursor++;}state.cursor=cursor;var wLen=words.length;var type='attribute';for(var i=0;i<wLen;i++){var word=words[i];if(!(word&&word.length))continue;var isNotPair=word.indexOf('=')===-1;if(isNotPair){var secondWord=words[i+1];if(secondWord&&(0,_compat.startsWith)(secondWord,'=')){if(secondWord.length>1){var newWord=word+secondWord;tokens.push({type:type,content:newWord});i+=1;continue;}var thirdWord=words[i+2];i+=1;if(thirdWord){var _newWord=word+'='+thirdWord;tokens.push({type:type,content:_newWord});i+=1;continue;}}}if((0,_compat.endsWith)(word,'=')){var _secondWord=words[i+1];if(_secondWord&&!(0,_compat.stringIncludes)(_secondWord,'=')){var _newWord3=word+_secondWord;tokens.push({type:type,content:_newWord3});i+=1;continue;}var _newWord2=word.slice(0,-1);tokens.push({type:type,content:_newWord2});continue;}tokens.push({type:type,content:word});}}function lexSkipTag(tagName,state){var str=state.str,cursor=state.cursor,tokens=state.tokens;var len=str.length;var index=cursor;while(index<len){var nextTag=str.indexOf('</',index);if(nextTag===-1){lexText(state);break;}var tagState={str:str,cursor:nextTag+2,tokens:[]};var name=lexTagName(tagState);var safeTagName=tagName.toLowerCase();if(safeTagName!==name.toLowerCase()){index=tagState.cursor;continue;}var content=str.slice(cursor,nextTag);tokens.push({type:'text',content:content});var openTag={type:'tag-start',close:true};var closeTag={type:'tag-end',close:false};lexTagAttributes(tagState);tokens.push.apply(tokens,[openTag].concat(_toConsumableArray(tagState.tokens),[closeTag]));state.cursor=tagState.cursor+1;break;}}},{"./compat":1}],5:[function(require,module,exports){'use strict';Object.defineProperty(exports,"__esModule",{value:true});exports.default=parser;exports.hasTerminalParent=hasTerminalParent;exports.parse=parse;var _compat=require('./compat');function parser(tokens,options){var root={tagName:null,children:[]};var state={tokens:tokens,options:options,cursor:0,stack:[root]};parse(state);return root.children;}function hasTerminalParent(tagName,stack,terminals){var tagParents=terminals[tagName];if(tagParents){var currentIndex=stack.length-1;while(currentIndex>=0){var parentTagName=stack[currentIndex].tagName;if(parentTagName===tagName){break;}if((0,_compat.arrayIncludes)(tagParents,parentTagName)){return true;}currentIndex--;}}return false;}function parse(state){var tokens=state.tokens,options=state.options;var stack=state.stack;var nodes=stack[stack.length-1].children;var len=tokens.length;var cursor=state.cursor;while(cursor<len){var token=tokens[cursor];if(token.type!=='tag-start'){nodes.push(token);cursor++;continue;}var tagToken=tokens[++cursor];cursor++;var tagName=tagToken.content.toLowerCase();if(token.close){var item=void 0;while(item=stack.pop()){if(tagName===item.tagName)break;}while(cursor<len){var endToken=tokens[cursor];if(endToken.type!=='tag-end')break;cursor++;}break;}var isClosingTag=(0,_compat.arrayIncludes)(options.closingTags,tagName);var shouldRewindToAutoClose=isClosingTag;if(shouldRewindToAutoClose){var terminals=options.closingTagAncestorBreakers;shouldRewindToAutoClose=!hasTerminalParent(tagName,stack,terminals);}if(shouldRewindToAutoClose){// rewind the stack to just above the previous
 // closing tag of the same name
 var currentIndex=stack.length-1;while(currentIndex>0){if(tagName===stack[currentIndex].tagName){stack=stack.slice(0,currentIndex);var previousIndex=currentIndex-1;nodes=stack[previousIndex].children;break;}currentIndex=currentIndex-1;}}var attributes=[];var attrToken=void 0;while(cursor<len){attrToken=tokens[cursor];if(attrToken.type==='tag-end')break;attributes.push(attrToken.content);cursor++;}cursor++;var children=[];nodes.push({type:'element',tagName:tagToken.content,attributes:attributes,children:children});var hasChildren=!(attrToken.close||(0,_compat.arrayIncludes)(options.voidTags,tagName));if(hasChildren){stack.push({tagName:tagName,children:children});var innerState={tokens:tokens,options:options,cursor:cursor,stack:stack};parse(innerState);cursor=innerState.cursor;}}state.cursor=cursor;}},{"./compat":1}]},{},[3])(3);});//# sourceMappingURL=himalaya.js.map
-;define('LLibrary',["Fiber"],function(Fiber){var LLibrary=Fiber.extend(function(base){return{// The `init` method serves as the constructor.
-init:function(params){},storage:{},//all items here
-getItem:function(id){return this.storage[id]||null;},addItem:function(id,item,overwriteItem){overwriteItem=overwriteItem||false;if(!overwriteItem&&ComponentInstanceLibrary.getItem(id)){console.error('attempted to register dupe component without overwriteItem=true with id:',id);return;}else if(overwriteItem&&this.storage[id]&&this.storage[id].destroy){this.storage[id].destroy();}this.storage[id]=item;},deleteItem:function(id){if(!this.storage[id]){console.warn('attempted to delete non-existent item with id',id);return;}if(this.storage[id].destroy){this.storage[id].destroy();}delete this.storage[id];}};});return LLibrary;});define('componentInstanceLibrary',["LLibrary"],function(LLibrary){//makes the component library singleton avaible to the global window.L, or via require
-return{ComponentInstanceLibrary:null,initializeComponentInstanceLibrary:function(){if(this.ComponentInstanceLibrary!==null){console.warn('ComponentInstanceLibrary singleton already initialized');return;}ComponentInstanceLibrary=new LLibrary();},getLibrary:function(){return ComponentInstanceLibrary;},getComponentInstanceById:function(id){return this.getLibrary()?this.getLibrary().storage[id]:null;},registerComponent:function(component,overwriteInstance){var id=component.id;overwriteInstance=overwriteInstance||false;if(!id){console.error('attempted to register component without id!');return;}if(!overwriteInstance&&ComponentInstanceLibrary.getItem(id)){console.error('attempted to register dupe component with id:',id);return;}console.log('***registered component',component);this.getLibrary().addItem(id,component,overwriteInstance);}};});/*
+;/*
 * base module
-*/define('LBase',["Fiber","componentInstanceLibrary"],function(Fiber,componentInstanceLibrary){var LBase=Fiber.extend(function(base){return{// The `init` method serves as the constructor.
-init:function(params){var compViewData=params.viewParams;var compDataSources=params.dataSources||null;//TODO: add default attrs like unique id, class name etc
-var id=compViewData.id;var type=compViewData.type;var $parentSelector=compViewData.$parentSelector;if(!id){console.error('attempted to created component without id!');return;}if(!type){console.error('attempted to created component without type!');return;}this.id=id;this.type=type;this.$parentSelector=$parentSelector;this.dataSources=compDataSources;this.viewData=compViewData;componentInstanceLibrary.registerComponent(this);},destroy:function(){if(this.$parentSelector){this.$parentSelector.html('');this.$parentSelector=null;//remove coupling to DOM
-}}};});return LBase;});define('viewUtils',["Handlebars"],function(Handlebars){return{/*
+*/define('LBase',["Fiber"],function(Fiber){var LBase=Fiber.extend(function(base){return{// The `init` method serves as the constructor.
+init:function(params){}};});return LBase;});define('viewUtils',["Handlebars"],function(Handlebars){return{/*
     * abstracted from jQuery in case we ever want to remove it or even use React, etc
     */renderDomElement:function(containerSelector,html,renderType){renderType=renderType||'replace';switch(renderType){case'replace':if(_.isObject(containerSelector)){//jquery obj passed in
-containerSelector.html(html);}else{$(containerSelector).html(html);}break;}}};});define('LModule',["Handlebars","LBase","viewUtils"],function(Handlebars,LBase,viewUtils){return LBase.extend(function(base){var module={self:this,Handlebars:Handlebars,dataSourceInstructions:[],//specifies data source(s) and specific ways they should be loaded into this module
+containerSelector.html(html);}else{$(containerSelector).html(html);}break;}}};});define('LLibrary',["Fiber"],function(Fiber){var LLibrary=Fiber.extend(function(base){return{// The `init` method serves as the constructor.
+init:function(params){},storage:{},//all items here
+getItem:function(id){return this.storage[id]||null;},addItem:function(id,item,overwriteItem){overwriteItem=overwriteItem||false;if(!overwriteItem&&ComponentInstanceLibrary.getItem(id)){console.error('attempted to register dupe component without overwriteItem=true with id:',id);return;}else if(overwriteItem&&this.storage[id]&&this.storage[id].destroy){this.storage[id].destroy();}this.storage[id]=item;},deleteItem:function(id){if(!this.storage[id]){console.warn('attempted to delete non-existent item with id',id);return;}if(this.storage[id].destroy){this.storage[id].destroy();}delete this.storage[id];}};});return LLibrary;});define('componentInstanceLibrary',["LLibrary"],function(LLibrary){//makes the component library singleton avaible to the global window.L, or via require
+return{ComponentInstanceLibrary:null,initializeComponentInstanceLibrary:function(){if(this.ComponentInstanceLibrary!==null){console.warn('ComponentInstanceLibrary singleton already initialized');return;}ComponentInstanceLibrary=new LLibrary();},getLibrary:function(){return ComponentInstanceLibrary;},getComponentInstanceById:function(id){return this.getLibrary()?this.getLibrary().storage[id]:null;},registerComponent:function(component,overwriteInstance){var id=component.id;overwriteInstance=overwriteInstance||false;if(!id){console.error('attempted to register component without id!');return;}if(!overwriteInstance&&ComponentInstanceLibrary.getItem(id)){console.error('attempted to register dupe component with id:',id);return;}console.log('***registered component',component);this.getLibrary().addItem(id,component,overwriteInstance);}};});define('LModule',["Handlebars","LBase","viewUtils","componentInstanceLibrary"],function(Handlebars,LBase,viewUtils,componentInstanceLibrary){return LBase.extend(function(base){var module={self:this,Handlebars:Handlebars,dataConnectors:[],//specifies remote data source(s) and specific ways they should be loaded into this module 
+//maps a componentDataInputDefinition obj that is a prop of this class to a dataSource definition from the library --- creates a "connector" containing data map and instructions to render in the view
 // The `init` method serves as the constructor.
-init:function(params){base.init(params);this.dataSourceInstructions=params.dataSourceInstructions||[];this.compiledTemplate=this.Handlebars.compile(this.template);//TODO: cache standard templates in a libary
+init:function(params){base.init(params);var compViewData=params.viewParams;var compDataSources=params.dataSources||null;//TODO: add default attrs like unique id, class name etc
+var id=compViewData.id;var type=compViewData.type;var $parentSelector=compViewData.$parentSelector;if(!id){console.error('attempted to created component without id!');return;}if(!type){console.error('attempted to created component without type!');return;}this.id=id;this.type=type;this.$parentSelector=$parentSelector;this.dataSources=compDataSources;this.viewData=compViewData;componentInstanceLibrary.registerComponent(this);this.dataConnectors=params.dataConnectors||[];this.compiledTemplate=this.Handlebars.compile(this.template);//TODO: cache standard templates in a libary
+},//always the same for every instance
+componentDataInputDefinitions:{// 'photosList': {
+// 	//map of data structure this component needs to print eg a photolist
+// }
 },//Handlebars template
 //overridable via the JSON config of any given instance of the component
 template:'\n\t\t\t\t\t  <div>\n\t\t\t\t\t    <span>Some HTML here</span>\n\t\t\t\t\t  </div>\n\t\t\t\t\t',compiledTemplate:null,/*
@@ -1304,10 +1308,17 @@ template:'\n\t\t\t\t\t  <div>\n\t\t\t\t\t    <span>Some HTML here</span>\n\t\t\t
 // 		"lazyLoad": true
 // 	}
 // }
-if(this.dataSourceInstructions.length){//promise to load all data sources and render view only when finished
-for(var i=0;i<this.dataSourceInstructions.length;i++){this.loadDataSource(this.dataSourceInstructions[i]);}}else{this.renderView(targetSelector);}},loadDataSource:function(instructions){},/*
+if(this.dataConnectors.length){var allPromises=[];//use dataSourceInstructions.dataSourceName to get the info on the ajax call
+$.when.all(allPromises).then(function(schemas){console.log("DONE",this,schemas);// 'schemas' is now an array
+debugger;//when we have the data from the server and its valid, run it thro the connector and into the view
+//make data from ajax calls ready to be included in the view, then render it
+this.renderView(targetSelector);//self???
+},function(e){console.log("My ajax failed");});}else{this.renderView(targetSelector);}},// loadDataSource: function(instructions) {
+// },
+/*
 				*
-				*/renderView:function(targetSelector){var html=this.compiledTemplate(this.viewData);viewUtils.renderDomElement(targetSelector,html);}};return module;});});define('scanner',["componentInstanceLibrary"],function(componentInstanceLibrary){return{scan:function(){console.log('SCANNING...');//find Lagomorph blocks that may contain components
+				*/renderView:function(targetSelector){var html=this.compiledTemplate(this.viewData);viewUtils.renderDomElement(targetSelector,html);},destroy:function(){if(this.$parentSelector){this.$parentSelector.html('');this.$parentSelector=null;//remove coupling to DOM
+}}};return module;});});define('scanner',["componentInstanceLibrary"],function(componentInstanceLibrary){return{scan:function(){console.log('SCANNING...');//find Lagomorph blocks that may contain components
 var $blocks=$('.lagomorph-block');_.each($blocks,function(block){var $block=$(block);var $components=$block.find('[data-lagomorph-component], [data-lc]');_.each($components,function(component){var $component=$(component);//definition must provide at minimum a type and id in the json
 var compData=$component.data('lagomorph-component');//jquery converts to object for free
 if(!_.isObject(compData)){console.warn('Invalid data JSON for component:',component);return;}var compViewData=compData.viewParams;// var compDataSources = compData.dataSources;
@@ -1337,7 +1348,41 @@ this.compiledTemplate=this.Handlebars.compile(this.template);},/*
 		    */dataSourceInstructions:{//??????????
 },template:'\n\t\t\t\t\t  <ul data-data_source_name="listItems">\n\t\t\t\t\t    I am a list\n\t\t\t\t\t  </ul>\n\t\t\t\t\t',childTemplate:'\n\t\t\t\t\t  <li>\n\t\t\t\t\t    {{childContents}} //default to a simple list of strings\n\t\t\t\t\t  </li>\n\t\t\t\t\t',/*
 				* override to put children into contents
-				*/renderView:function(targetSelector){var html=this.compiledTemplate(this.viewData);viewUtils.renderDomElement(targetSelector,html);}};});});define('agreementsTester',["underscore"],function(_){return{testAgreement:function(agreement,ajaxResult){var failureMessages=[];//see if the main data object is where and what it should be
+				*/renderView:function(targetSelector){var html=this.compiledTemplate(this.viewData);viewUtils.renderDomElement(targetSelector,html);}};});});define('ajaxRequester',["jquery","underscore"],function($,_){return{// makeAjaxBatchCalls: function(callOptionsArray) {
+// 	var allRequests = [];
+// 	for (var i=0; i<callOptionsArray.length; i++) {
+// 		allRequests.push( this.makeAjaxCall( callOptionsArray[i] )  );
+// 	}
+// 	// var firstRequest = $.ajax({...});
+// 	// var secondRequest = $.ajax({...});
+// 	Promise.all(allRequests).then(function(result) {
+// 	    debugger;
+// 	});
+// },
+// var  x = L.ajaxRequester.createAjaxCallPromise({url: 'https://httpbin.org/get'});
+//   $.when(x).done(function(value) {
+// 	    alert(value);
+// 	});
+createAjaxCallPromise:function(options){var type=options.type||'GET';var url=options.url;var dataTypeReturned=options.dataTypeReturned||'json';var successHandler=options.successHandler||null;var afterSuccessCallback=options.afterSuccessCallback||null;var doneCallback=options.doneCallback||null;var errorHandler=options.errorHandler||$.noop;//N.defaultAjaxErrorHandler;
+var requestParams=options.requestParams||{};var jsonToHtmlHandlers=options.jsonToHtmlHandlers||null;//array of classes
+var dataAgreements=options.dataAgreements||null;var deferred=$.Deferred();$.ajax({type:type,url:url,dataType:dataTypeReturned,data:requestParams}).success(function(data){//if we have one or more agreements about what data was expected from the server,
+//check to see that they have been met
+if(dataAgreements&&dataAgreements.length){var failedAgreements=[];_.each(dataAgreements,function(dataAgreement){var agreementResult=N.Agreements.testAgreement(dataAgreement,data).doesAgreementPass;if(!agreementResult){failedAgreements.push(dataAgreement.name);}});if(failedAgreements.length){console.error('Agreements failed on JSON call!');deferred.reject();return;}else{console.log('All agreements passed!');}}if(successHandler){successHandler(data);}if(jsonToHtmlHandlers){for(var i=0;i<jsonToHtmlHandlers.length;i++){jsonToHtmlHandlers[i].execute(data);}}if(afterSuccessCallback){afterSuccessCallback(data);}deferred.resolve(data);}).error(function(){errorHandler();deferred.reject();});return deferred.promise();}// $.when( $.ajax( "/page1.php" ), $.ajax( "/page2.php" ) )
+// .then( myFunc, myFailure );
+//   $.when(getData()).done(function(value) {
+//     alert(value);
+// });
+// getData().then(function(value) {
+// 	alert(value);
+// });
+/*****************
+		** SAMPLE:
+		* N.Ajax.makeAjaxCall({
+		*	type: 'GET',
+		* 	url: '/data/test-data.php?page=1',
+		* successHandler: function(data) { console.log(data) }	
+		* });
+		*******/};});define('agreementsTester',["underscore"],function(_){return{testAgreement:function(agreement,ajaxResult){var failureMessages=[];//see if the main data object is where and what it should be
 var rootObject=this.findObjectAttributeByName(ajaxResult,agreement.objectRoot.path);var isRootObjectCorrectType=this.testDataType(rootObject,agreement.objectRoot.dataType);if(_.isUndefined(rootObject)||!isRootObjectCorrectType){failureMessages.push('Root object not found at path'+agreement.objectRoot.path+'or wrong data type');return{doesAgreementPass:!failureMessages.length,failureMessages:failureMessages};}if(agreement.objectRoot.dataType==='array'||agreement.objectRoot.dataType==='object'){var i=0;_.each(rootObject,function(rootObjectItem){//test each one of the data set
 testObjectStructure(rootObjectItem,agreement.objectRoot.dataItemStructure,i);i++;});}//TODO: is else case even necessary???
 console.log('failures:',failureMessages);return{doesAgreementPass:!failureMessages.length,failureMessages:failureMessages//subfunction - called recursively if object
@@ -1345,8 +1390,8 @@ console.log('failures:',failureMessages);return{doesAgreementPass:!failureMessag
 };function testObjectStructure(objectToTest,structureToMatch,indexOfItemTested){_.each(structureToMatch,function(dataTypeToMatchOrSubobject,name){if(_.isObject(dataTypeToMatchOrSubobject)){//an actual object, not the name of a data type like others!
 if(!objectToTest[name]){//check if subobject exists
 failureMessages.push('Bad structure: cant find subobject '+name);return;}testObjectStructure(objectToTest[name],dataTypeToMatchOrSubobject,indexOfItemTested);//will this work on nested objs? maybe
-}else{var result=this.testDataType(objectToTest[name],dataTypeToMatchOrSubobject);if(!result){failureMessages.push('Bad structure: '+objectToTest[name]+' was expected to be: '+dataTypeToMatchOrSubobject+' in tested item '+indexOfItemTested);}}});}},testDataType:function(dataToTest,dataTypeToMatch){switch(dataTypeToMatch){case'string':return _.isString(dataToTest);break;case'array':return _.isArray(dataToTest);break;case'object':return _.isObject(dataToTest);break;case'number':return _.isNumber(dataToTest);break;case'boolean':return _.isBoolean(dataToTest);break;}},findObjectAttributeByName:function(objToParse,nameString){var nameArray=nameString.split('.');var currentObject=objToParse;for(var i=0;i<nameArray.length;i++){if(typeof currentObject[nameArray[i]]=='undefined'){currentObject=null;break;}else{currentObject=currentObject[nameArray[i]];}}return currentObject;}};});define('lagomorph',["jquery","underscore","Handlebars","Fiber","dexie","bluebird","himalaya","LBase","LModule","scanner","L_List","componentInstanceLibrary","viewUtils","agreementsTester"],function($,_,Handlebars,Fiber,dexie,bluebird,himalaya,LBase,LModule,scanner,L_List,componentInstanceLibrary,viewUtils,agreementsTester){var framework={//anything we want to expose on the window for the end user needs to be added here
-scanner:scanner,LBase:LBase,LModule:LModule,dexie:dexie,//api for indexedDB local storage DB -> http://dexie.org/docs/ 
+}else{var result=this.testDataType(objectToTest[name],dataTypeToMatchOrSubobject);if(!result){failureMessages.push('Bad structure: '+objectToTest[name]+' was expected to be: '+dataTypeToMatchOrSubobject+' in tested item '+indexOfItemTested);}}});}},testDataType:function(dataToTest,dataTypeToMatch){switch(dataTypeToMatch){case'string':return _.isString(dataToTest);break;case'array':return _.isArray(dataToTest);break;case'object':return _.isObject(dataToTest);break;case'number':return _.isNumber(dataToTest);break;case'boolean':return _.isBoolean(dataToTest);break;}},findObjectAttributeByName:function(objToParse,nameString){var nameArray=nameString.split('.');var currentObject=objToParse;for(var i=0;i<nameArray.length;i++){if(typeof currentObject[nameArray[i]]=='undefined'){currentObject=null;break;}else{currentObject=currentObject[nameArray[i]];}}return currentObject;}};});define('lagomorph',["jquery","underscore","Handlebars","Fiber","dexie","bluebird","himalaya","LBase","LModule","scanner","L_List","componentInstanceLibrary","viewUtils","ajaxRequester","agreementsTester"],function($,_,Handlebars,Fiber,dexie,bluebird,himalaya,LBase,LModule,scanner,L_List,componentInstanceLibrary,viewUtils,ajaxRequester,agreementsTester){var framework={//anything we want to expose on the window for the end user needs to be added here
+scanner:scanner,ajaxRequester:ajaxRequester,LBase:LBase,LModule:LModule,dexie:dexie,//api for indexedDB local storage DB -> http://dexie.org/docs/ 
 bluebird:bluebird,//promise library -> http://bluebirdjs.com/
 himalaya:himalaya,//html to json parser -> https://github.com/andrejewski/himalaya
 $:$,_:_,Handlebars:Handlebars,componentDefinitions:{//all available component classes that come standard with the framework
@@ -1355,6 +1400,8 @@ componentInstanceLibrary:componentInstanceLibrary,//look up instances of compone
 /*
     * componentConfig = json to instantiate components, in lieu of or addition to that in the html itself
     * dataSources = json config of endpoints, including data contracts of what to expect from the server
+    * these could literally be generated into json from an api doc!
+    *
     * data from dataSources may be further transformed from the expected server return by a map on the individual componentConfig
     * thus, one endpoint can be used by different components with varying data structures
     *
@@ -1363,7 +1410,7 @@ componentInstanceLibrary:componentInstanceLibrary,//look up instances of compone
     *
     **/start:function(params){params=params||{};if(!params.componentConfig){console.log('Lagomorph started with no component config');}if(!params.dataSources){console.log('Lagomorph started with no dataSources config');}if(!params.i18nDataSource){console.log('Lagomorph started with no i18nDataSource config');}this.componentInstanceLibrary.initializeComponentInstanceLibrary();//model that holds all instances of created components for lookup
 this.scanner.scan();},createApp:function(){//initiate a full single-page app with router, etc if desired
-}};if(window){window.L=framework;//expose global so require.js is not needed by end user
+}};if($.when.all===undefined){$.when.all=function(deferreds){var deferred=new $.Deferred();$.when.apply($,deferreds).then(function(){deferred.resolve(Array.prototype.slice.call(arguments));},function(){deferred.fail(Array.prototype.slice.call(arguments));});return deferred;};}if(window){window.L=framework;//expose global so require.js is not needed by end user
 }return framework;});//The modules for your project will be inlined above
 //this snippet. Ask almond to synchronously require the
 //module value for 'main' here and return it as the

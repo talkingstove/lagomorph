@@ -12,12 +12,14 @@ define([
 					"L_List", 
 					"componentInstanceLibrary",
 					"viewUtils",
+					"ajaxRequester",
 					"agreementsTester"
 				], 
-function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, agreementsTester ) {
+function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester ) {
 
 	var framework = { //anything we want to expose on the window for the end user needs to be added here
 		scanner: scanner,
+		ajaxRequester: ajaxRequester,
 		LBase: LBase,
 		LModule: LModule,
 		dexie: dexie, //api for indexedDB local storage DB -> http://dexie.org/docs/ 
@@ -34,6 +36,8 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
     /*
     * componentConfig = json to instantiate components, in lieu of or addition to that in the html itself
     * dataSources = json config of endpoints, including data contracts of what to expect from the server
+    * these could literally be generated into json from an api doc!
+    *
     * data from dataSources may be further transformed from the expected server return by a map on the individual componentConfig
     * thus, one endpoint can be used by different components with varying data structures
     *
@@ -62,6 +66,21 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
   	createApp: function() {
   		//initiate a full single-page app with router, etc if desired
   	}
+	}
+
+	if ($.when.all===undefined) {
+    $.when.all = function(deferreds) {
+        var deferred = new $.Deferred();
+        $.when.apply($, deferreds).then(
+            function() {
+                deferred.resolve(Array.prototype.slice.call(arguments));
+            },
+            function() {
+                deferred.fail(Array.prototype.slice.call(arguments));
+            });
+
+        return deferred;
+	    }
 	}
 
 	if (window) {

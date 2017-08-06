@@ -35,6 +35,7 @@ require.config({
     'viewUtils': 'src/utils/viewUtils',
     'componentInstanceLibrary': 'src/componentInstanceLibrary',
     'LLibrary': 'src/library/LLibrary',
+    'ajaxRequester': 'src/ajax/ajaxRequester',
     'agreementsTester': 'src/ajax/agreements/agreementsTester'
   },
 
