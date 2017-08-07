@@ -38,8 +38,9 @@ require.config({
     'LLibrary': 'src/library/LLibrary',
     'ajaxRequester': 'src/ajax/ajaxRequester',
     'agreementsTester': 'src/ajax/agreements/agreementsTester',
-    'Connector': 'src/ajax/connector/Connector',
-    'connectorLibrary': 'src/connectorLibrary'
+    'connectorLibrary': 'src/connectorLibrary',
+    'connectorUtils': 'src/ajax/connector/connectorUtils',
+    'objectUtils': 'src/utils/objectUtils'
   },
 
   // we have to kickoff jasmine, as it is asynchronous

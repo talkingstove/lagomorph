@@ -14,11 +14,12 @@ define([
 					"viewUtils",
 					"ajaxRequester",
 					"agreementsTester",
-					"Connector",
 					"dataSourceLibrary",
-					"connectorLibrary"
+					"connectorLibrary",
+					"connectorUtils",
+					"objectUtils"
 				], 
-function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, Connector, dataSourceLibrary, connectorLibrary ) {
+function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils ) {
 
 	var framework = { //anything we want to expose on the window for the end user needs to be added here
 		scanner: scanner,
@@ -37,6 +38,8 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
     componentInstanceLibrary: componentInstanceLibrary, //look up instances of components created on the current page/app
     dataSourceLibrary: dataSourceLibrary,
     connectorLibrary: connectorLibrary,
+    connectorUtils: connectorUtils,
+    objectUtils: objectUtils,
 
     /*
     * componentConfig = json to instantiate components, in lieu of or addition to that in the html itself

@@ -20,33 +20,13 @@ define(["Handlebars", "underscore", "LModule", "viewUtils"], function(Handlebars
 	        this.compiledTemplate = this.Handlebars.compile(this.template);
 		    },
 
-		    /*
-		    * the datasource instructions in the json tell us about an endpoint and
-		    * the contract so we know what to expect from the backend
-		    *
-		    * the instructions on the module tell us how to put that expected data into a useful stucture for this component
-		    * and then render it
-		    *
-		    * a middleware component like "activeUser" sets its expectations here so it can be stacked onto others
-		    * the user needs to pass in their own activeUser endpoint which includes maps to activeUser component props
-		    * eg new ActiveUserModule(activeUserEndpoint, map{fn: firstname})
-		    * ^^^^ ActiveUserModule needs to provide the template for the map so it can tell us what it needs
-		    *
-		    * in this case, "listItems" can be anything, it just needs data that matches up to the childTemplate
-		    *
-		    * data maps and data sources can both be extermalized in json; end user can pick a "grouping" for a ready-made set
-		    */
-		    // dataSourceInstructions: {
-		    // 	//??????????
-		    // },
-
 		    processedData: { 
-		    	listItems: null
+		    	listItems: null //expect []
 	    	},
 
 	    	 //listItems maps to the data which is returned from the Connector
 		    template: `
-					  <ul data-data_binding="listItems">
+					  <ul data-data_binding="listItems" data-template_binding="childTemplate">
 					    I am a list
 					  </ul>
 					`,
@@ -63,7 +43,7 @@ define(["Handlebars", "underscore", "LModule", "viewUtils"], function(Handlebars
 				*/
 				renderView: function(targetSelector) {
 												//      		processedData: { 
-		   //  	listItems: null
+		   //  	listItems: null // expect []
 	    // 	},
 
 	    // ^^^^^ knows specifically what to do with listItems bc it's a list: use the child template

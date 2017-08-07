@@ -1,4 +1,4 @@
-define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxRequester", "connectorLibrary"], function(Handlebars, LBase, viewUtils, componentInstanceLibrary, ajaxRequester, connectorLibrary) {
+define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxRequester", "connectorLibrary", "connectorUtils", "objectUtils"], function(Handlebars, LBase, viewUtils, componentInstanceLibrary, ajaxRequester, connectorLibrary, connectorUtils, objectUtils) {
 
 	return LBase.extend(function(base) {
 			
@@ -22,7 +22,7 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 		        
 		        base.init(params);
 		        var compViewData = params.viewParams;
-          	var compDataContracts = params.dataContracts || null;
+          	var compDataContracts = params.dataContracts || [];
 
 		        //TODO: add default attrs like unique id, class name etc
 		        var id = compViewData.id;
@@ -63,6 +63,10 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 
 				compiledTemplate: null,
 
+				setProcessedData: function(target, data) {
+
+				},
+
 				/*
 				* entry point from scanner.js (or called directly)
 				* get any necessary data and do anything else needed before rendering the view to the DOM
@@ -95,34 +99,29 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 					     for (var j=0; j<schemas.length; j++) {
 					     		var thisDataContract = self.dataContracts[j];
 					     		var connector = connectorLibrary.getConnectorByName( thisDataContract.connector ); //json
+					     		var serverData = objectUtils.getDataFromObjectByPath( schemas[j], connector.srcPath );
+					     		var dataTarget = connector.destinationPath;
 
-
-					     		//... look up connector from library, make transformation
-					     		//... connector obj tells us where it goes, what to do
-					     		// connector has a processedData name, it puts it there and then renderView takes over
-
-	// 				     		connectors: {
-	// 	"list1PhotoListConnector": {
-	// 		"objectMap": {
-	// 			"srcPath": "data.photos",
-	// 			"destinationPath": "listItems", //goes to processedData with this name, then module renders it
-	// 			"objectParams": {
-	// 				"dataType": "array",
-	// 				"eachChildDefinition": { //child of an array, defined relative to the object root
-	// 					"dataType": "object",
-	// 					"srcPath": null, //=root
-	// 					"destinationPath": null
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
+					     		//************* RMM TODO
+					     		var processedData = connectorUtils.processData(serverData, thisDataContract);
+					     		self.setProcessedData(dataTarget, processedData);
+debugger;
+					   
+// "list1PhotoListConnector": {
+// 			"srcPath": "data.photos",
+// 			"destinationPath": "listItems", //goes to processedData with this name, then module renders it
+// 			"objectMap": { //parent object can have children of an array or nested objects
+// 				"dataType": "array",
+// 				"eachChildDefinition": { //child of an array, defined relative to the object root
+// 					"dataType": "object",
+// 					"srcPath": null, //=root
+// 					"destinationPath": null
+// 				}
+// 			}
+// 		}
 
 
 					     }
-
-
-					     //when we have the data from the server and its valid, run it thro the connector and into the view
 
 					     //make data from ajax calls ready to be included in the view, then render it
 					     self.renderView(targetSelector);
@@ -133,23 +132,11 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 					
 				},
 
-		// dataContracts": [
-		// 	{	
-		// 		
-		// 		"dataSource": "samplePhotoListInfo", //resuable, looks up from library, maybe used mutiple times
-		// 		"connector": "list1PhotoListConnector" //resuable, looks up from library, maybe used mutiple times, but same dataSource could be connected to different 
-		// 	}		
-		// ]
-
 				/*
 				*
 				*/
 				renderView: function(targetSelector) {
-
-
-
 					var html = this.compiledTemplate(this.viewData);
-
 					viewUtils.renderDomElement(targetSelector, html);
 		    },
 
@@ -158,6 +145,8 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 			    	this.$parentSelector.html('');
 			    	this.$parentSelector = null; //remove coupling to DOM
 			    }
+
+			    //TODO: remove from libary
 		    }		    
 		}
 

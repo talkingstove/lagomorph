@@ -21,8 +21,9 @@
         'viewUtils': '../src/utils/viewUtils',
         'ajaxRequester': '../src/ajax/ajaxRequester',
         'agreementsTester': '../src/ajax/agreements/agreementsTester',
-        'Connector': '../src/ajax/connector/Connector',
         'dataSourceLibrary': '../src/dataSourceLibrary',
-        'connectorLibrary': '../src/connectorLibrary'
+        'connectorLibrary': '../src/connectorLibrary',
+        'connectorUtils': '../src/ajax/connector/connectorUtils',
+        'objectUtils': '../src/utils/objectUtils'
   	}
 })

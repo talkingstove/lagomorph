@@ -1354,18 +1354,18 @@ deferred.reject();});return deferred.promise();}// $.when( $.ajax( "/page1.php" 
 		* successHandler: function(data) { console.log(data) }	
 		* });
 		*******/};});define('connectorLibrary',["LLibrary"],function(LLibrary){//makes the singleton avaible to the global window.L, or via require
-return{ConnectorLibrary:null,initializeConnectorLibrary:function(connectors){connectors=connectors||null;if(this.ConnectorLibrary!==null){console.warn('ConnectorLibrary singleton already initialized');return;}ConnectorLibrary=new LLibrary();if(connectors){ConnectorLibrary.addMultipleItems(connectors,true);}},getLibrary:function(){return ConnectorLibrary;},getConnectorByName:function(name){return this.getLibrary()?this.getLibrary().storage[name]:null;}};});define('LModule',["Handlebars","LBase","viewUtils","componentInstanceLibrary","ajaxRequester","connectorLibrary"],function(Handlebars,LBase,viewUtils,componentInstanceLibrary,ajaxRequester,connectorLibrary){return LBase.extend(function(base){var module={self:this,Handlebars:Handlebars,dataConnectors:[],//specifies remote data source(s) and specific ways they should be loaded into this module 
+return{ConnectorLibrary:null,initializeConnectorLibrary:function(connectors){connectors=connectors||null;if(this.ConnectorLibrary!==null){console.warn('ConnectorLibrary singleton already initialized');return;}ConnectorLibrary=new LLibrary();if(connectors){ConnectorLibrary.addMultipleItems(connectors,true);}},getLibrary:function(){return ConnectorLibrary;},getConnectorByName:function(name){return this.getLibrary()?this.getLibrary().storage[name]:null;}};});define('connectorUtils',["Handlebars"],function(Handlebars){return{processData:function(dataFromServer,contract){}};});define('objectUtils',["underscore"],function(_){return{getDataFromObjectByPath:function(object,path){}};});define('LModule',["Handlebars","LBase","viewUtils","componentInstanceLibrary","ajaxRequester","connectorLibrary","connectorUtils","objectUtils"],function(Handlebars,LBase,viewUtils,componentInstanceLibrary,ajaxRequester,connectorLibrary,connectorUtils,objectUtils){return LBase.extend(function(base){var module={self:this,Handlebars:Handlebars,dataConnectors:[],//specifies remote data source(s) and specific ways they should be loaded into this module 
 //maps a componentDataInputDefinition obj that is a prop of this class to a dataSource definition from the library --- creates a "connector" containing data map and instructions to render in the view
 //**** TODO: proper model with getters and setters
 //**** TODO: each one should be associated with passable render method
 processedData:{//after connector does its work, data is deposited here with predictible names for every instance of N component 
 },// The `init` method serves as the constructor.
-init:function(params){base.init(params);var compViewData=params.viewParams;var compDataContracts=params.dataContracts||null;//TODO: add default attrs like unique id, class name etc
+init:function(params){base.init(params);var compViewData=params.viewParams;var compDataContracts=params.dataContracts||[];//TODO: add default attrs like unique id, class name etc
 var id=compViewData.id;var type=compViewData.type;var $parentSelector=compViewData.$parentSelector;if(!id){console.error('attempted to created component without id!');return;}if(!type){console.error('attempted to created component without type!');return;}this.id=id;this.type=type;this.$parentSelector=$parentSelector;this.dataContracts=compDataContracts;this.viewData=compViewData;componentInstanceLibrary.registerComponent(this);// this.dataConnectors = params.dataConnectors || [];
 this.compiledTemplate=this.Handlebars.compile(this.template);//TODO: cache standard templates in a libary
 },//Handlebars template
 //overridable via the JSON config of any given instance of the component
-template:'\n\t\t\t\t\t  <div>\n\t\t\t\t\t    <span>Some HTML here</span>\n\t\t\t\t\t  </div>\n\t\t\t\t\t',compiledTemplate:null,/*
+template:'\n\t\t\t\t\t  <div>\n\t\t\t\t\t    <span>Some HTML here</span>\n\t\t\t\t\t  </div>\n\t\t\t\t\t',compiledTemplate:null,setProcessedData:function(target,data){},/*
 				* entry point from scanner.js (or called directly)
 				* get any necessary data and do anything else needed before rendering the view to the DOM
 				*/loadComponent:function(targetSelector){var self=this;/*
@@ -1377,15 +1377,12 @@ template:'\n\t\t\t\t\t  <div>\n\t\t\t\t\t    <span>Some HTML here</span>\n\t\t\t
 for(var i=0;i<this.dataContracts.length;i++){var thisContract=this.dataContracts[i];var promise=ajaxRequester.createAjaxCallPromise(thisContract.dataSource);allPromises.push(promise);}//use dataSourceInstructions.dataSourceName to get the info on the ajax call
 $.when.all(allPromises).then(function(schemas){console.log("DONE",this,schemas);// 'schemas' is now an array
 //untested assumption: when.all returns schemas in matching order
-for(var j=0;j<schemas.length;j++){var thisDataContract=self.dataContracts[j];var connector=connectorLibrary.getConnectorByName(thisDataContract.connector);//... look up connector from library, make transformation
-//... connector obj tells us where it goes, what to do
-// connector has a processedData name, it puts it there and then renderView takes over
-// 				     		connectors: {
-// 	"list1PhotoListConnector": {
-// 		"objectMap": {
+for(var j=0;j<schemas.length;j++){var thisDataContract=self.dataContracts[j];var connector=connectorLibrary.getConnectorByName(thisDataContract.connector);//json
+var serverData=objectUtils.getDataFromObjectByPath(schemas[j],connector.srcPath);var dataTarget=connector.destinationPath;//************* RMM TODO
+var processedData=connectorUtils.processData(serverData,thisDataContract);self.setProcessedData(dataTarget,processedData);debugger;// "list1PhotoListConnector": {
 // 			"srcPath": "data.photos",
 // 			"destinationPath": "listItems", //goes to processedData with this name, then module renders it
-// 			"objectParams": {
+// 			"objectMap": { //parent object can have children of an array or nested objects
 // 				"dataType": "array",
 // 				"eachChildDefinition": { //child of an array, defined relative to the object root
 // 					"dataType": "object",
@@ -1394,21 +1391,12 @@ for(var j=0;j<schemas.length;j++){var thisDataContract=self.dataContracts[j];var
 // 				}
 // 			}
 // 		}
-// 	}
-// }
-}//when we have the data from the server and its valid, run it thro the connector and into the view
-//make data from ajax calls ready to be included in the view, then render it
-self.renderView(targetSelector);},function(e){console.log("My ajax failed");});},// dataContracts": [
-// 	{	
-// 		
-// 		"dataSource": "samplePhotoListInfo", //resuable, looks up from library, maybe used mutiple times
-// 		"connector": "list1PhotoListConnector" //resuable, looks up from library, maybe used mutiple times, but same dataSource could be connected to different 
-// 	}		
-// ]
-/*
+}//make data from ajax calls ready to be included in the view, then render it
+self.renderView(targetSelector);},function(e){console.log("My ajax failed");});},/*
 				*
 				*/renderView:function(targetSelector){var html=this.compiledTemplate(this.viewData);viewUtils.renderDomElement(targetSelector,html);},destroy:function(){if(this.$parentSelector){this.$parentSelector.html('');this.$parentSelector=null;//remove coupling to DOM
-}}};return module;});});define('scanner',["componentInstanceLibrary"],function(componentInstanceLibrary){return{scan:function(){console.log('SCANNING...');//find Lagomorph blocks that may contain components
+}//TODO: remove from libary
+}};return module;});});define('scanner',["componentInstanceLibrary"],function(componentInstanceLibrary){return{scan:function(){console.log('SCANNING...');//find Lagomorph blocks that may contain components
 var $blocks=$('.lagomorph-block');_.each($blocks,function(block){var $block=$(block);var $components=$block.find('[data-lagomorph-component], [data-lc]');_.each($components,function(component){var $component=$(component);//definition must provide at minimum a type and id in the json
 var compData=$component.data('lagomorph-component');//jquery converts to object for free
 if(!_.isObject(compData)){console.warn('Invalid data JSON for component:',component);return;}var compViewData=compData.viewParams;// var compDataSources = compData.dataSources;
@@ -1420,30 +1408,13 @@ moduleInstance.loadComponent($component);//todo: pre-render in case data is need
 init:function(params){params=params||{};base.init(params);if(params.template){//override template per instance when desired!
 this.template=params.template;}if(params.childTemplate){//override template per instance when desired!
 this.childTemplate=params.childTemplate;}//give it its own template not that of the superclass!!
-this.compiledTemplate=this.Handlebars.compile(this.template);},/*
-		    * the datasource instructions in the json tell us about an endpoint and
-		    * the contract so we know what to expect from the backend
-		    *
-		    * the instructions on the module tell us how to put that expected data into a useful stucture for this component
-		    * and then render it
-		    *
-		    * a middleware component like "activeUser" sets its expectations here so it can be stacked onto others
-		    * the user needs to pass in their own activeUser endpoint which includes maps to activeUser component props
-		    * eg new ActiveUserModule(activeUserEndpoint, map{fn: firstname})
-		    * ^^^^ ActiveUserModule needs to provide the template for the map so it can tell us what it needs
-		    *
-		    * in this case, "listItems" can be anything, it just needs data that matches up to the childTemplate
-		    *
-		    * data maps and data sources can both be extermalized in json; end user can pick a "grouping" for a ready-made set
-		    */// dataSourceInstructions: {
-// 	//??????????
-// },
-processedData:{listItems:null},//listItems maps to the data which is returned from the Connector
-template:'\n\t\t\t\t\t  <ul data-data_binding="listItems">\n\t\t\t\t\t    I am a list\n\t\t\t\t\t  </ul>\n\t\t\t\t\t',//probably overridden	
+this.compiledTemplate=this.Handlebars.compile(this.template);},processedData:{listItems:null//expect []
+},//listItems maps to the data which is returned from the Connector
+template:'\n\t\t\t\t\t  <ul data-data_binding="listItems" data-template_binding="childTemplate">\n\t\t\t\t\t    I am a list\n\t\t\t\t\t  </ul>\n\t\t\t\t\t',//probably overridden	
 childTemplate:'\n\t\t\t\t\t  <li>\n\t\t\t\t\t    {{childContents}}\n\t\t\t\t\t  </li>\n\t\t\t\t\t',/*
 				* override to put children into contents
 				*/renderView:function(targetSelector){//      		processedData: { 
-//  	listItems: null
+//  	listItems: null // expect []
 // 	},
 // ^^^^^ knows specifically what to do with listItems bc it's a list: use the child template
 //***** it just generically puts them into child template, which is up to you
@@ -1455,22 +1426,14 @@ console.log('failures:',failureMessages);return{doesAgreementPass:!failureMessag
 };function testObjectStructure(objectToTest,structureToMatch,indexOfItemTested){_.each(structureToMatch,function(dataTypeToMatchOrSubobject,name){if(_.isObject(dataTypeToMatchOrSubobject)){//an actual object, not the name of a data type like others!
 if(!objectToTest[name]){//check if subobject exists
 failureMessages.push('Bad structure: cant find subobject '+name);return;}testObjectStructure(objectToTest[name],dataTypeToMatchOrSubobject,indexOfItemTested);//will this work on nested objs? maybe
-}else{var result=this.testDataType(objectToTest[name],dataTypeToMatchOrSubobject);if(!result){failureMessages.push('Bad structure: '+objectToTest[name]+' was expected to be: '+dataTypeToMatchOrSubobject+' in tested item '+indexOfItemTested);}}});}},testDataType:function(dataToTest,dataTypeToMatch){switch(dataTypeToMatch){case'string':return _.isString(dataToTest);break;case'array':return _.isArray(dataToTest);break;case'object':return _.isObject(dataToTest);break;case'number':return _.isNumber(dataToTest);break;case'boolean':return _.isBoolean(dataToTest);break;}},findObjectAttributeByName:function(objToParse,nameString){var nameArray=nameString.split('.');var currentObject=objToParse;for(var i=0;i<nameArray.length;i++){if(typeof currentObject[nameArray[i]]=='undefined'){currentObject=null;break;}else{currentObject=currentObject[nameArray[i]];}}return currentObject;}};});define('Connector',["Handlebars","LBase","viewUtils","componentInstanceLibrary"],function(Handlebars,LBase,viewUtils,componentInstanceLibrary){return LBase.extend(function(base){return{serverDataStructure:null,//as json
-componentDataStructure:null,//as json
-targetInView:null,//string
-// The `init` method serves as the constructor.
-init:function(params){if(!params.serverDataStructure){console.error('Connector requires serverDataStructure');}if(!params.componentDataStructure){console.error('Connector requires componentDataStructure');}this.serverDataStructure=params.serverDataStructure;this.componentDataStructure=params.componentDataStructure;},/*
-		    * an ajax call, etc has just returned
-		    * using the JSON maps that were instantiated when the class was created,
-		    * transform the data into the structure needed by the component and return it for UI use
-		    */trasformServerDataForComponent:function(serverData){}};});});define('lagomorph',["jquery","underscore","Handlebars","Fiber","dexie","bluebird","himalaya","LBase","LModule","scanner","L_List","componentInstanceLibrary","viewUtils","ajaxRequester","agreementsTester","Connector","dataSourceLibrary","connectorLibrary"],function($,_,Handlebars,Fiber,dexie,bluebird,himalaya,LBase,LModule,scanner,L_List,componentInstanceLibrary,viewUtils,ajaxRequester,agreementsTester,Connector,dataSourceLibrary,connectorLibrary){var framework={//anything we want to expose on the window for the end user needs to be added here
+}else{var result=this.testDataType(objectToTest[name],dataTypeToMatchOrSubobject);if(!result){failureMessages.push('Bad structure: '+objectToTest[name]+' was expected to be: '+dataTypeToMatchOrSubobject+' in tested item '+indexOfItemTested);}}});}},testDataType:function(dataToTest,dataTypeToMatch){switch(dataTypeToMatch){case'string':return _.isString(dataToTest);break;case'array':return _.isArray(dataToTest);break;case'object':return _.isObject(dataToTest);break;case'number':return _.isNumber(dataToTest);break;case'boolean':return _.isBoolean(dataToTest);break;}},findObjectAttributeByName:function(objToParse,nameString){var nameArray=nameString.split('.');var currentObject=objToParse;for(var i=0;i<nameArray.length;i++){if(typeof currentObject[nameArray[i]]=='undefined'){currentObject=null;break;}else{currentObject=currentObject[nameArray[i]];}}return currentObject;}};});define('lagomorph',["jquery","underscore","Handlebars","Fiber","dexie","bluebird","himalaya","LBase","LModule","scanner","L_List","componentInstanceLibrary","viewUtils","ajaxRequester","agreementsTester","dataSourceLibrary","connectorLibrary","connectorUtils","objectUtils"],function($,_,Handlebars,Fiber,dexie,bluebird,himalaya,LBase,LModule,scanner,L_List,componentInstanceLibrary,viewUtils,ajaxRequester,agreementsTester,dataSourceLibrary,connectorLibrary,connectorUtils,objectUtils){var framework={//anything we want to expose on the window for the end user needs to be added here
 scanner:scanner,ajaxRequester:ajaxRequester,LBase:LBase,LModule:LModule,dexie:dexie,//api for indexedDB local storage DB -> http://dexie.org/docs/ 
 bluebird:bluebird,//promise library -> http://bluebirdjs.com/
 himalaya:himalaya,//html to json parser -> https://github.com/andrejewski/himalaya
 $:$,_:_,Handlebars:Handlebars,componentDefinitions:{//all available component classes that come standard with the framework
 L_List:L_List},//todo: move to model
 componentInstanceLibrary:componentInstanceLibrary,//look up instances of components created on the current page/app
-dataSourceLibrary:dataSourceLibrary,connectorLibrary:connectorLibrary,/*
+dataSourceLibrary:dataSourceLibrary,connectorLibrary:connectorLibrary,connectorUtils:connectorUtils,objectUtils:objectUtils,/*
     * componentConfig = json to instantiate components, in lieu of or addition to that in the html itself
     * dataSources = json config of endpoints, including data contracts of what to expect from the server
     * these could literally be generated into json from an api doc!

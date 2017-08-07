@@ -12,16 +12,14 @@ lParams = {
 	},
 	connectors: {
 		"list1PhotoListConnector": {
-			"objectMap": {
-				"srcPath": "data.photos",
-				"destinationPath": "listItems", //goes to processedData with this name, then module renders it
-				"objectParams": {
-					"dataType": "array",
-					"eachChildDefinition": { //child of an array, defined relative to the object root
-						"dataType": "object",
-						"srcPath": null, //=root
-						"destinationPath": null
-					}
+			"srcPath": "data.photos",
+			"destinationPath": "listItems", //goes to processedData with this name, then module renders it
+			"objectMap": { //parent object can have children of an array or nested objects
+				"dataType": "array",
+				"eachChildDefinition": { //child of an array, defined relative to the object root
+					"dataType": "object",
+					"srcPath": null, //=root
+					"destinationPath": null
 				}
 			}
 		}
