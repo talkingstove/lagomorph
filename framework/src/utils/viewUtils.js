@@ -1,6 +1,7 @@
-define(["jquery", "underscore", "Handlebars"], function($, _, Handlebar ) {
+define(["Handlebars"], function(Handlebars) {
 
-	var viewUtils = {
+	return {
+
 
     /*
     * abstracted from jQuery in case we ever want to remove it or even use React, etc
@@ -10,7 +11,7 @@ define(["jquery", "underscore", "Handlebars"], function($, _, Handlebar ) {
 
       switch(renderType) {
         case 'replace':
-          if (_.isObject(containerSelector)) { //jquery obj passed in
+          if ( _.isObject(containerSelector) ) { //jquery obj passed in
             containerSelector.html(html);
           }
           else {
@@ -25,6 +26,5 @@ define(["jquery", "underscore", "Handlebars"], function($, _, Handlebar ) {
 
 	}
 
-	 
-	return viewUtils;
+
 });
