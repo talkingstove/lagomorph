@@ -13,7 +13,17 @@
     	'jquery': '../lib/jquery.min',
         'underscore': '../lib/underscore-min',
         'Handlebars': '../lib/handlebars.min',
+        'dexie': '../lib/dexie',
+        'bluebird': '../lib/bluebird',
+        'himalaya': '../lib/himalaya',
         'L_List': '../src/components/L_List',
-        'viewUtils': '../src/utils/viewUtils'
+        'LLibrary': '../src/library/LLibrary',
+        'viewUtils': '../src/utils/viewUtils',
+        'ajaxRequester': '../src/ajax/ajaxRequester',
+        'agreementsTester': '../src/ajax/agreements/agreementsTester',
+        'dataSourceLibrary': '../src/dataSourceLibrary',
+        'connectorLibrary': '../src/connectorLibrary',
+        'connectorUtils': '../src/ajax/connector/connectorUtils',
+        'objectUtils': '../src/utils/objectUtils'
   	}
 })

@@ -1,4 +1,4 @@
-define(["Handlebars", "LModule"], function(Handlebars, LModule) {
+define(["Handlebars", "underscore", "LModule", "viewUtils"], function(Handlebars, _,  LModule, viewUtils) {
 
 	return LModule.extend(function(base) {
 		  return {
@@ -7,51 +7,38 @@ define(["Handlebars", "LModule"], function(Handlebars, LModule) {
 	    		params = params || {};
 
 	    		base.init(params);
-	        // Insert private functions here
-	        console.log('L-List Module with params:', params);
 
 	        if (params.template) { //override template per instance when desired!
 	        	this.template = params.template;
 	        }
 
-	        if (params.childTemplate) { //override template per instance when desired!
-	        	this.childTemplate = params.childTemplate;
+	        if (params.listItemTemplate) { //override template per instance when desired!
+	        	this.listItemTemplate = params.listItemTemplate;
 	        }
 
 	        //give it its own template not that of the superclass!!
 	        this.compiledTemplate = this.Handlebars.compile(this.template);
+	        this.compiledListItemTemplate = this.Handlebars.compile(this.listItemTemplate);
 		    },
 
-		    //Handlebars template
-		    //overridable via the JSON config of any given instance of the component
-		    //usage: this.renderView('h1', {contents: 'yo'});
+		    data: { 
+		    	listItems: null //expect []
+	    	},
+
+	    	 //listItems maps to the data which is returned from the Connector
+	    	 //if array, data-template_binding is used for each item!
 		    template: `
-					  <ul>
-					    I am a list
+					  <ul data-data_binding="listItems" data-template_binding="compiledListItemTemplate">			   
 					  </ul>
 					`,
 
-				childTemplate: `
+				//probably overridden	
+				listItemTemplate: `
 					  <li>
-					    {{childContents}}
+					    {{caption}}
 					  </li>
-					`,
-
-				/*
-				* override to put children into contents
-				*/
-				renderView: function(targetSelector, templateParams) {
-					templateParams = templateParams || {};
-
-					if ( !templateParams.childrenData || !_.isArray(templateParams.childrenData) ) {
-
-					}
-
-					var html = this.compiledTemplate(templateParams);
-					$(targetSelector).html(html);
-
-					//todo: now get the data for the list and render items
-		    }	
+					`
+				
 		    
 		  }
 	});

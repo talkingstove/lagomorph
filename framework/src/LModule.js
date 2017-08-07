@@ -1,4 +1,4 @@
-define(["Handlebars", "LBase", "viewUtils"], function(Handlebars, LBase, viewUtils) {
+define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxRequester", "connectorLibrary", "connectorUtils", "objectUtils"], function(Handlebars, LBase, viewUtils, componentInstanceLibrary, ajaxRequester, connectorLibrary, connectorUtils, objectUtils) {
 
 	return LBase.extend(function(base) {
 			
@@ -6,36 +6,178 @@ define(["Handlebars", "LBase", "viewUtils"], function(Handlebars, LBase, viewUti
 
 				self: this,
 		  	Handlebars: Handlebars,
+		  	dataContracts: [], //specifies remote data source(s) and specific ways they should be loaded into this module 
+
+		  	//**** TODO: proper model with getters and setters
+		  	//**** TODO: each one should be associated with passable render method
+		  	data: { //after connector does its work, data is deposited here with predictible names for every instance of a given component 
+
+		  	},
+
 		    // The `init` method serves as the constructor.
 		    init: function(params) {
-		        // Insert private functions here
-		        console.log('L Module with params:', params);
-		        this.compiledTemplate = this.Handlebars.compile(this.template);
+		        
+		        base.init(params);
+		        var compViewData = params.viewParams;
+          	var compDataContracts = params.dataContracts || [];
+
+		        //TODO: add default attrs like unique id, class name etc
+		        var id = compViewData.id;
+		        var type = compViewData.type;
+		        var $parentSelector = compViewData.$parentSelector;
+
+		        if (!id) {
+		        	console.error('attempted to created component without id!');
+		        	return;
+		        }
+		        if (!type) {
+		        	console.error('attempted to created component without type!');
+		        	return;
+		        }
+
+		        this.id = id;
+		        this.type = type;
+		        this.$parentSelector = $parentSelector;
+		        this.dataContracts = compDataContracts;
+		        this.viewData = compViewData;
+
+		        componentInstanceLibrary.registerComponent(this);
+
+
+		        // this.dataConnectors = params.dataConnectors || [];
+		        this.compiledTemplate = this.Handlebars.compile(this.template); //TODO: cache standard templates in a libary
 		    },
+
+		    
 
 		    //Handlebars template
 		    //overridable via the JSON config of any given instance of the component
 		    template: `
 					  <div>
-					    <span>Some HTML here</span>
+					    <span>DO NOT USE ME</span>
 					  </div>
 					`,
 
 				compiledTemplate: null,
 
-				//put model here so we only ever need one of these????
+				setData: function(targetPath, data) {
+					//TODO: deep set with dot path
+					this.data[targetPath] = data;
+					this.announceDataChange(targetPath);
+				},
+
+				getData: function(targetPath) {
+					//TODO: deep get with dot path
+					return this.data[targetPath];
+				},
+
+				announceDataChange: function(targetPath) {
+					//TODO: event emitter for data bindings
+				},
+
+				/*
+				* entry point from scanner.js (or called directly)
+				* get any necessary data and do anything else needed before rendering the view to the DOM
+				*/
+				loadComponent: function(targetSelector) {
+					var self = this;
+		
+
+					/*
+					* Component instantiator gave us one or more data contracts
+					* We must fulfill them before we can render the view
+					* at the end, data will be added to this.processedData
+					* for view data, name will map to 1-N data-data_source_name's in html template
+					*/
+				
+					var allPromises = []; //if no promises it resolves immediately
+
+					for (var i=0; i<this.dataContracts.length; i++) {
+						var thisContract = this.dataContracts[i];
+						var promise =  ajaxRequester.createAjaxCallPromise( thisContract.dataSource );
+						allPromises.push(promise);
+						
+					}
+					
+					$.when.all(allPromises).then(function(schemas) {
+					     console.log("DONE", this, schemas); // 'schemas' is now an array
+
+					     //untested assumption: when.all returns schemas in matching order
+					     for (var j=0; j<schemas.length; j++) {
+					     		var thisDataContract = self.dataContracts[j];
+					     		var connector = connectorLibrary.getConnectorByName( thisDataContract.connector ); //json
+					     		var serverData = objectUtils.getDataFromObjectByPath( schemas[j], connector.srcPath );
+					     		var dataTarget = connector.destinationPath;
+
+					     		var processedData = connectorUtils.processData(serverData, connector.objectMap);
+					     		self.setData(dataTarget, processedData);
+					     }
+
+					     self.renderView(targetSelector);
+					}, function(e) {
+					     console.log("My ajax failed");
+					});
+
+					
+				},
 
 				/*
 				*
 				*/
-				renderView: function(targetSelector, templateParams) {
-					templateParams = templateParams || {};
-					var html = this.compiledTemplate(templateParams);
-
+				renderView: function(targetSelector) {
+					var html = this.compiledTemplate(this.viewData);
 					viewUtils.renderDomElement(targetSelector, html);
+					this.renderViewData();
+		    },
+
+		    renderViewData: function() {
+		    	var $dataBindings = this.$parentSelector.find('[data-data_binding]');
+
+		    	_.each($dataBindings, function(dataBinding) {
+		    		var $dataBindingDOMElement = $(dataBinding);
+		    		var dataToBeBoundName = $dataBindingDOMElement.data('data_binding');
+		    		var data = this.getData(dataToBeBoundName);
+		    		var templateName = $dataBindingDOMElement.data('template_binding');
+
+		    		if ( !_.isFunction(this[templateName]) ) {
+		    			console.error('Template name given is not a valid compiled template function:', templateName);
+		    			return;
+		    		}
+
+		    		var template = this[templateName];
+
+		    		if ( _.isArray(data) ) {
+		    			var html = '';
+		    			
+		    			for (var i=0; i<data.length; i++) {
+		    				html += template(data[i]);
+		    			}
+
+		    			$dataBindingDOMElement.html(html);
+		    		}
+		    		else {
+		    			//TODO: non array cases
+		    		}
+
+		    	}, this);
+		    },
+
+		    destroy: function() {
+		    	if (this.$parentSelector) {
+			    	this.$parentSelector.html('');
+			    	this.$parentSelector = null; //remove coupling to DOM
+			    }
+
+			    //TODO: remove from libary
 		    }		    
 		}
 
 		return module;
 	});
 });
+
+
+
+
+
+

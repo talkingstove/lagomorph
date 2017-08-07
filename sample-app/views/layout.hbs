@@ -5,11 +5,12 @@
     <link rel='stylesheet' href='/stylesheets/style.css' />
     <link rel='stylesheet' href='/stylesheets/lagomorph/styles.css' />
     <script src="js/lib/lagomorph/L.js"></script>
+    <script src="js/l-config.js"></script>
   </head>
   <body>
     <script language="javascript">
       $(function() {
-        L.start();
+        L.start(lParams);
       });
     </script>
     {{{body}}}

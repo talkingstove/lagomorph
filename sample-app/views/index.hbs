@@ -4,8 +4,17 @@
 <div class="lagomorph-block">
 
 	<div data-lagomorph-component='{
-		"type": "L_List",
-		"id": "list1"
+		"viewParams": {
+			"type": "L_List",
+			"id": "list1"
+		},	
+		"dataContracts": [
+			{	
+				"dataSource": "samplePhotoListInfo",
+				"connector": "list1PhotoListConnector"
+			}		
+		]
+	
 	}'>
 	</div>
 

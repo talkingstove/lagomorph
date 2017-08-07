@@ -29,7 +29,18 @@ require.config({
     'jquery': 'lib/jquery.min',
     'underscore': 'lib/underscore-min',
     'Handlebars': 'lib/handlebars.min',
-    'viewUtils': 'src/utils/viewUtils'
+    'dexie': 'lib/dexie',
+    'himalaya': 'lib/himalaya',
+    'bluebird': 'lib/bluebird',
+    'viewUtils': 'src/utils/viewUtils',
+    'componentInstanceLibrary': 'src/componentInstanceLibrary',
+    'dataSourceLibrary': 'src/dataSourceLibrary',
+    'LLibrary': 'src/library/LLibrary',
+    'ajaxRequester': 'src/ajax/ajaxRequester',
+    'agreementsTester': 'src/ajax/agreements/agreementsTester',
+    'connectorLibrary': 'src/connectorLibrary',
+    'connectorUtils': 'src/ajax/connector/connectorUtils',
+    'objectUtils': 'src/utils/objectUtils'
   },
 
   // we have to kickoff jasmine, as it is asynchronous

@@ -1,0 +1,15 @@
+{
+	"success": true,
+	"data": {
+		"photos": [
+			{
+				"url": "/photo1.jpg",
+				"caption": "The first photo"
+			},
+			{
+				"url": "/photo2.jpg",
+				"caption": "The second photo"
+			}
+		]
+	}
+}
