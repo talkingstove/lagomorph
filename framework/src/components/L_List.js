@@ -12,48 +12,33 @@ define(["Handlebars", "underscore", "LModule", "viewUtils"], function(Handlebars
 	        	this.template = params.template;
 	        }
 
-	        if (params.childTemplate) { //override template per instance when desired!
-	        	this.childTemplate = params.childTemplate;
+	        if (params.listItemTemplate) { //override template per instance when desired!
+	        	this.listItemTemplate = params.listItemTemplate;
 	        }
 
 	        //give it its own template not that of the superclass!!
 	        this.compiledTemplate = this.Handlebars.compile(this.template);
+	        this.compiledListItemTemplate = this.Handlebars.compile(this.listItemTemplate);
 		    },
 
-		    processedData: { 
+		    data: { 
 		    	listItems: null //expect []
 	    	},
 
 	    	 //listItems maps to the data which is returned from the Connector
+	    	 //if array, data-template_binding is used for each item!
 		    template: `
-					  <ul data-data_binding="listItems" data-template_binding="childTemplate">
-					    I am a list
+					  <ul data-data_binding="listItems" data-template_binding="compiledListItemTemplate">			   
 					  </ul>
 					`,
 
 				//probably overridden	
-				childTemplate: `
+				listItemTemplate: `
 					  <li>
-					    {{childContents}}
+					    {{caption}}
 					  </li>
-					`,
-
-				/*
-				* override to put children into contents
-				*/
-				renderView: function(targetSelector) {
-												//      		processedData: { 
-		   //  	listItems: null // expect []
-	    // 	},
-
-	    // ^^^^^ knows specifically what to do with listItems bc it's a list: use the child template
-	    //***** it just generically puts them into child template, which is up to you
-
-
-					var html = this.compiledTemplate(this.viewData);
-
-					viewUtils.renderDomElement(targetSelector, html);
-		    }		  
+					`
+				
 		    
 		  }
 	});

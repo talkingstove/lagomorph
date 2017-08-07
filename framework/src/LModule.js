@@ -6,14 +6,11 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 
 				self: this,
 		  	Handlebars: Handlebars,
-		  	dataConnectors: [], //specifies remote data source(s) and specific ways they should be loaded into this module 
-		  	//maps a componentDataInputDefinition obj that is a prop of this class to a dataSource definition from the library --- creates a "connector" containing data map and instructions to render in the view
-
-
+		  	dataContracts: [], //specifies remote data source(s) and specific ways they should be loaded into this module 
 
 		  	//**** TODO: proper model with getters and setters
 		  	//**** TODO: each one should be associated with passable render method
-		  	processedData: { //after connector does its work, data is deposited here with predictible names for every instance of N component 
+		  	data: { //after connector does its work, data is deposited here with predictible names for every instance of a given component 
 
 		  	},
 
@@ -57,14 +54,25 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 		    //overridable via the JSON config of any given instance of the component
 		    template: `
 					  <div>
-					    <span>Some HTML here</span>
+					    <span>DO NOT USE ME</span>
 					  </div>
 					`,
 
 				compiledTemplate: null,
 
-				setProcessedData: function(target, data) {
+				setData: function(targetPath, data) {
+					//TODO: deep set with dot path
+					this.data[targetPath] = data;
+					this.announceDataChange(targetPath);
+				},
 
+				getData: function(targetPath) {
+					//TODO: deep get with dot path
+					return this.data[targetPath];
+				},
+
+				announceDataChange: function(targetPath) {
+					//TODO: event emitter for data bindings
 				},
 
 				/*
@@ -90,8 +98,7 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 						allPromises.push(promise);
 						
 					}
-					//use dataSourceInstructions.dataSourceName to get the info on the ajax call
-
+					
 					$.when.all(allPromises).then(function(schemas) {
 					     console.log("DONE", this, schemas); // 'schemas' is now an array
 
@@ -102,28 +109,10 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 					     		var serverData = objectUtils.getDataFromObjectByPath( schemas[j], connector.srcPath );
 					     		var dataTarget = connector.destinationPath;
 
-					     		//************* RMM TODO
-					     		var processedData = connectorUtils.processData(serverData, thisDataContract);
-					     		self.setProcessedData(dataTarget, processedData);
-debugger;
-					   
-// "list1PhotoListConnector": {
-// 			"srcPath": "data.photos",
-// 			"destinationPath": "listItems", //goes to processedData with this name, then module renders it
-// 			"objectMap": { //parent object can have children of an array or nested objects
-// 				"dataType": "array",
-// 				"eachChildDefinition": { //child of an array, defined relative to the object root
-// 					"dataType": "object",
-// 					"srcPath": null, //=root
-// 					"destinationPath": null
-// 				}
-// 			}
-// 		}
-
-
+					     		var processedData = connectorUtils.processData(serverData, connector.objectMap);
+					     		self.setData(dataTarget, processedData);
 					     }
 
-					     //make data from ajax calls ready to be included in the view, then render it
 					     self.renderView(targetSelector);
 					}, function(e) {
 					     console.log("My ajax failed");
@@ -138,6 +127,39 @@ debugger;
 				renderView: function(targetSelector) {
 					var html = this.compiledTemplate(this.viewData);
 					viewUtils.renderDomElement(targetSelector, html);
+					this.renderViewData();
+		    },
+
+		    renderViewData: function() {
+		    	var $dataBindings = this.$parentSelector.find('[data-data_binding]');
+
+		    	_.each($dataBindings, function(dataBinding) {
+		    		var $dataBindingDOMElement = $(dataBinding);
+		    		var dataToBeBoundName = $dataBindingDOMElement.data('data_binding');
+		    		var data = this.getData(dataToBeBoundName);
+		    		var templateName = $dataBindingDOMElement.data('template_binding');
+
+		    		if ( !_.isFunction(this[templateName]) ) {
+		    			console.error('Template name given is not a valid compiled template function:', templateName);
+		    			return;
+		    		}
+
+		    		var template = this[templateName];
+
+		    		if ( _.isArray(data) ) {
+		    			var html = '';
+		    			
+		    			for (var i=0; i<data.length; i++) {
+		    				html += template(data[i]);
+		    			}
+
+		    			$dataBindingDOMElement.html(html);
+		    		}
+		    		else {
+		    			//TODO: non array cases
+		    		}
+
+		    	}, this);
 		    },
 
 		    destroy: function() {
