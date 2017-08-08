@@ -40,7 +40,8 @@ require.config({
     'agreementsTester': 'src/ajax/agreements/agreementsTester',
     'connectorLibrary': 'src/connectorLibrary',
     'connectorUtils': 'src/ajax/connector/connectorUtils',
-    'objectUtils': 'src/utils/objectUtils'
+    'objectUtils': 'src/utils/objectUtils',
+    'uiStringsLibrary': 'src/uiStringsLibrary',
   },
 
   // we have to kickoff jasmine, as it is asynchronous

@@ -145,19 +145,18 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 		    		}
 
 		    		var template = this[templateName];
+		    		var html = '';
 
 		    		if ( _.isArray(data) ) {
-		    			var html = '';
-		    			
 		    			for (var i=0; i<data.length; i++) {
 		    				html += template(data[i]);
-		    			}
-
-		    			$dataBindingDOMElement.html(html);
+		    			}    			
 		    		}
 		    		else {
-		    			//TODO: non array cases
+		    			html = template(data);
 		    		}
+
+		    		$dataBindingDOMElement.html(html);
 
 		    	}, this);
 		    },

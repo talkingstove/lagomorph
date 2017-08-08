@@ -23,6 +23,7 @@
         'agreementsTester': '../src/ajax/agreements/agreementsTester',
         'dataSourceLibrary': '../src/dataSourceLibrary',
         'connectorLibrary': '../src/connectorLibrary',
+        'uiStringsLibrary': '../src/uiStringsLibrary',
         'connectorUtils': '../src/ajax/connector/connectorUtils',
         'objectUtils': '../src/utils/objectUtils'
   	}

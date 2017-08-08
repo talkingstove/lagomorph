@@ -32,7 +32,6 @@ define(["Handlebars", "underscore", "LModule", "viewUtils"], function(Handlebars
 					  </ul>
 					`,
 
-				//probably overridden	
 				listItemTemplate: `
 					  <li>
 					    {{caption}}

@@ -11,9 +11,9 @@ lParams = {
 		}
 	},
 	connectors: {
-		"list1PhotoListConnector": {
+		"genericPhotoListConnector": {
 			"srcPath": "data.photos",
-			"destinationPath": "listItems", //goes to processedData with this name, then module renders it
+			"destinationPath": "listItems", //this name is at the preference of the existing module!! <-- KEY CONCEPT
 			"objectMap": { //parent object can have children of an array or nested objects
 				"dataType": "array",
 				"eachChildDefinition": { //child of an array, defined relative to the object root
@@ -24,5 +24,10 @@ lParams = {
 			}
 		}
 	}
+}
+
+//point to class definition files
+//L.LModule.extend
+userDefinedComponents = {
 
 }

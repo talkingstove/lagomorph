@@ -17,9 +17,10 @@ define([
 					"dataSourceLibrary",
 					"connectorLibrary",
 					"connectorUtils",
-					"objectUtils"
+					"objectUtils",
+					"uiStringsLibrary"
 				], 
-function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils ) {
+function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils, uiStringsLibrary ) {
 
 	var framework = { //anything we want to expose on the window for the end user needs to be added here
 		scanner: scanner,
@@ -38,6 +39,7 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
     componentInstanceLibrary: componentInstanceLibrary, //look up instances of components created on the current page/app
     dataSourceLibrary: dataSourceLibrary,
     connectorLibrary: connectorLibrary,
+    uiStringsLibrary: uiStringsLibrary,
     connectorUtils: connectorUtils,
     objectUtils: objectUtils,
 
@@ -62,20 +64,23 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
   		if (!params.dataSources) {
   			console.log('Lagomorph started with no dataSources config');
   		}
-  		if (!params.i18nDataSource) {
-  			console.log('Lagomorph started with no i18nDataSource config');
+  		if (!params.stringDataSource) {
+  			console.log('Lagomorph started with no string/i18nDataSource config');
   		}
 
   		this.componentInstanceLibrary.initializeComponentInstanceLibrary(); //model that holds all instances of created components for lookup
 
-  		//data source library
+  		//data source library (server data lookuos)
   		this.dataSourceLibrary.initializeDataSourceLibrary( params.dataSources );
 
   		//connector library
   		this.connectorLibrary.initializeConnectorLibrary( params.connectors );
 
 
-  		//user template library
+  		//user-defined components library (or just mix them into componentDefinitions??)
+
+
+  		//string (i18n) library (usually i18n, but could be any lookup for arbitrary text to be displayed in UI)
 
       this.scanner.scan();
   	},
