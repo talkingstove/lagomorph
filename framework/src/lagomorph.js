@@ -1,41 +1,41 @@
 define([ 
-					"jquery", 
-					"underscore", 
-					"Handlebars", 
-					"Fiber", 
-					"dexie", 
-					"bluebird", 
-					"himalaya", 
-					"LBase", 
-					"LModule", 
-					"scanner", 
-					"L_List", 
-					"componentInstanceLibrary",
-					"viewUtils",
-					"ajaxRequester",
-					"agreementsTester",
-					"dataSourceLibrary",
-					"connectorLibrary",
-					"connectorUtils",
-					"objectUtils",
-					"uiStringsLibrary",
-					"templateUtils"
-				], 
+          "jquery", 
+          "underscore", 
+          "Handlebars", 
+          "Fiber", 
+          "dexie", 
+          "bluebird", 
+          "himalaya", 
+          "LBase", 
+          "LModule", 
+          "scanner", 
+          "L_List", 
+          "componentInstanceLibrary",
+          "viewUtils",
+          "ajaxRequester",
+          "agreementsTester",
+          "dataSourceLibrary",
+          "connectorLibrary",
+          "connectorUtils",
+          "objectUtils",
+          "uiStringsLibrary",
+          "templateUtils"
+        ], 
 function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils, uiStringsLibrary, templateUtils ) {
 
-	var framework = { //anything we want to expose on the window for the end user needs to be added here
-		scanner: scanner,
-		ajaxRequester: ajaxRequester,
-		LBase: LBase,
-		LModule: LModule,
-		dexie: dexie, //api for indexedDB local storage DB -> http://dexie.org/docs/ 
-		bluebird: bluebird, //promise library -> http://bluebirdjs.com/
-		himalaya: himalaya, //html to json parser -> https://github.com/andrejewski/himalaya
+  var framework = { //anything we want to expose on the window for the end user needs to be added here
+    scanner: scanner,
+    ajaxRequester: ajaxRequester,
+    LBase: LBase,
+    LModule: LModule,
+    dexie: dexie, //api for indexedDB local storage DB -> http://dexie.org/docs/ 
+    bluebird: bluebird, //promise library -> http://bluebirdjs.com/
+    himalaya: himalaya, //html to json parser -> https://github.com/andrejewski/himalaya
     $: $,
     _: _,
     Handlebars: Handlebars,
     componentDefinitions: { //all available component classes that come standard with the framework
-    	L_List: L_List
+      L_List: L_List
     }, //todo: move to model
     componentInstanceLibrary: componentInstanceLibrary, //look up instances of components created on the current page/app
     dataSourceLibrary: dataSourceLibrary,
@@ -56,47 +56,47 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
     * i18nDataSource = user-passed internationalization data for use in a "noneolith"
     *
     **/
-  	start: function(params) {
+    start: function(params) {
 
 
-  		//***TODO: accept promises and don't start until they're resolved!! **************
+      //***TODO: accept promises and don't start until they're resolved!! **************
 
-  		params = params || {};
+      params = params || {};
 
-  		if (!params.componentConfig) {
-  			console.log('Lagomorph started with no component config');
-  		}
-  		if (!params.dataSources) {
-  			console.log('Lagomorph started with no dataSources config');
-  		}
-  		if (!params.stringData) {
-  			console.log('Lagomorph started with no string/i18nDataSource config');
-  		}
+      if (!params.componentConfig) {
+        console.log('Lagomorph started with no component config');
+      }
+      if (!params.dataSources) {
+        console.log('Lagomorph started with no dataSources config');
+      }
+      if (!params.stringData) {
+        console.log('Lagomorph started with no string/i18nDataSource config');
+      }
 
-  		this.componentInstanceLibrary.initializeComponentInstanceLibrary(); //model that holds all instances of created components for lookup
+      this.componentInstanceLibrary.initializeComponentInstanceLibrary(); //model that holds all instances of created components for lookup
 
-  		//data source library (server data lookuos)
-  		this.dataSourceLibrary.initializeDataSourceLibrary( params.dataSources );
+      //data source library (server data lookuos)
+      this.dataSourceLibrary.initializeDataSourceLibrary( params.dataSources );
 
-  		//connector library
-  		this.connectorLibrary.initializeConnectorLibrary( params.connectors );
-
-
-  		//user-defined components library (or just mix them into componentDefinitions??)
+      //connector library
+      this.connectorLibrary.initializeConnectorLibrary( params.connectors );
 
 
-  		//string (i18n) library (usually i18n, but could be any lookup for arbitrary text to be displayed in UI)
-  		this.uiStringsLibrary.initializeUIStringsLibrary(params.stringData);
+      //user-defined components library (or just mix them into componentDefinitions??)
+
+
+      //string (i18n) library (usually i18n, but could be any lookup for arbitrary text to be displayed in UI)
+      this.uiStringsLibrary.initializeUIStringsLibrary(params.stringData);
 
       this.scanner.scan();
-  	},
+    },
 
-  	createApp: function() {
-  		//initiate a full single-page app with router, etc if desired
-  	}
-	}
+    createApp: function() {
+      //initiate a full single-page app with router, etc if desired
+    }
+  }
 
-	if ($.when.all===undefined) {
+  if ($.when.all===undefined) {
     $.when.all = function(deferreds) {
         var deferred = new $.Deferred();
         $.when.apply($, deferreds).then(
@@ -108,12 +108,12 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
             });
 
         return deferred;
-	    }
-	}
+      }
+  }
 
-	if (window) {
-		window.L = framework; //expose global so require.js is not needed by end user
-	}
-	 
-	return framework;
+  if (window) {
+    window.L = framework; //expose global so require.js is not needed by end user
+  }
+   
+  return framework;
 });

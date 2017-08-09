@@ -1,13 +1,13 @@
 define(["Handlebars", "uiStringsLibrary", "himalaya"], function(Handlebars, uiStringsLibrary, himalaya) {
 
-	return {
+  return {
 
 
     /*
     * in json object, replace "[[[my.kyename]]]" with the key
     */
-		replaceUIStringKeys: function(data) {
-      
+    replaceUIStringKeys: function(data) {
+      //crawl recursively and test all strings
     },
 
     compileTemplate: function(templateSource) {
@@ -40,7 +40,7 @@ define(["Handlebars", "uiStringsLibrary", "himalaya"], function(Handlebars, uiSt
     }
 
 
-	}
+  }
 
 
 });
