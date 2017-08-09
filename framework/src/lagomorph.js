@@ -18,9 +18,10 @@ define([
 					"connectorLibrary",
 					"connectorUtils",
 					"objectUtils",
-					"uiStringsLibrary"
+					"uiStringsLibrary",
+					"templateUtils"
 				], 
-function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils, uiStringsLibrary ) {
+function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils, uiStringsLibrary, templateUtils ) {
 
 	var framework = { //anything we want to expose on the window for the end user needs to be added here
 		scanner: scanner,
@@ -56,6 +57,10 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
     *
     **/
   	start: function(params) {
+
+
+  		//***TODO: accept promises and don't start until they're resolved!! **************
+
   		params = params || {};
 
   		if (!params.componentConfig) {
@@ -64,7 +69,7 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
   		if (!params.dataSources) {
   			console.log('Lagomorph started with no dataSources config');
   		}
-  		if (!params.stringDataSource) {
+  		if (!params.stringData) {
   			console.log('Lagomorph started with no string/i18nDataSource config');
   		}
 
@@ -81,6 +86,7 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
 
 
   		//string (i18n) library (usually i18n, but could be any lookup for arbitrary text to be displayed in UI)
+  		this.uiStringsLibrary.initializeUIStringsLibrary(params.stringData);
 
       this.scanner.scan();
   	},

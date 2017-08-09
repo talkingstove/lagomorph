@@ -1,4 +1,4 @@
-define(["Handlebars", "underscore", "LModule", "viewUtils"], function(Handlebars, _,  LModule, viewUtils) {
+define(["Handlebars", "underscore", "LModule", "viewUtils", "templateUtils"], function(Handlebars, _,  LModule, viewUtils, templateUtils) {
 
 	return LModule.extend(function(base) {
 		  return {
@@ -17,8 +17,8 @@ define(["Handlebars", "underscore", "LModule", "viewUtils"], function(Handlebars
 	        }
 
 	        //give it its own template not that of the superclass!!
-	        this.compiledTemplate = this.Handlebars.compile(this.template);
-	        this.compiledListItemTemplate = this.Handlebars.compile(this.listItemTemplate);
+	        this.compiledTemplate = templateUtils.compileTemplate(this.template); //this.Handlebars.compile(this.template);
+	        this.compiledListItemTemplate = templateUtils.compileTemplate(this.listItemTemplate); //this.Handlebars.compile(this.listItemTemplate);
 		    },
 
 		    data: { 
@@ -28,6 +28,9 @@ define(["Handlebars", "underscore", "LModule", "viewUtils"], function(Handlebars
 	    	 //listItems maps to the data which is returned from the Connector
 	    	 //if array, data-template_binding is used for each item!
 		    template: `
+		    		<span data-ui_string="i18n.key1">
+		    			loading...
+	    			</span>
 					  <ul data-data_binding="listItems" data-template_binding="compiledListItemTemplate">			   
 					  </ul>
 					`,

@@ -24,7 +24,7 @@ define(["Fiber"], function(Fiber) {
 		    addItem: function(id, item, overwriteItem) {
 		    	overwriteItem = overwriteItem || false;
 
-		    	if (!overwriteItem && ComponentInstanceLibrary.getItem(id) ) {
+		    	if (!overwriteItem && this.getItem(id) ) {
 		        console.error('attempted to register dupe component without overwriteItem=true with id:', id);
 		        return;
 		      }
@@ -35,13 +35,15 @@ define(["Fiber"], function(Fiber) {
 		    	this.storage[id] = item;
 		    },
 
-		    deleteItem: function(id) {
+		    deleteItem: function(id, itemDestroyAlreadyCalled) {
 		    	if (!this.storage[id]) {
 	    			console.warn('attempted to delete non-existent item with id', id);
 		        return;
 		    	}
 
-		    	if(this.storage[id].destroy) {
+		    	itemDestroyAlreadyCalled = itemDestroyAlreadyCalled || false;
+
+		    	if(this.storage[id].destroy && !this.storage[id].isDestroyed && !itemDestroyAlreadyCalled) {
 		    		this.storage[id].destroy();
 		    	}
 

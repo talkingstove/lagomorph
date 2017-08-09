@@ -25,6 +25,7 @@
         'connectorLibrary': '../src/connectorLibrary',
         'uiStringsLibrary': '../src/uiStringsLibrary',
         'connectorUtils': '../src/ajax/connector/connectorUtils',
-        'objectUtils': '../src/utils/objectUtils'
+        'objectUtils': '../src/utils/objectUtils',
+        'templateUtils': '../src/utils/templateUtils'
   	}
 })

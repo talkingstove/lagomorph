@@ -1,4 +1,4 @@
-define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxRequester", "connectorLibrary", "connectorUtils", "objectUtils"], function(Handlebars, LBase, viewUtils, componentInstanceLibrary, ajaxRequester, connectorLibrary, connectorUtils, objectUtils) {
+define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxRequester", "connectorLibrary", "connectorUtils", "objectUtils", "templateUtils"], function(Handlebars, LBase, viewUtils, componentInstanceLibrary, ajaxRequester, connectorLibrary, connectorUtils, objectUtils, templateUtils) {
 
 	return LBase.extend(function(base) {
 			
@@ -18,7 +18,7 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 		    init: function(params) {
 		        
 		        base.init(params);
-		        var compViewData = params.viewParams;
+		        var compViewData = params.viewParams || {};
           	var compDataContracts = params.dataContracts || [];
 
 		        //TODO: add default attrs like unique id, class name etc
@@ -39,13 +39,11 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 		        this.type = type;
 		        this.$parentSelector = $parentSelector;
 		        this.dataContracts = compDataContracts;
-		        this.viewData = compViewData;
+		        this.viewData = templateUtils.replaceUIStringKeys( compViewData ); //i18n keys that were passed in as eg "[[[i18n.myKey]]]"
 
 		        componentInstanceLibrary.registerComponent(this);
 
-
-		        // this.dataConnectors = params.dataConnectors || [];
-		        this.compiledTemplate = this.Handlebars.compile(this.template); //TODO: cache standard templates in a libary
+		        this.compiledTemplate = templateUtils.compileTemplate(this.template); //TODO: cache standard templates in a libary
 		    },
 
 		    
@@ -127,10 +125,10 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 				renderView: function(targetSelector) {
 					var html = this.compiledTemplate(this.viewData);
 					viewUtils.renderDomElement(targetSelector, html);
-					this.renderViewData();
+					this.renderDataIntoBindings();
 		    },
 
-		    renderViewData: function() {
+		    renderDataIntoBindings: function() {
 		    	var $dataBindings = this.$parentSelector.find('[data-data_binding]');
 
 		    	_.each($dataBindings, function(dataBinding) {
@@ -167,7 +165,8 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 			    	this.$parentSelector = null; //remove coupling to DOM
 			    }
 
-			    //TODO: remove from libary
+			    this.isDestroyed = true;
+			    componentInstanceLibrary.deleteItem( this.id, true );
 		    }		    
 		}
 

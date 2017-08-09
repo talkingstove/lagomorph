@@ -23,6 +23,12 @@ lParams = {
 				}
 			}
 		}
+	},
+	stringData: { //in a real app, delay start until this is fetched
+		'i18n': {
+			'key1': 'This is a test string',
+			'key2': 'This is a test string 2'
+		}
 	}
 }
 

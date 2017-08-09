@@ -1,4 +1,4 @@
-define(["LLibrary"], function(LLibrary) {
+define(["LLibrary", "objectUtils"], function(LLibrary, objectUtils) {
 
   //makes the singleton avaible to the global window.L, or via require
 	return {
@@ -15,7 +15,7 @@ define(["LLibrary"], function(LLibrary) {
       UIStringsLibrary = new LLibrary();
 
       if (uiStrings) {
-        ConnectorLibrary.addMultipleItems(uiStrings, true);
+        UIStringsLibrary.addItem('allUiStrings', uiStrings, true);
       }
 
     },
@@ -25,7 +25,7 @@ define(["LLibrary"], function(LLibrary) {
     },
 
     getUIStringByKey: function(key) {
-      return this.getLibrary() ? this.getLibrary().storage[name] : null;
+      return this.getLibrary() && this.getLibrary().allUiStrings ? objectUtils.getDataFromObjectByPath(this.getLibrary().allUiStrings, key) : null;
     },
 
 
