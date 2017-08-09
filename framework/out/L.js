@@ -1369,19 +1369,12 @@ break;default:console.error('objectmap must have valid dataType. Got:',objectMap
 //      }
 //    };
 define('uiStringsLibrary',["LLibrary","objectUtils"],function(LLibrary,objectUtils){//makes the singleton avaible to the global window.L, or via require
-return{UIStringsLibrary:null,initializeUIStringsLibrary:function(uiStrings){uiStrings=uiStrings||null;if(this.UIStringsLibrary!==null){console.warn('UIStringsLibrary singleton already initialized');return;}UIStringsLibrary=new LLibrary();if(uiStrings){UIStringsLibrary.addItem('allUiStrings',uiStrings,true);}},getLibrary:function(){return UIStringsLibrary;},getUIStringByKey:function(key){return this.getLibrary()&&this.getLibrary().allUiStrings?objectUtils.getDataFromObjectByPath(this.getLibrary().allUiStrings,key):null;}};});define('templateUtils',["Handlebars","uiStringsLibrary"],function(Handlebars,uiStringsLibrary){return{/*
+return{UIStringsLibrary:null,initializeUIStringsLibrary:function(uiStrings){uiStrings=uiStrings||null;if(this.UIStringsLibrary!==null){console.warn('UIStringsLibrary singleton already initialized');return;}UIStringsLibrary=new LLibrary();if(uiStrings){UIStringsLibrary.addItem('allUiStrings',uiStrings,true);}},getLibrary:function(){return UIStringsLibrary;},getUIStringByKey:function(key){return this.getLibrary()&&this.getLibrary().storage.allUiStrings?objectUtils.getDataFromObjectByPath(this.getLibrary().storage.allUiStrings,key):null;}};});define('templateUtils',["Handlebars","uiStringsLibrary","himalaya"],function(Handlebars,uiStringsLibrary,himalaya){return{/*
     * in json object, replace "[[[my.kyename]]]" with the key
-    */replaceUIStringKeys:function(data){},compileTemplate:function(templateSource){// var $templateSource = $(templateSource);
-// var $stringContainers = $templateSource.find('[data-ui_string]');
-// _.each($stringContainers, function(stringContainer) {
-//   var subValue = uiStringsLibrary.getUIStringByKey( $(stringContainer).data('ui_string') );
-//   if (subValue) {
-//     $(stringContainer).text(subValue);
-//   }
-// });
-// var parsedTemplateSource = null;
-// debugger;
-return Handlebars.compile(templateSource);},lookUpStringKey:function(key){return uiStringsLibrary.getUIStringByKey(key);}};});define('LModule',["Handlebars","LBase","viewUtils","componentInstanceLibrary","ajaxRequester","connectorLibrary","connectorUtils","objectUtils","templateUtils"],function(Handlebars,LBase,viewUtils,componentInstanceLibrary,ajaxRequester,connectorLibrary,connectorUtils,objectUtils,templateUtils){return LBase.extend(function(base){var module={self:this,Handlebars:Handlebars,dataContracts:[],//specifies remote data source(s) and specific ways they should be loaded into this module 
+    */replaceUIStringKeys:function(data){},compileTemplate:function(templateSource){// himalaya.parse(templateSource);
+//
+//clean up "bad" characters from template literals
+templateSource=templateSource.replace(/\t/g,'');templateSource=templateSource.replace(/\n/g,'');templateSource=templateSource.trim();var $templateSource=$(templateSource);_.each($templateSource,function(node){var $node=$(node);if($node.data('ui_string')){var subValue=uiStringsLibrary.getUIStringByKey($node.data('ui_string'));if(subValue){$node.text(subValue);}}});var parsedTemplateSource=$templateSource.wrap('<div></div>').html();return Handlebars.compile(parsedTemplateSource);},lookUpStringKey:function(key){return uiStringsLibrary.getUIStringByKey(key);}};});define('LModule',["Handlebars","LBase","viewUtils","componentInstanceLibrary","ajaxRequester","connectorLibrary","connectorUtils","objectUtils","templateUtils"],function(Handlebars,LBase,viewUtils,componentInstanceLibrary,ajaxRequester,connectorLibrary,connectorUtils,objectUtils,templateUtils){return LBase.extend(function(base){var module={self:this,Handlebars:Handlebars,dataContracts:[],//specifies remote data source(s) and specific ways they should be loaded into this module 
 //**** TODO: proper model with getters and setters
 //**** TODO: each one should be associated with passable render method
 data:{//after connector does its work, data is deposited here with predictible names for every instance of a given component 

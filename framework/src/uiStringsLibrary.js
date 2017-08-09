@@ -25,7 +25,7 @@ define(["LLibrary", "objectUtils"], function(LLibrary, objectUtils) {
     },
 
     getUIStringByKey: function(key) {
-      return this.getLibrary() && this.getLibrary().allUiStrings ? objectUtils.getDataFromObjectByPath(this.getLibrary().allUiStrings, key) : null;
+      return this.getLibrary() && this.getLibrary().storage.allUiStrings ? objectUtils.getDataFromObjectByPath(this.getLibrary().storage.allUiStrings, key) : null;
     },
 
 

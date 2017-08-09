@@ -1,4 +1,4 @@
-define(["Handlebars", "uiStringsLibrary"], function(Handlebars, uiStringsLibrary) {
+define(["Handlebars", "uiStringsLibrary", "himalaya"], function(Handlebars, uiStringsLibrary, himalaya) {
 
 	return {
 
@@ -11,20 +11,28 @@ define(["Handlebars", "uiStringsLibrary"], function(Handlebars, uiStringsLibrary
     },
 
     compileTemplate: function(templateSource) {
-      // var $templateSource = $(templateSource);
-      // var $stringContainers = $templateSource.find('[data-ui_string]');
+      //clean up "bad" characters from template literals
+      templateSource = templateSource.replace(/\t/g, '');
+      templateSource = templateSource.replace(/\n/g, '');
+      templateSource = templateSource.trim();
 
-      // _.each($stringContainers, function(stringContainer) {
-      //   var subValue = uiStringsLibrary.getUIStringByKey( $(stringContainer).data('ui_string') );
-      //   if (subValue) {
-      //     $(stringContainer).text(subValue);
-      //   }
-      // });
+      var $templateSource = $(templateSource);
 
-      // var parsedTemplateSource = null;
-      // debugger;
+      //TODO: nested wont work???
+      _.each($templateSource, function(node) {
+        var $node = $(node);
+        if ($node.data('ui_string')) {
+          var subValue = uiStringsLibrary.getUIStringByKey( $node.data('ui_string') );
+          if (subValue) {
+            $node.text(subValue);
+          }
+        }      
+      });
 
-      return Handlebars.compile(templateSource);
+      
+      var parsedTemplateSource = $templateSource.wrap('<div></div>').html();
+
+      return Handlebars.compile(parsedTemplateSource);
     },
 
     lookUpStringKey: function(key) {
