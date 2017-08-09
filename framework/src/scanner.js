@@ -1,15 +1,15 @@
 define(["componentInstanceLibrary"], function(componentInstanceLibrary) {
 
-	return {
-  	scan: function() {
-  		console.log('SCANNING...');
+  return {
+    scan: function() {
+      console.log('SCANNING...');
 
-  		//find Lagomorph blocks that may contain components
-  		var $blocks = $('.lagomorph-block');
+      //find Lagomorph blocks that may contain components
+      var $blocks = $('.lagomorph-block');
 
-  		_.each($blocks, function(block) {
-  			var $block = $(block);
-  			var $components = $block.find('[data-lagomorph-component], [data-lc]');
+      _.each($blocks, function(block) {
+        var $block = $(block);
+        var $components = $block.find('[data-lagomorph-component], [data-lc]');
 
         _.each($components, function(component) {
           var $component = $(component);
@@ -36,8 +36,8 @@ define(["componentInstanceLibrary"], function(componentInstanceLibrary) {
 
         }, this);
 
-  		}, this);
-  	}
+      }, this);
+    }
 
 
 
