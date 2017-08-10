@@ -82,7 +82,7 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
       this.connectorLibrary.initializeConnectorLibrary( params.connectors );
 
 
-      //user-defined components library (or just mix them into componentDefinitions??)
+      //user-defined components library (classes, not instances)
 
 
       //string (i18n) library (usually i18n, but could be any lookup for arbitrary text to be displayed in UI)

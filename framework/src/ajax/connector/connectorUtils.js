@@ -1,4 +1,4 @@
-define(["objectUtils"], function(objectUtils) {
+define(["objectUtils", "templateUtils"], function(objectUtils, templateUtils) {
 
 	return {
 
@@ -25,7 +25,9 @@ define(["objectUtils"], function(objectUtils) {
     },
 
     processDataItem: function(dataItem, mapDefinition) {
-      return (mapDefinition.srcPath === null) ? dataItem : objectUtils.getDataFromObjectByPath(dataItem, mapDefinition.srcPath);
+      //null = direct copy
+      var data = (mapDefinition.srcPath === null) ? dataItem : objectUtils.getDataFromObjectByPath(dataItem, mapDefinition.srcPath);
+      return templateUtils.replaceUIStringKeys(data);
       //TOOD: deep copy
     } 
 

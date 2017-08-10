@@ -39,7 +39,7 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
             this.type = type;
             this.$parentSelector = $parentSelector;
             this.dataContracts = compDataContracts;
-            this.viewData = templateUtils.replaceUIStringKeys( compViewData ); //i18n keys that were passed in as eg "[[[i18n.myKey]]]"
+            this.viewData = compViewData;
 
             componentInstanceLibrary.registerComponent(this);
 

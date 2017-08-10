@@ -7,7 +7,45 @@ define(["Handlebars", "uiStringsLibrary", "himalaya"], function(Handlebars, uiSt
     * in json object, replace "[[[my.kyename]]]" with the key
     */
     replaceUIStringKeys: function(data) {
-      //crawl recursively and test all strings
+      // if( _.isString(data) )  {
+      //   data = parseIfNeeded(data);
+      // }
+      // else if (_.isArray(data) || _.isObject(data)) {
+      //   _.each(data, function(dataItem) {
+      //     this.replaceUIStringKeys(dataItem);
+      //   }, this);
+      // }
+      
+      parseIfNeeded(data);
+
+
+      function parseIfNeeded(item, key, curDataObj) {
+        if ( _.isString(item) ) {
+          if (item.indexOf('[[[') === 0) {
+            var parsedVal = parseStringKey(item);
+
+            if (curDataObj) {
+              curDataObj[key] = parsedVal;
+            }
+            else { //simple string case
+              item = parsedVal;
+            }
+            
+          }
+        }
+        else if (_.isArray(data) || _.isObject(data)) {
+          _.each(data, function(dataItem, key) {
+            parseIfNeeded(dataItem, key, data);
+          });
+        }
+      }
+
+      function parseStringKey(str) {
+        return uiStringsLibrary.getUIStringByKey( str.substr(3, str.length-6) );
+      }
+
+     
+      return data;
     },
 
     compileTemplate: function(templateSource) {
@@ -16,22 +54,20 @@ define(["Handlebars", "uiStringsLibrary", "himalaya"], function(Handlebars, uiSt
       templateSource = templateSource.replace(/\n/g, '');
       templateSource = templateSource.trim();
 
-      var $templateSource = $(templateSource);
+      var $templateSource = $('<div>' + templateSource + '</div>');
 
-      //TODO: nested wont work???
-      _.each($templateSource, function(node) {
+      _.each($templateSource.find('[data-ui_string]'), function(node) {
         var $node = $(node);
-        if ($node.data('ui_string')) {
-          var subValue = uiStringsLibrary.getUIStringByKey( $node.data('ui_string') );
-          if (subValue) {
-            $node.text(subValue);
-          }
-        }      
+        var subValue = uiStringsLibrary.getUIStringByKey( $node.data('ui_string') );
+        if (subValue) {
+          $node.text(subValue);
+        }
+              
       });
 
       
-      var parsedTemplateSource = $templateSource.wrap('<div></div>').html();
-
+      var parsedTemplateSource = $templateSource.html();
+     
       return Handlebars.compile(parsedTemplateSource);
     },
 

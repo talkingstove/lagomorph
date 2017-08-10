@@ -8,7 +8,7 @@ define([], function() {
       var currentObject = object;
 
       for (var i=0; i<nameArray.length; i++) {  
-        if ( _.isUndefined(currentObject[nameArray[i]]) ) {
+        if ( _.isUndefined( currentObject[nameArray[i]] ) ) {
           currentObject = null;
           break;
         }
