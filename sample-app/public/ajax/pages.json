@@ -1,0 +1,16 @@
+{
+	"success": true,
+	"data": {
+		"routerInfo": {
+			"homepage": "/home",
+			"pages": {
+				"/home": {
+					"id": "homepage",
+		      "template": "<div>homepage<button data-navlink={'route': '/testpage'}>Navigate</button></div>",
+		      "useCachedData": false
+		    }
+			}
+		}
+		
+	}
+}

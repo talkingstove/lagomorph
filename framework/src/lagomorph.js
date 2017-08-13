@@ -4,7 +4,6 @@ define([
           "Handlebars", 
           "Fiber", 
           "dexie", 
-          "bluebird", 
           "himalaya", 
           "LBase", 
           "LModule", 
@@ -19,9 +18,12 @@ define([
           "connectorUtils",
           "objectUtils",
           "uiStringsLibrary",
-          "templateUtils"
+          "templateUtils",
+          "pageClassLibrary",
+          "director",
+          "LRouter"
         ], 
-function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils, uiStringsLibrary, templateUtils ) {
+function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils, uiStringsLibrary, templateUtils, pageClassLibrary, director, LRouter ) {
 
   var framework = { //anything we want to expose on the window for the end user needs to be added here
     scanner: scanner,
@@ -29,7 +31,6 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
     LBase: LBase,
     LModule: LModule,
     dexie: dexie, //api for indexedDB local storage DB -> http://dexie.org/docs/ 
-    bluebird: bluebird, //promise library -> http://bluebirdjs.com/
     himalaya: himalaya, //html to json parser -> https://github.com/andrejewski/himalaya
     $: $,
     _: _,
@@ -43,6 +44,8 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
     uiStringsLibrary: uiStringsLibrary,
     connectorUtils: connectorUtils,
     objectUtils: objectUtils,
+    pageClassLibrary: pageClassLibrary,
+    LRouter: LRouter,
 
     /*
     * componentConfig = json to instantiate components, in lieu of or addition to that in the html itself
@@ -58,11 +61,23 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
     **/
     start: function(params) {
 
-
-      //***TODO: accept promises and don't start until they're resolved!! **************
-
+      var self = this;
       params = params || {};
 
+      if (!params.pageWrapperSelector) {
+        console.warn('Lagomorph started with no pageWrapperSelector');
+      }
+      if (!params.pages) {
+        console.warn('Lagomorph started with no pages');
+      }
+
+
+      if (!params.initialRoute) {
+        console.warn('Lagomorph started with no initialRoute');
+      }
+      // if (!params.routeConfig) {
+      //   console.warn('Lagomorph started with no routeConfig');
+      // }
       if (!params.componentConfig) {
         console.log('Lagomorph started with no component config');
       }
@@ -73,6 +88,8 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
         console.log('Lagomorph started with no string/i18nDataSource config');
       }
 
+      
+
       this.componentInstanceLibrary.initializeComponentInstanceLibrary(); //model that holds all instances of created components for lookup
 
       //data source library (server data lookuos)
@@ -81,34 +98,78 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
       //connector library
       this.connectorLibrary.initializeConnectorLibrary( params.connectors );
 
+      this.pageClassLibrary.initializePageClassLibrary();
 
-      //user-defined components library (or just mix them into componentDefinitions??)
+
+      //user-defined components library (class definitions, not instances)
+      //created instances are in componentInstanceLibrary
 
 
       //string (i18n) library (usually i18n, but could be any lookup for arbitrary text to be displayed in UI)
       this.uiStringsLibrary.initializeUIStringsLibrary(params.stringData);
 
-      this.scanner.scan();
-    },
 
-    createApp: function() {
-      //initiate a full single-page app with router, etc if desired
+      var allPromises = []; //add anything that is needed before the initial scan/app start
+
+      if (params.pages && params.pages.dataSourceName) {
+        var connector = this.connectorLibrary.getConnectorByName( params.pages.connectorName );
+        var pagesPromise = ajaxRequester.createAjaxCallPromise(params.pages.dataSourceName, "pages", connector);
+        
+        allPromises.push( pagesPromise );
+      }
+
+      //***** Determine which promises need to be resolved before we can actually start the app
+      $.when.all(allPromises).then(function(schemas) {
+          for (var i=0; i<schemas.length; i++) {
+            var promiseId = schemas[i].promiseId;
+
+            switch (promiseId) {
+              case 'pages':
+                var routerInfo = schemas[i].returnedData;
+                // self.pageLibrary.initializePageLibrary( pageDefinitions );
+                self.LRouter.startRouter(routerInfo.pages, routerInfo.homepage, params.pageWrapperSelector);
+              break;
+            }
+          }
+
+       
+
+        
+
+
+          //*******when processing is done, load initial page into the pageWrapperSelector
+          //page then users the scanner to scan itself
+
+              
+          // self.scanner.scan($(params.pageWrapperSelector));
+
+          }, function(e) {
+               console.log("App start failed");
+          });
+
+
+ //       pages: { //just json, can be hardcoded or via endpoint
+  //   dataSourceName: "lPages",
+  //   pageDefinitions: {}
+  // },
+
+      
     }
   }
 
-  if ($.when.all===undefined) {
+  if ($ && $.when.all===undefined) {
     $.when.all = function(deferreds) {
-        var deferred = new $.Deferred();
-        $.when.apply($, deferreds).then(
-            function() {
-                deferred.resolve(Array.prototype.slice.call(arguments));
-            },
-            function() {
-                deferred.fail(Array.prototype.slice.call(arguments));
-            });
+      var deferred = new $.Deferred();
+      $.when.apply($, deferreds).then(
+          function() {
+              deferred.resolve(Array.prototype.slice.call(arguments));
+          },
+          function() {
+              deferred.fail(Array.prototype.slice.call(arguments));
+          });
 
-        return deferred;
-      }
+      return deferred;
+    }
   }
 
   if (window) {

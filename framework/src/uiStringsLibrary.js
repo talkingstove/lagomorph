@@ -12,16 +12,16 @@ define(["LLibrary", "objectUtils"], function(LLibrary, objectUtils) {
         return;
       }
 
-      UIStringsLibrary = new LLibrary();
+      this.UIStringsLibrary = new LLibrary();
 
       if (uiStrings) {
-        UIStringsLibrary.addItem('allUiStrings', uiStrings, true);
+        this.getLibrary().addItem('allUiStrings', uiStrings, true);
       }
 
     },
 
     getLibrary: function() {
-      return UIStringsLibrary;
+      return this.UIStringsLibrary;
     },
 
     getUIStringByKey: function(key) {

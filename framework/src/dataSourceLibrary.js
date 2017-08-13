@@ -12,16 +12,16 @@ define(["LLibrary"], function(LLibrary) {
         return;
       }
 
-      DataSourceLibrary = new LLibrary();
+      this.DataSourceLibrary = new LLibrary();
 
       if (dataSources) {
-        DataSourceLibrary.addMultipleItems(dataSources, true);
+        this.getLibrary().addMultipleItems(dataSources, true);
       }
 
     },
 
     getLibrary: function() {
-      return DataSourceLibrary;
+      return this.DataSourceLibrary;
     },
 
     getDataSourceByName: function(name) {
