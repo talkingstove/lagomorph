@@ -14,12 +14,11 @@ TO BUILD FRAMEWORK:
 1) If needed, "npm install -g requirejs" so r.js will be available
 2) From /framework/scripts in terminal: sh build-local.sh
 
-TO USE NEWLY-BUILT VERSION IN SAMPLE-APP:
-=> cp ../out/L.js ../../sample-app/public/js/lib/lagomorph
-
 TO RUN SAMPLE APP: 
 Install Mongodb if needed: see video here for instructions for mac https://youtu.be/_WJ8m5QHvwc (for windows: https://youtu.be/sBdaRlgb4N8)
 
 Run mongod from terminal
 
 Go to /sample-app and run `npm install` and `node app.js`
+
+Local app will be available at http://localhost:4000/, with your changes copied into its L.js by the build script!
