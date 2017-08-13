@@ -12,16 +12,16 @@ define(["LLibrary"], function(LLibrary) {
         return;
       }
 
-      ConnectorLibrary = new LLibrary();
+      this.ConnectorLibrary = new LLibrary();
 
       if (connectors) {
-        ConnectorLibrary.addMultipleItems(connectors, true);
+        this.getLibrary().addMultipleItems(connectors, true);
       }
 
     },
 
     getLibrary: function() {
-      return ConnectorLibrary;
+      return this.ConnectorLibrary;
     },
 
     getConnectorByName: function(name) {

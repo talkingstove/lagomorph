@@ -2,12 +2,36 @@ define(["Handlebars", "uiStringsLibrary", "himalaya"], function(Handlebars, uiSt
 
   return {
 
-
     /*
-    * in json object, replace "[[[my.kyename]]]" with the key
+    * in json object, replace "[[[my.keyname]]]" with the key
     */
     replaceUIStringKeys: function(data) {
-      //crawl recursively and test all strings
+      parseIfNeeded(data);
+      return data;
+
+      function parseIfNeeded(item, key, curDataObj) {
+        if ( _.isString(item) ) {
+          if (item.indexOf('[[[') === 0) { //TOOD: make [[[ ]]] a changable constant
+            var parsedVal = parseStringKey(item);
+
+            if (curDataObj) {
+              curDataObj[key] = parsedVal;
+            }
+            else { //simple string case
+              item = parsedVal;
+            }           
+          }
+        }
+        else if (_.isArray(item) || _.isObject(item)) {
+          _.each(item, function(dataItem, key) {
+            parseIfNeeded(dataItem, key, data);
+          });
+        }
+      }
+
+      function parseStringKey(str) {
+        return uiStringsLibrary.getUIStringByKey( str.substr(3, str.length-6) );
+      }
     },
 
     compileTemplate: function(templateSource) {
@@ -16,22 +40,20 @@ define(["Handlebars", "uiStringsLibrary", "himalaya"], function(Handlebars, uiSt
       templateSource = templateSource.replace(/\n/g, '');
       templateSource = templateSource.trim();
 
-      var $templateSource = $(templateSource);
+      var $templateSource = $('<div>' + templateSource + '</div>');
 
-      //TODO: nested wont work???
-      _.each($templateSource, function(node) {
+      _.each($templateSource.find('[data-ui_string]'), function(node) {
         var $node = $(node);
-        if ($node.data('ui_string')) {
-          var subValue = uiStringsLibrary.getUIStringByKey( $node.data('ui_string') );
-          if (subValue) {
-            $node.text(subValue);
-          }
-        }      
+        var subValue = uiStringsLibrary.getUIStringByKey( $node.data('ui_string') );
+        if (subValue) {
+          $node.text(subValue);
+        }
+              
       });
 
       
-      var parsedTemplateSource = $templateSource.wrap('<div></div>').html();
-
+      var parsedTemplateSource = $templateSource.html();
+     
       return Handlebars.compile(parsedTemplateSource);
     },
 

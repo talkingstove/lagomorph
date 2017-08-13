@@ -1,3 +1,6 @@
+/*
+* Root class for LComponents and Lpages
+*/
 define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxRequester", "connectorLibrary", "connectorUtils", "objectUtils", "templateUtils"], function(Handlebars, LBase, viewUtils, componentInstanceLibrary, ajaxRequester, connectorLibrary, connectorUtils, objectUtils, templateUtils) {
 
   return LBase.extend(function(base) {
@@ -18,30 +21,12 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
         init: function(params) {
             
             base.init(params);
-            var compViewData = params.viewParams || {};
-            var compDataContracts = params.dataContracts || [];
 
-            //TODO: add default attrs like unique id, class name etc
-            var id = compViewData.id;
-            var type = compViewData.type;
-            var $parentSelector = compViewData.$parentSelector;
-
-            if (!id) {
-              console.error('attempted to created component without id!');
-              return;
+            if (params.template) { //override template per instance when desired!
+              this.template = params.template;
             }
-            if (!type) {
-              console.error('attempted to created component without type!');
-              return;
-            }
-
-            this.id = id;
-            this.type = type;
-            this.$parentSelector = $parentSelector;
-            this.dataContracts = compDataContracts;
-            this.viewData = templateUtils.replaceUIStringKeys( compViewData ); //i18n keys that were passed in as eg "[[[i18n.myKey]]]"
-
-            componentInstanceLibrary.registerComponent(this);
+            
+            
 
             this.compiledTemplate = templateUtils.compileTemplate(this.template); //TODO: cache standard templates in a libary
         },
@@ -66,7 +51,8 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 
         getData: function(targetPath) {
           //TODO: deep get with dot path
-          return this.data[targetPath];
+          // return this.data[targetPath];
+          return objectUtils.getDataFromObjectByPath(this.data, targetPath);
         },
 
         announceDataChange: function(targetPath) {
@@ -80,7 +66,6 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
         loadComponent: function(targetSelector) {
           var self = this;
     
-
           /*
           * Component instantiator gave us one or more data contracts
           * We must fulfill them before we can render the view
@@ -92,9 +77,10 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 
           for (var i=0; i<this.dataContracts.length; i++) {
             var thisContract = this.dataContracts[i];
-            var promise =  ajaxRequester.createAjaxCallPromise( thisContract.dataSource );
-            allPromises.push(promise);
-            
+            var connector = connectorLibrary.getConnectorByName( thisContract.connector );   
+            var promiseId = this.id + '_loadComponent_' + i;  
+            var promise =  ajaxRequester.createAjaxCallPromise( thisContract.dataSource, promiseId, connector ); 
+            allPromises.push(promise);           
           }
           
           $.when.all(allPromises).then(function(schemas) {
@@ -103,12 +89,14 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
                //untested assumption: when.all returns schemas in matching order
                for (var j=0; j<schemas.length; j++) {
                   var thisDataContract = self.dataContracts[j];
-                  var connector = connectorLibrary.getConnectorByName( thisDataContract.connector ); //json
-                  var serverData = objectUtils.getDataFromObjectByPath( schemas[j], connector.srcPath );
+
+                  //TODO: move into ajaxRequest
+                  // var connector = connectorLibrary.getConnectorByName( thisDataContract.connector ); //json
+                  // var serverData = objectUtils.getDataFromObjectByPath( schemas[j].returnedData, connector.srcPath );
                   var dataTarget = connector.destinationPath;
 
-                  var processedData = connectorUtils.processData(serverData, connector.objectMap);
-                  self.setData(dataTarget, processedData);
+                  // var processedData = connectorUtils.processData(serverData, connector.objectMap);
+                  self.setData(serverData, processedData);
                }
 
                self.renderView(targetSelector);

@@ -1,9 +1,11 @@
-define(["objectUtils"], function(objectUtils) {
+define(["objectUtils", "templateUtils"], function(objectUtils, templateUtils) {
 
 	return {
 
+    processData: function(rawDataFromServer, connector) {
+      var objectMap = connector.objectMap;
+      var dataFromServer = connector.srcPath ? objectUtils.getDataFromObjectByPath( rawDataFromServer, connector.srcPath ) : rawDataFromServer;
 
-    processData: function(dataFromServer, objectMap) {
       switch(objectMap.dataType) {
         case 'array':
           var finalArray = [];
@@ -13,10 +15,13 @@ define(["objectUtils"], function(objectUtils) {
           }
 
           return finalArray;
-
         break;
-        case 'object':
-          //TODO
+        case 'object': //TODO: untested
+          _.each(dataFromServer, function(dataItem) {
+            this.processDataItem(dataItem, objectMap.eachChildDefinition); 
+          }, this);
+
+          return dataFromServer;
         break;
         default:
           console.error('objectmap must have valid dataType. Got:', objectMap.dataType);
@@ -25,27 +30,14 @@ define(["objectUtils"], function(objectUtils) {
     },
 
     processDataItem: function(dataItem, mapDefinition) {
-      return (mapDefinition.srcPath === null) ? dataItem : objectUtils.getDataFromObjectByPath(dataItem, mapDefinition.srcPath);
+      //null = direct copy
+      var data = (!mapDefinition || mapDefinition.srcPath === null) ? dataItem : objectUtils.getDataFromObjectByPath(dataItem, mapDefinition.srcPath);
+      
+      //replace i18n string keys in format "[[[i18n.my.key]]]" as needed
+      return templateUtils.replaceUIStringKeys(data);
       //TOOD: deep copy
     } 
 
-
 	}
 
-
 });
-
-
-
-// "list1PhotoListConnector": {
-//      "srcPath": "data.photos",
-//      "destinationPath": "listItems", //goes to processedData with this name, then module renders it
-//      "objectMap": { //parent object can have children of an array or nested objects
-//        "dataType": "array",
-//        "eachChildDefinition": { //child of an array, defined relative to the object root
-//          "dataType": "object",
-//          "srcPath": null, //=root, so just copy the object
-//          "destinationPath": null
-//        }
-//      }
-//    }

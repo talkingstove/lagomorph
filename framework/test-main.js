@@ -23,6 +23,8 @@ require.config({
     'lagomorph': 'src/lagomorph',
     'LBase': 'src/LBase',
     'LModule': 'src/LModule',
+    'LComponent': 'src/LComponent',
+    'LPage': 'src/LPage',
     'L_List': 'src/components/L_List',
     'scanner': 'src/scanner',
     'Fiber': 'lib/fiber.min',
@@ -31,7 +33,6 @@ require.config({
     'Handlebars': 'lib/handlebars.min',
     'dexie': 'lib/dexie',
     'himalaya': 'lib/himalaya',
-    'bluebird': 'lib/bluebird',
     'viewUtils': 'src/utils/viewUtils',
     'componentInstanceLibrary': 'src/componentInstanceLibrary',
     'dataSourceLibrary': 'src/dataSourceLibrary',
@@ -42,7 +43,10 @@ require.config({
     'connectorUtils': 'src/ajax/connector/connectorUtils',
     'objectUtils': 'src/utils/objectUtils',
     'uiStringsLibrary': 'src/uiStringsLibrary',
-    'templateUtils': 'src/utils/templateUtils'
+    'templateUtils': 'src/utils/templateUtils',
+    'pageClassLibrary': 'src/pageClassLibrary',
+    'director': 'lib/director.min',
+    'LRouter': 'src/LRouter',
   },
 
   // we have to kickoff jasmine, as it is asynchronous

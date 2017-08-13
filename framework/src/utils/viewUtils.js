@@ -1,12 +1,12 @@
 define(["Handlebars"], function(Handlebars) {
 
-	return {
+  return {
 
 
     /*
     * abstracted from jQuery in case we ever want to remove it or even use React, etc
     */
-		renderDomElement: function(containerSelector, html, renderType) {
+    renderDomElement: function(containerSelector, html, renderType) {
       renderType = renderType || 'replace'; 
 
       switch(renderType) {
@@ -24,7 +24,7 @@ define(["Handlebars"], function(Handlebars) {
     }
 
 
-	}
+  }
 
 
 });

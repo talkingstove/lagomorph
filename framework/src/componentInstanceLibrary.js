@@ -11,11 +11,11 @@ define(["LLibrary"], function(LLibrary) {
         return;
       }
 
-      ComponentInstanceLibrary = new LLibrary();
+      this.ComponentInstanceLibrary = new LLibrary();
     },
 
     getLibrary: function() {
-      return ComponentInstanceLibrary;
+      return this.ComponentInstanceLibrary;
     },
 
     getComponentInstanceById: function(id) {
