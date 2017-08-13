@@ -7,8 +7,8 @@ define(["Fiber"], function(Fiber) {
             this.storage = {}; //in order for this to be an instance var and not on the class, MUST be declared in init!!
         },
 
-        getItem: function(id) {
-          return this.storage[id] || null;
+        getItem: function(key) {
+          return this.storage[key] || null;
         },
 
         addMultipleItems: function(itemsMap, overwriteItems) {

@@ -9377,8 +9377,8 @@
                     this.storage = {}; //in order for this to be an instance var and not on the class, MUST be declared in init!!
                 },
 
-                getItem: function (id) {
-                    return this.storage[id] || null;
+                getItem: function (key) {
+                    return this.storage[key] || null;
                 },
 
                 addMultipleItems: function (itemsMap, overwriteItems) {
@@ -9815,30 +9815,11 @@
                 init: function (params) {
 
                     base.init(params);
-                    var compViewData = params.viewParams || {};
-                    var compDataContracts = params.dataContracts || [];
 
-                    //TODO: add default attrs like unique id, class name etc
-                    var id = compViewData.id;
-                    var type = compViewData.type;
-                    var $parentSelector = compViewData.$parentSelector;
-
-                    if (!id) {
-                        console.error('attempted to created component without id!');
-                        return;
+                    if (params.template) {
+                        //override template per instance when desired!
+                        this.template = params.template;
                     }
-                    if (!type) {
-                        console.error('attempted to created component without type!');
-                        return;
-                    }
-
-                    this.id = id;
-                    this.type = type;
-                    this.$parentSelector = $parentSelector;
-                    this.dataContracts = compDataContracts;
-                    this.viewData = compViewData;
-
-                    componentInstanceLibrary.registerComponent(this);
 
                     this.compiledTemplate = templateUtils.compileTemplate(this.template); //TODO: cache standard templates in a libary
                 },
@@ -9997,7 +9978,6 @@
         };
     });
     /*
-    * Root class for LComponents and Lpages
     */
     define('LComponent', ["Handlebars", "LModule", "viewUtils", "componentInstanceLibrary", "ajaxRequester", "connectorLibrary", "connectorUtils", "objectUtils", "templateUtils"], function (Handlebars, LModule, viewUtils, componentInstanceLibrary, ajaxRequester, connectorLibrary, connectorUtils, objectUtils, templateUtils) {
 
@@ -10008,6 +9988,31 @@
                 init: function (params) {
 
                     base.init(params);
+
+                    var compViewData = params.viewParams || {};
+                    var compDataContracts = params.dataContracts || [];
+
+                    //TODO: add default attrs like unique id, class name etc
+                    var id = compViewData.id;
+                    var type = compViewData.type;
+                    var $parentSelector = compViewData.$parentSelector;
+
+                    if (!id) {
+                        console.error('attempted to created component without id!');
+                        return;
+                    }
+                    if (!type) {
+                        console.error('attempted to created component without type!');
+                        return;
+                    }
+
+                    this.id = id;
+                    this.type = type;
+                    this.$parentSelector = $parentSelector;
+                    this.dataContracts = compDataContracts;
+                    this.viewData = compViewData;
+
+                    componentInstanceLibrary.registerComponent(this);
                 }
 
             };
@@ -10023,11 +10028,6 @@
                     params = params || {};
 
                     base.init(params);
-
-                    if (params.template) {
-                        //override template per instance when desired!
-                        this.template = params.template;
-                    }
 
                     if (params.listItemTemplate) {
                         //override template per instance when desired!
@@ -10153,29 +10153,28 @@
         };
     });
 
-    define('pageLibrary', ["LLibrary"], function (LLibrary) {
+    define('pageClassLibrary', ["LLibrary"], function (LLibrary) {
 
         //makes the singleton avaible to the global window.L, or via require
         return {
 
-            PageLibrary: null,
+            PageClassLibrary: null,
 
-            initializePageLibrary: function (pages) {
-                pages = pages || null;
-                if (this.PageLibrary !== null) {
-                    console.warn('PageLibrary singleton already initialized');
+            initializePageClassLibrary: function () {
+                if (this.PageClassLibrary !== null) {
+                    console.warn('PageClassLibrary singleton already initialized');
                     return;
                 }
 
-                this.PageLibrary = new LLibrary();
-
-                if (pages) {
-                    this.getLibrary().addItem('pages', pages, true);
-                }
+                this.PageClassLibrary = new LLibrary();
             },
 
             getLibrary: function () {
-                return this.PageLibrary;
+                return this.PageClassLibrary;
+            },
+
+            getPageByRoute: function (route) {
+                return this.getLibrary() ? this.getLibrary().getItem(route) : null;
             }
 
         };
@@ -10380,15 +10379,52 @@
     })(typeof exports == "object" ? exports : window);
     define("director", function () {});
 
-    define('LRouter', [], function () {
+    /*
+    */
+    define('LPage', ["Handlebars", "LModule", "viewUtils", "componentInstanceLibrary", "ajaxRequester", "connectorLibrary", "connectorUtils", "objectUtils", "templateUtils", "scanner"], function (Handlebars, LModule, viewUtils, componentInstanceLibrary, ajaxRequester, connectorLibrary, connectorUtils, objectUtils, templateUtils, scanner) {
+
+        return LModule.extend(function (base) {
+
+            return {
+
+                init: function (params) {
+                    base.init(params);
+                    this.id = 'page_' + params.id;
+                    this.useCachedData = params.useCachedData || false;
+                },
+
+                renderPage: function (pageWrapperSelector) {
+                    //TODO: optional data caching
+                    var $pageWrapperSelector = $(pageWrapperSelector);
+                    this.$parentSelector = $pageWrapperSelector; //??/
+
+                    this.loadComponent($pageWrapperSelector);
+                    scanner.scan($pageWrapperSelector);
+                }
+
+                // "pages": {
+                //   "/home": {
+                //     "template": "<div>homepage<button data-navlink={'route': '/testpage'}>Navigate</button></div>",
+                //     "useCachedData": false
+                //   }
+                // }
+
+
+            };
+        });
+    });
+
+    define('LRouter', ["pageClassLibrary", "LPage"], function (pageClassLibrary, LPage) {
 
         return {
 
-            pageDefinitions: null,
+            pageDefinitions: null, //json
 
-            startRouter: function (pages, homepageName) {
+            startRouter: function (pages, homepageName, pageWrapperSelector) {
                 this.pageDefinitions = pages;
-                var self = this;
+                this.pageWrapperSelector = pageWrapperSelector;
+                this.pageClassLibrary = pageClassLibrary; //needed when this is passed via apply
+                this.LPage = LPage;
 
                 var routes = {};
 
@@ -10404,18 +10440,25 @@
                 });
 
                 router.init();
-                this.goToPage(homepageName);
+                this.navigateToPage(homepageName);
             },
 
-            goToPage: function (pageName) {
+            navigateToPage: function (pageName) {
                 var uri = window.location.href.split("#")[0];
                 window.location.href = uri + '#' + pageName;
             },
 
             renderPage: function () {
+                //TODO: if page not found, go back to last one in the history! ??????
+
                 var pageKey = window.location.hash.slice(1);
-                debugger;
-                var template = this.pageDefinitions[pageKey].template;
+                var pageClass = this.pageClassLibrary.getPageByRoute(pageKey);
+
+                if (!pageClass) {
+                    pageClass = new LPage(this.pageDefinitions[pageKey]);
+                }
+
+                pageClass.renderPage(this.pageWrapperSelector);
             }
 
         };
@@ -10426,19 +10469,7 @@
     //         '/books': listBooks
     //       };
 
-    //       //
-    //       // instantiate the router.
-    //       //
-    //       var router = Router(routes);
-
-    //       //
-    //       // a global configuration setting.
-    //       //
-    //       router.configure({
-    //         on: allroutes
-    //       });
-    //       router.init();
-    define('lagomorph', ["jquery", "underscore", "Handlebars", "Fiber", "dexie", "himalaya", "LBase", "LModule", "scanner", "L_List", "componentInstanceLibrary", "viewUtils", "ajaxRequester", "agreementsTester", "dataSourceLibrary", "connectorLibrary", "connectorUtils", "objectUtils", "uiStringsLibrary", "templateUtils", "pageLibrary", "director", "LRouter"], function ($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils, uiStringsLibrary, templateUtils, pageLibrary, director, LRouter) {
+    define('lagomorph', ["jquery", "underscore", "Handlebars", "Fiber", "dexie", "himalaya", "LBase", "LModule", "scanner", "L_List", "componentInstanceLibrary", "viewUtils", "ajaxRequester", "agreementsTester", "dataSourceLibrary", "connectorLibrary", "connectorUtils", "objectUtils", "uiStringsLibrary", "templateUtils", "pageClassLibrary", "director", "LRouter"], function ($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils, uiStringsLibrary, templateUtils, pageClassLibrary, director, LRouter) {
 
         var framework = { //anything we want to expose on the window for the end user needs to be added here
             scanner: scanner,
@@ -10459,8 +10490,8 @@
             uiStringsLibrary: uiStringsLibrary,
             connectorUtils: connectorUtils,
             objectUtils: objectUtils,
-            pageLibrary: pageLibrary,
-            LRouter: LRouter, //TODO: not working as module
+            pageClassLibrary: pageClassLibrary,
+            LRouter: LRouter,
 
             /*
             * componentConfig = json to instantiate components, in lieu of or addition to that in the html itself
@@ -10510,7 +10541,10 @@
                 //connector library
                 this.connectorLibrary.initializeConnectorLibrary(params.connectors);
 
-                //user-defined components library (classes, not instances)
+                this.pageClassLibrary.initializePageClassLibrary();
+
+                //user-defined components library (class definitions, not instances)
+                //created instances are in componentInstanceLibrary
 
 
                 //string (i18n) library (usually i18n, but could be any lookup for arbitrary text to be displayed in UI)
@@ -10534,7 +10568,7 @@
                             case 'pages':
                                 var routerInfo = schemas[i].returnedData;
                                 // self.pageLibrary.initializePageLibrary( pageDefinitions );
-                                self.LRouter.startRouter(routerInfo.pages, routerInfo.homepage);
+                                self.LRouter.startRouter(routerInfo.pages, routerInfo.homepage, params.pageWrapperSelector);
                                 break;
                         }
                     }

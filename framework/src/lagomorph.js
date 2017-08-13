@@ -19,11 +19,11 @@ define([
           "objectUtils",
           "uiStringsLibrary",
           "templateUtils",
-          "pageLibrary",
+          "pageClassLibrary",
           "director",
           "LRouter"
         ], 
-function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils, uiStringsLibrary, templateUtils, pageLibrary, director, LRouter ) {
+function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils, uiStringsLibrary, templateUtils, pageClassLibrary, director, LRouter ) {
 
   var framework = { //anything we want to expose on the window for the end user needs to be added here
     scanner: scanner,
@@ -44,8 +44,8 @@ function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_Li
     uiStringsLibrary: uiStringsLibrary,
     connectorUtils: connectorUtils,
     objectUtils: objectUtils,
-    pageLibrary: pageLibrary,
-    LRouter: LRouter, //TODO: not working as module
+    pageClassLibrary: pageClassLibrary,
+    LRouter: LRouter,
 
     /*
     * componentConfig = json to instantiate components, in lieu of or addition to that in the html itself
@@ -98,8 +98,11 @@ function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_Li
       //connector library
       this.connectorLibrary.initializeConnectorLibrary( params.connectors );
 
+      this.pageClassLibrary.initializePageClassLibrary();
 
-      //user-defined components library (classes, not instances)
+
+      //user-defined components library (class definitions, not instances)
+      //created instances are in componentInstanceLibrary
 
 
       //string (i18n) library (usually i18n, but could be any lookup for arbitrary text to be displayed in UI)
@@ -124,7 +127,7 @@ function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_Li
               case 'pages':
                 var routerInfo = schemas[i].returnedData;
                 // self.pageLibrary.initializePageLibrary( pageDefinitions );
-                self.LRouter.startRouter(routerInfo.pages, routerInfo.homepage);
+                self.LRouter.startRouter(routerInfo.pages, routerInfo.homepage, params.pageWrapperSelector);
               break;
             }
           }

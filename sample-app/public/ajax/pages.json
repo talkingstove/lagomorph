@@ -5,7 +5,9 @@
 			"homepage": "/home",
 			"pages": {
 				"/home": {
-		      "template": "<div>homepage</div>"
+					"id": "homepage",
+		      "template": "<div>homepage<button data-navlink={'route': '/testpage'}>Navigate</button></div>",
+		      "useCachedData": false
 		    }
 			}
 		}

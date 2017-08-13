@@ -44,7 +44,7 @@ require.config({
     'objectUtils': 'src/utils/objectUtils',
     'uiStringsLibrary': 'src/uiStringsLibrary',
     'templateUtils': 'src/utils/templateUtils',
-    'pageLibrary': 'src/pageLibrary',
+    'pageClassLibrary': 'src/pageClassLibrary',
     'director': 'lib/director.min',
     'LRouter': 'src/LRouter',
   },

@@ -8,9 +8,7 @@ define(["Handlebars", "underscore", "LComponent", "viewUtils", "templateUtils"],
 
           base.init(params);
 
-          if (params.template) { //override template per instance when desired!
-            this.template = params.template;
-          }
+          
 
           if (params.listItemTemplate) { //override template per instance when desired!
             this.listItemTemplate = params.listItemTemplate;

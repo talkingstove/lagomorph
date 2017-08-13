@@ -28,7 +28,7 @@
         'agreementsTester': '../src/ajax/agreements/agreementsTester',
         'dataSourceLibrary': '../src/dataSourceLibrary',
         'connectorLibrary': '../src/connectorLibrary',
-        'pageLibrary': '../src/pageLibrary',
+        'pageClassLibrary': '../src/pageClassLibrary',
         'uiStringsLibrary': '../src/uiStringsLibrary',
         'connectorUtils': '../src/ajax/connector/connectorUtils',
         'objectUtils': '../src/utils/objectUtils',

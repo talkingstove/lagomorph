@@ -1,39 +1,48 @@
-define(["pageLibrary"], function(pageLibrary) {
+define(["pageClassLibrary", "LPage"], function(pageClassLibrary, LPage) {
 
   return {
 
-    pageDefinitions: null,
+    pageDefinitions: null, //json
 
-    startRouter: function(pages, homepageName) {
+    startRouter: function(pages, homepageName, pageWrapperSelector) {
       this.pageDefinitions = pages;
+      this.pageWrapperSelector = pageWrapperSelector;
+      this.pageClassLibrary = pageClassLibrary; //needed when this is passed via apply
+      this.LPage = LPage;
+
       var routes = {};
 
-        _.each(pages, function(pageDef, key) {
-          var routeName = key;
-          routes[routeName] = $.noop;
-        });
+      _.each(pages, function(pageDef, key) {
+        var routeName = key;
+        routes[routeName] = $.noop;
+      });
 
-        var router = Router(routes);
+      var router = Router(routes);
 
-        router.configure({
-          on: this.renderPage.apply(this)
-        });
+      router.configure({
+        on: this.renderPage.apply(this)
+      });
 
-        router.init();
-        this.goToPage(homepageName);
+      router.init();
+      this.navigateToPage(homepageName);
     },
 
-    goToPage: function(pageName) {
+    navigateToPage: function(pageName) {
       var uri = window.location.href.split("#")[0];
       window.location.href = uri + '#' + pageName;
     },
 
     renderPage: function() {
-      var pageKey = window.location.hash.slice(1);
-      var template = this.pageDefinitions[pageKey].template;
+      //TODO: if page not found, go back to last one in the history! ??????
 
-      //put a LPage in the page linrary if not in there
-      //if it is, call render(refresh server calls || use cache)
+      var pageKey = window.location.hash.slice(1);
+      var pageClass = this.pageClassLibrary.getPageByRoute(pageKey);
+
+      if (!pageClass) {
+        pageClass = new LPage( this.pageDefinitions[pageKey] );
+      }
+
+      pageClass.renderPage( this.pageWrapperSelector );
     }
 
 
@@ -45,16 +54,3 @@ define(["pageLibrary"], function(pageLibrary) {
 //         '/author': showAuthorInfo,
 //         '/books': listBooks
 //       };
-
-//       //
-//       // instantiate the router.
-//       //
-//       var router = Router(routes);
-
-//       //
-//       // a global configuration setting.
-//       //
-//       router.configure({
-//         on: allroutes
-//       });
-//       router.init();
