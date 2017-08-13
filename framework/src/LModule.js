@@ -1,3 +1,6 @@
+/*
+* Root class for LComponents and Lpages
+*/
 define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxRequester", "connectorLibrary", "connectorUtils", "objectUtils", "templateUtils"], function(Handlebars, LBase, viewUtils, componentInstanceLibrary, ajaxRequester, connectorLibrary, connectorUtils, objectUtils, templateUtils) {
 
   return LBase.extend(function(base) {
@@ -66,7 +69,8 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 
         getData: function(targetPath) {
           //TODO: deep get with dot path
-          return this.data[targetPath];
+          // return this.data[targetPath];
+          return objectUtils.getDataFromObjectByPath(this.data, targetPath);
         },
 
         announceDataChange: function(targetPath) {
@@ -80,7 +84,6 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
         loadComponent: function(targetSelector) {
           var self = this;
     
-
           /*
           * Component instantiator gave us one or more data contracts
           * We must fulfill them before we can render the view
@@ -92,9 +95,10 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 
           for (var i=0; i<this.dataContracts.length; i++) {
             var thisContract = this.dataContracts[i];
-            var promise =  ajaxRequester.createAjaxCallPromise( thisContract.dataSource );
-            allPromises.push(promise);
-            
+            var connector = connectorLibrary.getConnectorByName( thisContract.connector );   
+            var promiseId = this.id + '_loadComponent_' + i;  
+            var promise =  ajaxRequester.createAjaxCallPromise( thisContract.dataSource, promiseId, connector ); 
+            allPromises.push(promise);           
           }
           
           $.when.all(allPromises).then(function(schemas) {
@@ -103,12 +107,14 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
                //untested assumption: when.all returns schemas in matching order
                for (var j=0; j<schemas.length; j++) {
                   var thisDataContract = self.dataContracts[j];
-                  var connector = connectorLibrary.getConnectorByName( thisDataContract.connector ); //json
-                  var serverData = objectUtils.getDataFromObjectByPath( schemas[j], connector.srcPath );
+
+                  //TODO: move into ajaxRequest
+                  // var connector = connectorLibrary.getConnectorByName( thisDataContract.connector ); //json
+                  // var serverData = objectUtils.getDataFromObjectByPath( schemas[j].returnedData, connector.srcPath );
                   var dataTarget = connector.destinationPath;
 
-                  var processedData = connectorUtils.processData(serverData, connector.objectMap);
-                  self.setData(dataTarget, processedData);
+                  // var processedData = connectorUtils.processData(serverData, connector.objectMap);
+                  self.setData(serverData, processedData);
                }
 
                self.renderView(targetSelector);

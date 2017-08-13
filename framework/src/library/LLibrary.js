@@ -4,10 +4,8 @@ define(["Fiber"], function(Fiber) {
       return {
         // The `init` method serves as the constructor.
         init: function(params) {
-            
+            this.storage = {}; //in order for this to be an instance var and not on the class, MUST be declared in init!!
         },
-
-        storage: {}, //all items here
 
         getItem: function(id) {
           return this.storage[id] || null;

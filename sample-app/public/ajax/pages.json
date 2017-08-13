@@ -1,0 +1,12 @@
+{
+	"success": true,
+	"data": {
+		"pages": {
+			"home": {
+	      "route": "",
+	      "template": "<div>homepage</div>"
+	    }
+
+		}
+	}
+}

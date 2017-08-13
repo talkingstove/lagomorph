@@ -2,26 +2,16 @@ define(["Handlebars", "uiStringsLibrary", "himalaya"], function(Handlebars, uiSt
 
   return {
 
-
     /*
-    * in json object, replace "[[[my.kyename]]]" with the key
+    * in json object, replace "[[[my.keyname]]]" with the key
     */
     replaceUIStringKeys: function(data) {
-      // if( _.isString(data) )  {
-      //   data = parseIfNeeded(data);
-      // }
-      // else if (_.isArray(data) || _.isObject(data)) {
-      //   _.each(data, function(dataItem) {
-      //     this.replaceUIStringKeys(dataItem);
-      //   }, this);
-      // }
-      
       parseIfNeeded(data);
-
+      return data;
 
       function parseIfNeeded(item, key, curDataObj) {
         if ( _.isString(item) ) {
-          if (item.indexOf('[[[') === 0) {
+          if (item.indexOf('[[[') === 0) { //TOOD: make [[[ ]]] a changable constant
             var parsedVal = parseStringKey(item);
 
             if (curDataObj) {
@@ -29,8 +19,7 @@ define(["Handlebars", "uiStringsLibrary", "himalaya"], function(Handlebars, uiSt
             }
             else { //simple string case
               item = parsedVal;
-            }
-            
+            }           
           }
         }
         else if (_.isArray(data) || _.isObject(data)) {
@@ -43,9 +32,6 @@ define(["Handlebars", "uiStringsLibrary", "himalaya"], function(Handlebars, uiSt
       function parseStringKey(str) {
         return uiStringsLibrary.getUIStringByKey( str.substr(3, str.length-6) );
       }
-
-     
-      return data;
     },
 
     compileTemplate: function(templateSource) {

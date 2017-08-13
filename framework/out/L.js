@@ -1286,102 +1286,60 @@ init:function(params){}};});return LBase;});define('viewUtils',["Handlebars"],fu
     * abstracted from jQuery in case we ever want to remove it or even use React, etc
     */renderDomElement:function(containerSelector,html,renderType){renderType=renderType||'replace';switch(renderType){case'replace':if(_.isObject(containerSelector)){//jquery obj passed in
 containerSelector.html(html);}else{$(containerSelector).html(html);}break;}}};});define('LLibrary',["Fiber"],function(Fiber){var LLibrary=Fiber.extend(function(base){return{// The `init` method serves as the constructor.
-init:function(params){},storage:{},//all items here
-getItem:function(id){return this.storage[id]||null;},addMultipleItems:function(itemsMap,overwriteItems){overwriteItems=overwriteItems||false;_.each(itemsMap,function(item,key){this.addItem(key,item,overwriteItems);},this);},addItem:function(id,item,overwriteItem){overwriteItem=overwriteItem||false;if(!overwriteItem&&this.getItem(id)){console.error('attempted to register dupe component without overwriteItem=true with id:',id);return;}else if(overwriteItem&&this.storage[id]&&this.storage[id].destroy){this.storage[id].destroy();}this.storage[id]=item;},deleteItem:function(id,itemDestroyAlreadyCalled){if(!this.storage[id]){console.warn('attempted to delete non-existent item with id',id);return;}itemDestroyAlreadyCalled=itemDestroyAlreadyCalled||false;if(this.storage[id].destroy&&!this.storage[id].isDestroyed&&!itemDestroyAlreadyCalled){this.storage[id].destroy();}delete this.storage[id];}};});return LLibrary;});define('componentInstanceLibrary',["LLibrary"],function(LLibrary){//makes the component library singleton avaible to the global window.L, or via require
-return{ComponentInstanceLibrary:null,initializeComponentInstanceLibrary:function(){if(this.ComponentInstanceLibrary!==null){console.warn('ComponentInstanceLibrary singleton already initialized');return;}ComponentInstanceLibrary=new LLibrary();},getLibrary:function(){return ComponentInstanceLibrary;},getComponentInstanceById:function(id){return this.getLibrary()?this.getLibrary().storage[id]:null;},registerComponent:function(component,overwriteInstance){var id=component.id;overwriteInstance=overwriteInstance||false;if(!id){console.error('attempted to register component without id!');return;}if(!overwriteInstance&&ComponentInstanceLibrary.getItem(id)){console.error('attempted to register dupe component with id:',id);return;}console.log('***registered component',component);this.getLibrary().addItem(id,component,overwriteInstance);}};});define('dataSourceLibrary',["LLibrary"],function(LLibrary){//makes the singleton avaible to the global window.L, or via require
-return{DataSourceLibrary:null,initializeDataSourceLibrary:function(dataSources){dataSources=dataSources||null;if(this.DataSourceLibrary!==null){console.warn('DataSourceLibrary singleton already initialized');return;}DataSourceLibrary=new LLibrary();if(dataSources){DataSourceLibrary.addMultipleItems(dataSources,true);}},getLibrary:function(){return DataSourceLibrary;},getDataSourceByName:function(name){return this.getLibrary()?this.getLibrary().storage[name]:null;}};});define('ajaxRequester',["jquery","underscore","dataSourceLibrary"],function($,_,dataSourceLibrary){return{// makeAjaxBatchCalls: function(callOptionsArray) {
-// 	var allRequests = [];
-// 	for (var i=0; i<callOptionsArray.length; i++) {
-// 		allRequests.push( this.makeAjaxCall( callOptionsArray[i] )  );
-// 	}
-// 	// var firstRequest = $.ajax({...});
-// 	// var secondRequest = $.ajax({...});
-// 	Promise.all(allRequests).then(function(result) {
-// 	    debugger;
-// 	});
-// },
-// var  x = L.ajaxRequester.createAjaxCallPromise({url: 'https://httpbin.org/get'});
-//   $.when(x).done(function(value) {
-// 	    alert(value);
-// 	});
-createAjaxCallPromise:function(dataSourceName){//look up datasource from library and get options to create the promise
-var dataSourceDefinition=dataSourceLibrary.getDataSourceByName(dataSourceName);if(!dataSourceDefinition){console.error("Cannot make AJAX request; can't find datasource with name:",dataSourceName);return;}var options=dataSourceDefinition;var method=options.method||'GET';var url=options.url;var dataTypeReturned=options.dataTypeReturned||'json';var successHandler=options.successHandler||null;var afterSuccessCallback=options.afterSuccessCallback||null;var doneCallback=options.doneCallback||null;var errorHandler=options.errorHandler||$.noop;//N.defaultAjaxErrorHandler;
+init:function(params){this.storage={};//in order for this to be an instance var and not on the class, MUST be declared in init!!
+},getItem:function(id){return this.storage[id]||null;},addMultipleItems:function(itemsMap,overwriteItems){overwriteItems=overwriteItems||false;_.each(itemsMap,function(item,key){this.addItem(key,item,overwriteItems);},this);},addItem:function(id,item,overwriteItem){overwriteItem=overwriteItem||false;if(!overwriteItem&&this.getItem(id)){console.error('attempted to register dupe component without overwriteItem=true with id:',id);return;}else if(overwriteItem&&this.storage[id]&&this.storage[id].destroy){this.storage[id].destroy();}this.storage[id]=item;},deleteItem:function(id,itemDestroyAlreadyCalled){if(!this.storage[id]){console.warn('attempted to delete non-existent item with id',id);return;}itemDestroyAlreadyCalled=itemDestroyAlreadyCalled||false;if(this.storage[id].destroy&&!this.storage[id].isDestroyed&&!itemDestroyAlreadyCalled){this.storage[id].destroy();}delete this.storage[id];}};});return LLibrary;});define('componentInstanceLibrary',["LLibrary"],function(LLibrary){//makes the component library singleton avaible to the global window.L, or via require
+return{ComponentInstanceLibrary:null,initializeComponentInstanceLibrary:function(){if(this.ComponentInstanceLibrary!==null){console.warn('ComponentInstanceLibrary singleton already initialized');return;}this.ComponentInstanceLibrary=new LLibrary();},getLibrary:function(){return this.ComponentInstanceLibrary;},getComponentInstanceById:function(id){return this.getLibrary()?this.getLibrary().storage[id]:null;},registerComponent:function(component,overwriteInstance){var id=component.id;overwriteInstance=overwriteInstance||false;if(!id){console.error('attempted to register component without id!');return;}if(!overwriteInstance&&ComponentInstanceLibrary.getItem(id)){console.error('attempted to register dupe component with id:',id);return;}console.log('***registered component',component);this.getLibrary().addItem(id,component,overwriteInstance);}};});define('dataSourceLibrary',["LLibrary"],function(LLibrary){//makes the singleton avaible to the global window.L, or via require
+return{DataSourceLibrary:null,initializeDataSourceLibrary:function(dataSources){dataSources=dataSources||null;if(this.DataSourceLibrary!==null){console.warn('DataSourceLibrary singleton already initialized');return;}this.DataSourceLibrary=new LLibrary();if(dataSources){this.getLibrary().addMultipleItems(dataSources,true);}},getLibrary:function(){return this.DataSourceLibrary;},getDataSourceByName:function(name){return this.getLibrary()?this.getLibrary().storage[name]:null;}};});define('objectUtils',[],function(){return{getDataFromObjectByPath:function(object,path){var nameArray=path.split('.');var currentObject=object;for(var i=0;i<nameArray.length;i++){if(_.isUndefined(currentObject[nameArray[i]])){currentObject=null;break;}else{currentObject=currentObject[nameArray[i]];}}return currentObject;},setDataToObjectByPath:function(object,path,dataToSet){var nameArray=path.split('.');var currentObject=object;for(var i=0;i<nameArray.length;i++){if(i===nameArray.length-1){currentObject[nameArray[i]]=dataToSet;//will it work???
+return;}if(_.isUndefined(currentObject[nameArray[i]])){currentObject[nameArray[i]]={};}currentObject=currentObject[nameArray[i]];}}};});define('uiStringsLibrary',["LLibrary","objectUtils"],function(LLibrary,objectUtils){//makes the singleton avaible to the global window.L, or via require
+return{UIStringsLibrary:null,initializeUIStringsLibrary:function(uiStrings){uiStrings=uiStrings||null;if(this.UIStringsLibrary!==null){console.warn('UIStringsLibrary singleton already initialized');return;}this.UIStringsLibrary=new LLibrary();if(uiStrings){this.getLibrary().addItem('allUiStrings',uiStrings,true);}},getLibrary:function(){return this.UIStringsLibrary;},getUIStringByKey:function(key){return this.getLibrary()&&this.getLibrary().storage.allUiStrings?objectUtils.getDataFromObjectByPath(this.getLibrary().storage.allUiStrings,key):null;}};});define('templateUtils',["Handlebars","uiStringsLibrary","himalaya"],function(Handlebars,uiStringsLibrary,himalaya){return{/*
+    * in json object, replace "[[[my.keyname]]]" with the key
+    */replaceUIStringKeys:function(data){parseIfNeeded(data);return data;function parseIfNeeded(item,key,curDataObj){if(_.isString(item)){if(item.indexOf('[[[')===0){//TOOD: make [[[ ]]] a changable constant
+var parsedVal=parseStringKey(item);if(curDataObj){curDataObj[key]=parsedVal;}else{//simple string case
+item=parsedVal;}}}else if(_.isArray(data)||_.isObject(data)){_.each(data,function(dataItem,key){parseIfNeeded(dataItem,key,data);});}}function parseStringKey(str){return uiStringsLibrary.getUIStringByKey(str.substr(3,str.length-6));}},compileTemplate:function(templateSource){//clean up "bad" characters from template literals
+templateSource=templateSource.replace(/\t/g,'');templateSource=templateSource.replace(/\n/g,'');templateSource=templateSource.trim();var $templateSource=$('<div>'+templateSource+'</div>');_.each($templateSource.find('[data-ui_string]'),function(node){var $node=$(node);var subValue=uiStringsLibrary.getUIStringByKey($node.data('ui_string'));if(subValue){$node.text(subValue);}});var parsedTemplateSource=$templateSource.html();return Handlebars.compile(parsedTemplateSource);},lookUpStringKey:function(key){return uiStringsLibrary.getUIStringByKey(key);}};});define('connectorUtils',["objectUtils","templateUtils"],function(objectUtils,templateUtils){return{processData:function(rawDataFromServer,connector){var objectMap=connector.objectMap;var dataFromServer=connector.srcPath?objectUtils.getDataFromObjectByPath(rawDataFromServer,connector.srcPath):rawDataFromServer;switch(objectMap.dataType){case'array':var finalArray=[];for(var i=0;i<dataFromServer.length;i++){finalArray.push(this.processDataItem(dataFromServer[i],objectMap.eachChildDefinition));}return finalArray;break;case'object'://TODO: untested
+_.each(dataFromServer,function(dataItem){this.processDataItem(dataItem,objectMap.eachChildDefinition);},this);return dataFromServer;break;default:console.error('objectmap must have valid dataType. Got:',objectMap.dataType);break;}},processDataItem:function(dataItem,mapDefinition){//null = direct copy
+var data=!mapDefinition||mapDefinition.srcPath===null?dataItem:objectUtils.getDataFromObjectByPath(dataItem,mapDefinition.srcPath);//replace i18n string keys in format "[[[i18n.my.key]]]" as needed
+return templateUtils.replaceUIStringKeys(data);//TOOD: deep copy
+}};});define('ajaxRequester',["jquery","underscore","dataSourceLibrary","connectorUtils"],function($,_,dataSourceLibrary,connectorUtils){return{createAjaxCallPromise:function(dataSourceName,promiseId,connector){//look up datasource from library and get options to create the promise
+var dataSourceDefinition=dataSourceLibrary.getDataSourceByName(dataSourceName);promiseId=promiseId||'unknown';//TODO: random
+connector=connector||null;if(!dataSourceDefinition){console.error("Cannot make AJAX request; can't find datasource with name:",dataSourceName);return;}var options=dataSourceDefinition;var method=options.method||'GET';var url=options.url;var dataTypeReturned=options.dataTypeReturned||'json';var successHandler=options.successHandler||null;var afterSuccessCallback=options.afterSuccessCallback||null;var doneCallback=options.doneCallback||null;var errorHandler=options.errorHandler||$.noop;//N.defaultAjaxErrorHandler;
 var requestParams=options.requestParams||{};var jsonToHtmlHandlers=options.jsonToHtmlHandlers||null;//array of classes
-var dataAgreements=options.dataAgreements||null;var deferred=$.Deferred();$.ajax({type:method,url:url,dataType:dataTypeReturned,data:requestParams}).success(function(data){//if we have one or more agreements about what data was expected from the server,
+var dataAgreements=options.dataAgreements||null;var deferred=$.Deferred();$.ajax({type:method,url:url,dataType:dataTypeReturned,data:requestParams}).success(function(rawData){//if we have one or more agreements about what data was expected from the server,
 //check to see that they have been met
 // if (dataAgreements && dataAgreements.length) { 
-// 	var failedAgreements = [];
-// 	_.each(dataAgreements, function(dataAgreement) {
-// 		var agreementResult = N.Agreements.testAgreement(dataAgreement, data).doesAgreementPass;
-// 		if (!agreementResult) {
-// 			failedAgreements.push(dataAgreement.name);
-// 		}
-// 	});
-// 	if (failedAgreements.length) {
-// 		console.error('Agreements failed on JSON call!');
-// 		deferred.reject();
-// 		return;
-// 	}
-// 	else {
-// 		console.log('All agreements passed!');
-// 	}
+//  var failedAgreements = [];
+//  _.each(dataAgreements, function(dataAgreement) {
+//    var agreementResult = N.Agreements.testAgreement(dataAgreement, data).doesAgreementPass;
+//    if (!agreementResult) {
+//      failedAgreements.push(dataAgreement.name);
+//    }
+//  });
+//  if (failedAgreements.length) {
+//    console.error('Agreements failed on JSON call!');
+//    deferred.reject();
+//    return;
+//  }
+//  else {
+//    console.log('All agreements passed!');
+//  }
 // }
 // if (successHandler) {
-// 	successHandler(data);
+//  successHandler(data);
 // }
 // if (jsonToHtmlHandlers) {
-// 	for (var i=0; i<jsonToHtmlHandlers.length; i++) {
-// 		jsonToHtmlHandlers[i].execute(data);
-// 	}
+//  for (var i=0; i<jsonToHtmlHandlers.length; i++) {
+//    jsonToHtmlHandlers[i].execute(data);
+//  }
 // }
 // if (afterSuccessCallback) {
-// 	afterSuccessCallback(data);
+//  afterSuccessCallback(data);
 // }
-deferred.resolve(data);}).error(function(){// errorHandler();
-deferred.reject();});return deferred.promise();}// $.when( $.ajax( "/page1.php" ), $.ajax( "/page2.php" ) )
-// .then( myFunc, myFailure );
-//   $.when(getData()).done(function(value) {
-//     alert(value);
-// });
-// getData().then(function(value) {
-// 	alert(value);
-// });
-/*****************
-		** SAMPLE:
-		* N.Ajax.makeAjaxCall({
-		*	type: 'GET',
-		* 	url: '/data/test-data.php?page=1',
-		* successHandler: function(data) { console.log(data) }	
-		* });
-		*******/};});define('connectorLibrary',["LLibrary"],function(LLibrary){//makes the singleton avaible to the global window.L, or via require
-return{ConnectorLibrary:null,initializeConnectorLibrary:function(connectors){connectors=connectors||null;if(this.ConnectorLibrary!==null){console.warn('ConnectorLibrary singleton already initialized');return;}ConnectorLibrary=new LLibrary();if(connectors){ConnectorLibrary.addMultipleItems(connectors,true);}},getLibrary:function(){return ConnectorLibrary;},getConnectorByName:function(name){return this.getLibrary()?this.getLibrary().storage[name]:null;}};});define('objectUtils',[],function(){return{getDataFromObjectByPath:function(object,path){var nameArray=path.split('.');var currentObject=object;for(var i=0;i<nameArray.length;i++){if(_.isUndefined(currentObject[nameArray[i]])){currentObject=null;break;}else{currentObject=currentObject[nameArray[i]];}}return currentObject;}};});define('uiStringsLibrary',["LLibrary","objectUtils"],function(LLibrary,objectUtils){//makes the singleton avaible to the global window.L, or via require
-return{UIStringsLibrary:null,initializeUIStringsLibrary:function(uiStrings){uiStrings=uiStrings||null;if(this.UIStringsLibrary!==null){console.warn('UIStringsLibrary singleton already initialized');return;}UIStringsLibrary=new LLibrary();if(uiStrings){UIStringsLibrary.addItem('allUiStrings',uiStrings,true);}},getLibrary:function(){return UIStringsLibrary;},getUIStringByKey:function(key){return this.getLibrary()&&this.getLibrary().storage.allUiStrings?objectUtils.getDataFromObjectByPath(this.getLibrary().storage.allUiStrings,key):null;}};});define('templateUtils',["Handlebars","uiStringsLibrary","himalaya"],function(Handlebars,uiStringsLibrary,himalaya){return{/*
-    * in json object, replace "[[[my.kyename]]]" with the key
-    */replaceUIStringKeys:function(data){// if( _.isString(data) )  {
-//   data = parseIfNeeded(data);
-// }
-// else if (_.isArray(data) || _.isObject(data)) {
-//   _.each(data, function(dataItem) {
-//     this.replaceUIStringKeys(dataItem);
-//   }, this);
-// }
-parseIfNeeded(data);function parseIfNeeded(item,key,curDataObj){if(_.isString(item)){if(item.indexOf('[[[')===0){var parsedVal=parseStringKey(item);if(curDataObj){curDataObj[key]=parsedVal;}else{//simple string case
-item=parsedVal;}}}else if(_.isArray(data)||_.isObject(data)){_.each(data,function(dataItem,key){parseIfNeeded(dataItem,key,data);});}}function parseStringKey(str){return uiStringsLibrary.getUIStringByKey(str.substr(3,str.length-6));}return data;},compileTemplate:function(templateSource){//clean up "bad" characters from template literals
-templateSource=templateSource.replace(/\t/g,'');templateSource=templateSource.replace(/\n/g,'');templateSource=templateSource.trim();var $templateSource=$('<div>'+templateSource+'</div>');_.each($templateSource.find('[data-ui_string]'),function(node){var $node=$(node);var subValue=uiStringsLibrary.getUIStringByKey($node.data('ui_string'));if(subValue){$node.text(subValue);}});var parsedTemplateSource=$templateSource.html();return Handlebars.compile(parsedTemplateSource);},lookUpStringKey:function(key){return uiStringsLibrary.getUIStringByKey(key);}};});define('connectorUtils',["objectUtils","templateUtils"],function(objectUtils,templateUtils){return{processData:function(dataFromServer,objectMap){switch(objectMap.dataType){case'array':var finalArray=[];for(var i=0;i<dataFromServer.length;i++){finalArray.push(this.processDataItem(dataFromServer[i],objectMap.eachChildDefinition));}return finalArray;break;case'object'://TODO
-break;default:console.error('objectmap must have valid dataType. Got:',objectMap.dataType);break;}},processDataItem:function(dataItem,mapDefinition){var data=mapDefinition.srcPath===null?dataItem:objectUtils.getDataFromObjectByPath(dataItem,mapDefinition.srcPath);debugger;return templateUtils.replaceUIStringKeys(data);//TOOD: deep copy
-}};});// "list1PhotoListConnector": {
-//      "srcPath": "data.photos",
-//      "destinationPath": "listItems", //goes to processedData with this name, then module renders it
-//      "objectMap": { //parent object can have children of an array or nested objects
-//        "dataType": "array",
-//        "eachChildDefinition": { //child of an array, defined relative to the object root
-//          "dataType": "object",
-//          "srcPath": null, //=root, so just copy the object
-//          "destinationPath": null
-//        }
-//      }
-//    };
-define('LModule',["Handlebars","LBase","viewUtils","componentInstanceLibrary","ajaxRequester","connectorLibrary","connectorUtils","objectUtils","templateUtils"],function(Handlebars,LBase,viewUtils,componentInstanceLibrary,ajaxRequester,connectorLibrary,connectorUtils,objectUtils,templateUtils){return LBase.extend(function(base){var module={self:this,Handlebars:Handlebars,dataContracts:[],//specifies remote data source(s) and specific ways they should be loaded into this module 
+var processedData=rawData;if(connector){processedData=connectorUtils.processData(rawData,connector);}//return the data the server gave us, along with meta-info like the name we gave the promise
+var returnObj={promiseId:promiseId,returnedData:processedData};deferred.resolve(returnObj);}).error(function(){// errorHandler();
+deferred.reject();});return deferred.promise();}};});define('connectorLibrary',["LLibrary"],function(LLibrary){//makes the singleton avaible to the global window.L, or via require
+return{ConnectorLibrary:null,initializeConnectorLibrary:function(connectors){connectors=connectors||null;if(this.ConnectorLibrary!==null){console.warn('ConnectorLibrary singleton already initialized');return;}this.ConnectorLibrary=new LLibrary();if(connectors){this.getLibrary().addMultipleItems(connectors,true);}},getLibrary:function(){return this.ConnectorLibrary;},getConnectorByName:function(name){return this.getLibrary()?this.getLibrary().storage[name]:null;}};});/*
+* Root class for LComponents and Lpages
+*/define('LModule',["Handlebars","LBase","viewUtils","componentInstanceLibrary","ajaxRequester","connectorLibrary","connectorUtils","objectUtils","templateUtils"],function(Handlebars,LBase,viewUtils,componentInstanceLibrary,ajaxRequester,connectorLibrary,connectorUtils,objectUtils,templateUtils){return LBase.extend(function(base){var module={self:this,Handlebars:Handlebars,dataContracts:[],//specifies remote data source(s) and specific ways they should be loaded into this module 
 //**** TODO: proper model with getters and setters
 //**** TODO: each one should be associated with passable render method
 data:{//after connector does its work, data is deposited here with predictible names for every instance of a given component 
@@ -1392,7 +1350,8 @@ var id=compViewData.id;var type=compViewData.type;var $parentSelector=compViewDa
 //overridable via the JSON config of any given instance of the component
 template:'\n            <div>\n              <span>DO NOT USE ME</span>\n            </div>\n          ',compiledTemplate:null,setData:function(targetPath,data){//TODO: deep set with dot path
 this.data[targetPath]=data;this.announceDataChange(targetPath);},getData:function(targetPath){//TODO: deep get with dot path
-return this.data[targetPath];},announceDataChange:function(targetPath){//TODO: event emitter for data bindings
+// return this.data[targetPath];
+return objectUtils.getDataFromObjectByPath(this.data,targetPath);},announceDataChange:function(targetPath){//TODO: event emitter for data bindings
 },/*
         * entry point from scanner.js (or called directly)
         * get any necessary data and do anything else needed before rendering the view to the DOM
@@ -1402,21 +1361,23 @@ return this.data[targetPath];},announceDataChange:function(targetPath){//TODO: e
           * at the end, data will be added to this.processedData
           * for view data, name will map to 1-N data-data_source_name's in html template
           */var allPromises=[];//if no promises it resolves immediately
-for(var i=0;i<this.dataContracts.length;i++){var thisContract=this.dataContracts[i];var promise=ajaxRequester.createAjaxCallPromise(thisContract.dataSource);allPromises.push(promise);}$.when.all(allPromises).then(function(schemas){console.log("DONE",this,schemas);// 'schemas' is now an array
+for(var i=0;i<this.dataContracts.length;i++){var thisContract=this.dataContracts[i];var connector=connectorLibrary.getConnectorByName(thisContract.connector);var promiseId=this.id+'_loadComponent_'+i;var promise=ajaxRequester.createAjaxCallPromise(thisContract.dataSource,promiseId,connector);allPromises.push(promise);}$.when.all(allPromises).then(function(schemas){console.log("DONE",this,schemas);// 'schemas' is now an array
 //untested assumption: when.all returns schemas in matching order
-for(var j=0;j<schemas.length;j++){var thisDataContract=self.dataContracts[j];var connector=connectorLibrary.getConnectorByName(thisDataContract.connector);//json
-var serverData=objectUtils.getDataFromObjectByPath(schemas[j],connector.srcPath);var dataTarget=connector.destinationPath;var processedData=connectorUtils.processData(serverData,connector.objectMap);self.setData(dataTarget,processedData);}self.renderView(targetSelector);},function(e){console.log("My ajax failed");});},/*
+for(var j=0;j<schemas.length;j++){var thisDataContract=self.dataContracts[j];//TODO: move into ajaxRequest
+// var connector = connectorLibrary.getConnectorByName( thisDataContract.connector ); //json
+// var serverData = objectUtils.getDataFromObjectByPath( schemas[j].returnedData, connector.srcPath );
+var dataTarget=connector.destinationPath;// var processedData = connectorUtils.processData(serverData, connector.objectMap);
+self.setData(serverData,processedData);}self.renderView(targetSelector);},function(e){console.log("My ajax failed");});},/*
         *
         */renderView:function(targetSelector){var html=this.compiledTemplate(this.viewData);viewUtils.renderDomElement(targetSelector,html);this.renderDataIntoBindings();},renderDataIntoBindings:function(){var $dataBindings=this.$parentSelector.find('[data-data_binding]');_.each($dataBindings,function(dataBinding){var $dataBindingDOMElement=$(dataBinding);var dataToBeBoundName=$dataBindingDOMElement.data('data_binding');var data=this.getData(dataToBeBoundName);var templateName=$dataBindingDOMElement.data('template_binding');if(!_.isFunction(this[templateName])){console.error('Template name given is not a valid compiled template function:',templateName);return;}var template=this[templateName];var html='';if(_.isArray(data)){for(var i=0;i<data.length;i++){html+=template(data[i]);}}else{html=template(data);}$dataBindingDOMElement.html(html);},this);},destroy:function(){if(this.$parentSelector){this.$parentSelector.html('');this.$parentSelector=null;//remove coupling to DOM
-}this.isDestroyed=true;componentInstanceLibrary.deleteItem(this.id,true);}};return module;});});define('scanner',["componentInstanceLibrary"],function(componentInstanceLibrary){return{scan:function(){console.log('SCANNING...');//find Lagomorph blocks that may contain components
-var $blocks=$('.lagomorph-block');_.each($blocks,function(block){var $block=$(block);var $components=$block.find('[data-lagomorph-component], [data-lc]');_.each($components,function(component){var $component=$(component);//definition must provide at minimum a type and id in the json
+}this.isDestroyed=true;componentInstanceLibrary.deleteItem(this.id,true);}};return module;});});define('scanner',["componentInstanceLibrary"],function(componentInstanceLibrary){return{scan:function($target){console.log('SCANNING:',$target);var $components=$target.find('[data-lagomorph-component], [data-lc]');_.each($components,function(component){var $component=$(component);//definition must provide at minimum a type and id in the json
 var compData=$component.data('lagomorph-component');//jquery converts to object for free
 if(!_.isObject(compData)){console.warn('Invalid data JSON for component:',component);return;}var compViewData=compData.viewParams;// var compDataSources = compData.dataSources;
 var moduleClass=L.componentDefinitions[compViewData.type];//todo: bad name -- component
 compViewData.$parentSelector=$component;//todo: bad name -- componentWrapper
-var moduleInstance=new moduleClass(compData);//todo: add module instance to global library for easy lookup (get by id, search data for, etc)
-moduleInstance.loadComponent($component);//todo: pre-render in case data is needed from server
-},this);},this);}};});define('L_List',["Handlebars","underscore","LModule","viewUtils","templateUtils"],function(Handlebars,_,LModule,viewUtils,templateUtils){return LModule.extend(function(base){return{// The `init` method serves as the constructor.
+var moduleInstance=new moduleClass(compData);moduleInstance.loadComponent($component);},this);}};});/*
+* Root class for LComponents and Lpages
+*/define('LComponent',["Handlebars","LModule","viewUtils","componentInstanceLibrary","ajaxRequester","connectorLibrary","connectorUtils","objectUtils","templateUtils"],function(Handlebars,LModule,viewUtils,componentInstanceLibrary,ajaxRequester,connectorLibrary,connectorUtils,objectUtils,templateUtils){return LModule.extend(function(base){return{init:function(params){base.init(params);}};});});define('L_List',["Handlebars","underscore","LComponent","viewUtils","templateUtils"],function(Handlebars,_,LComponent,viewUtils,templateUtils){return LComponent.extend(function(base){return{// The `init` method serves as the constructor.
 init:function(params){params=params||{};base.init(params);if(params.template){//override template per instance when desired!
 this.template=params.template;}if(params.listItemTemplate){//override template per instance when desired!
 this.listItemTemplate=params.listItemTemplate;}//give it its own template not that of the superclass!!
@@ -1433,14 +1394,15 @@ console.log('failures:',failureMessages);return{doesAgreementPass:!failureMessag
 };function testObjectStructure(objectToTest,structureToMatch,indexOfItemTested){_.each(structureToMatch,function(dataTypeToMatchOrSubobject,name){if(_.isObject(dataTypeToMatchOrSubobject)){//an actual object, not the name of a data type like others!
 if(!objectToTest[name]){//check if subobject exists
 failureMessages.push('Bad structure: cant find subobject '+name);return;}testObjectStructure(objectToTest[name],dataTypeToMatchOrSubobject,indexOfItemTested);//will this work on nested objs? maybe
-}else{var result=this.testDataType(objectToTest[name],dataTypeToMatchOrSubobject);if(!result){failureMessages.push('Bad structure: '+objectToTest[name]+' was expected to be: '+dataTypeToMatchOrSubobject+' in tested item '+indexOfItemTested);}}});}},testDataType:function(dataToTest,dataTypeToMatch){switch(dataTypeToMatch){case'string':return _.isString(dataToTest);break;case'array':return _.isArray(dataToTest);break;case'object':return _.isObject(dataToTest);break;case'number':return _.isNumber(dataToTest);break;case'boolean':return _.isBoolean(dataToTest);break;}},findObjectAttributeByName:function(objToParse,nameString){var nameArray=nameString.split('.');var currentObject=objToParse;for(var i=0;i<nameArray.length;i++){if(typeof currentObject[nameArray[i]]=='undefined'){currentObject=null;break;}else{currentObject=currentObject[nameArray[i]];}}return currentObject;}};});define('lagomorph',["jquery","underscore","Handlebars","Fiber","dexie","bluebird","himalaya","LBase","LModule","scanner","L_List","componentInstanceLibrary","viewUtils","ajaxRequester","agreementsTester","dataSourceLibrary","connectorLibrary","connectorUtils","objectUtils","uiStringsLibrary","templateUtils"],function($,_,Handlebars,Fiber,dexie,bluebird,himalaya,LBase,LModule,scanner,L_List,componentInstanceLibrary,viewUtils,ajaxRequester,agreementsTester,dataSourceLibrary,connectorLibrary,connectorUtils,objectUtils,uiStringsLibrary,templateUtils){var framework={//anything we want to expose on the window for the end user needs to be added here
+}else{var result=this.testDataType(objectToTest[name],dataTypeToMatchOrSubobject);if(!result){failureMessages.push('Bad structure: '+objectToTest[name]+' was expected to be: '+dataTypeToMatchOrSubobject+' in tested item '+indexOfItemTested);}}});}},testDataType:function(dataToTest,dataTypeToMatch){switch(dataTypeToMatch){case'string':return _.isString(dataToTest);break;case'array':return _.isArray(dataToTest);break;case'object':return _.isObject(dataToTest);break;case'number':return _.isNumber(dataToTest);break;case'boolean':return _.isBoolean(dataToTest);break;}},findObjectAttributeByName:function(objToParse,nameString){var nameArray=nameString.split('.');var currentObject=objToParse;for(var i=0;i<nameArray.length;i++){if(typeof currentObject[nameArray[i]]=='undefined'){currentObject=null;break;}else{currentObject=currentObject[nameArray[i]];}}return currentObject;}};});define('pageLibrary',["LLibrary"],function(LLibrary){//makes the singleton avaible to the global window.L, or via require
+return{PageLibrary:null,initializePageLibrary:function(pages){pages=pages||null;if(this.PageLibrary!==null){console.warn('PageLibrary singleton already initialized');return;}this.PageLibrary=new LLibrary();if(pages){this.getLibrary().addItem('pages',pages,true);}},getLibrary:function(){return this.PageLibrary;}};});define('lagomorph',["jquery","underscore","Handlebars","Fiber","dexie","bluebird","himalaya","LBase","LModule","scanner","L_List","componentInstanceLibrary","viewUtils","ajaxRequester","agreementsTester","dataSourceLibrary","connectorLibrary","connectorUtils","objectUtils","uiStringsLibrary","templateUtils","pageLibrary"],function($,_,Handlebars,Fiber,dexie,bluebird,himalaya,LBase,LModule,scanner,L_List,componentInstanceLibrary,viewUtils,ajaxRequester,agreementsTester,dataSourceLibrary,connectorLibrary,connectorUtils,objectUtils,uiStringsLibrary,templateUtils,pageLibrary){var framework={//anything we want to expose on the window for the end user needs to be added here
 scanner:scanner,ajaxRequester:ajaxRequester,LBase:LBase,LModule:LModule,dexie:dexie,//api for indexedDB local storage DB -> http://dexie.org/docs/ 
 bluebird:bluebird,//promise library -> http://bluebirdjs.com/
 himalaya:himalaya,//html to json parser -> https://github.com/andrejewski/himalaya
 $:$,_:_,Handlebars:Handlebars,componentDefinitions:{//all available component classes that come standard with the framework
 L_List:L_List},//todo: move to model
 componentInstanceLibrary:componentInstanceLibrary,//look up instances of components created on the current page/app
-dataSourceLibrary:dataSourceLibrary,connectorLibrary:connectorLibrary,uiStringsLibrary:uiStringsLibrary,connectorUtils:connectorUtils,objectUtils:objectUtils,/*
+dataSourceLibrary:dataSourceLibrary,connectorLibrary:connectorLibrary,uiStringsLibrary:uiStringsLibrary,connectorUtils:connectorUtils,objectUtils:objectUtils,pageLibrary:pageLibrary,/*
     * componentConfig = json to instantiate components, in lieu of or addition to that in the html itself
     * dataSources = json config of endpoints, including data contracts of what to expect from the server
     * these could literally be generated into json from an api doc!
@@ -1451,14 +1413,24 @@ dataSourceLibrary:dataSourceLibrary,connectorLibrary:connectorLibrary,uiStringsL
     * userComponents = custom Lagomorph component classes created by end user (??)
     * i18nDataSource = user-passed internationalization data for use in a "noneolith"
     *
-    **/start:function(params){//***TODO: accept promises and don't start until they're resolved!! **************
-params=params||{};if(!params.componentConfig){console.log('Lagomorph started with no component config');}if(!params.dataSources){console.log('Lagomorph started with no dataSources config');}if(!params.stringData){console.log('Lagomorph started with no string/i18nDataSource config');}this.componentInstanceLibrary.initializeComponentInstanceLibrary();//model that holds all instances of created components for lookup
+    **/start:function(params){var self=this;params=params||{};if(!params.pageWrapperSelector){console.warn('Lagomorph started with no pageWrapperSelector');}if(!params.pages){console.warn('Lagomorph started with no pages');}if(!params.initialRoute){console.warn('Lagomorph started with no initialRoute');}// if (!params.routeConfig) {
+//   console.warn('Lagomorph started with no routeConfig');
+// }
+if(!params.componentConfig){console.log('Lagomorph started with no component config');}if(!params.dataSources){console.log('Lagomorph started with no dataSources config');}if(!params.stringData){console.log('Lagomorph started with no string/i18nDataSource config');}this.componentInstanceLibrary.initializeComponentInstanceLibrary();//model that holds all instances of created components for lookup
 //data source library (server data lookuos)
 this.dataSourceLibrary.initializeDataSourceLibrary(params.dataSources);//connector library
 this.connectorLibrary.initializeConnectorLibrary(params.connectors);//user-defined components library (classes, not instances)
 //string (i18n) library (usually i18n, but could be any lookup for arbitrary text to be displayed in UI)
-this.uiStringsLibrary.initializeUIStringsLibrary(params.stringData);this.scanner.scan();},createApp:function(){//initiate a full single-page app with router, etc if desired
-}};if($.when.all===undefined){$.when.all=function(deferreds){var deferred=new $.Deferred();$.when.apply($,deferreds).then(function(){deferred.resolve(Array.prototype.slice.call(arguments));},function(){deferred.fail(Array.prototype.slice.call(arguments));});return deferred;};}if(window){window.L=framework;//expose global so require.js is not needed by end user
+this.uiStringsLibrary.initializeUIStringsLibrary(params.stringData);var allPromises=[];//add anything that is needed before the initial scan/app start
+if(params.pages&&params.pages.dataSourceName){var connector=this.connectorLibrary.getConnectorByName(params.pages.connectorName);var pagesPromise=ajaxRequester.createAjaxCallPromise(params.pages.dataSourceName,"pages",connector);allPromises.push(pagesPromise);}//***** Determine which promises need to be resolved before we can actually start the app
+$.when.all(allPromises).then(function(schemas){for(var i=0;i<schemas.length;i++){var promiseId=schemas[i].promiseId;switch(promiseId){case'pages':var pageDefinitions=schemas[i].returnedData;self.pageLibrary.initializePageLibrary(pageDefinitions);break;}}debugger;//*******when processing is done, load initial page into the pageWrapperSelector
+//page then users the scanner to scan itself
+// self.scanner.scan($(params.pageWrapperSelector));
+},function(e){console.log("App start failed");});//       pages: { //just json, can be hardcoded or via endpoint
+//   dataSourceName: "lPages",
+//   pageDefinitions: {}
+// },
+}};if($&&$.when.all===undefined){$.when.all=function(deferreds){var deferred=new $.Deferred();$.when.apply($,deferreds).then(function(){deferred.resolve(Array.prototype.slice.call(arguments));},function(){deferred.fail(Array.prototype.slice.call(arguments));});return deferred;};}if(window){window.L=framework;//expose global so require.js is not needed by end user
 }return framework;});//The modules for your project will be inlined above
 //this snippet. Ask almond to synchronously require the
 //module value for 'main' here and return it as the

@@ -1,6 +1,6 @@
-define(["Handlebars", "underscore", "LModule", "viewUtils", "templateUtils"], function(Handlebars, _,  LModule, viewUtils, templateUtils) {
+define(["Handlebars", "underscore", "LComponent", "viewUtils", "templateUtils"], function(Handlebars, _,  LComponent, viewUtils, templateUtils) {
 
-  return LModule.extend(function(base) {
+  return LComponent.extend(function(base) {
       return {
         // The `init` method serves as the constructor.
         init: function(params) {
