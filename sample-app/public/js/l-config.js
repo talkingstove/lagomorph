@@ -41,7 +41,7 @@ lParams = {
       }
     },
     "pagesConnector": {
-      "srcPath": "data.pages", //just map it to an object
+      "srcPath": "data.routerInfo", //just map it to an object
       "objectMap": {
         "dataType": "object"
       }

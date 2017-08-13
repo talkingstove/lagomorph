@@ -22,8 +22,8 @@ define(["Handlebars", "uiStringsLibrary", "himalaya"], function(Handlebars, uiSt
             }           
           }
         }
-        else if (_.isArray(data) || _.isObject(data)) {
-          _.each(data, function(dataItem, key) {
+        else if (_.isArray(item) || _.isObject(item)) {
+          _.each(item, function(dataItem, key) {
             parseIfNeeded(dataItem, key, data);
           });
         }

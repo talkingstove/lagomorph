@@ -33,7 +33,6 @@ require.config({
     'Handlebars': 'lib/handlebars.min',
     'dexie': 'lib/dexie',
     'himalaya': 'lib/himalaya',
-    'bluebird': 'lib/bluebird',
     'viewUtils': 'src/utils/viewUtils',
     'componentInstanceLibrary': 'src/componentInstanceLibrary',
     'dataSourceLibrary': 'src/dataSourceLibrary',
@@ -46,6 +45,8 @@ require.config({
     'uiStringsLibrary': 'src/uiStringsLibrary',
     'templateUtils': 'src/utils/templateUtils',
     'pageLibrary': 'src/pageLibrary',
+    'director': 'lib/director.min',
+    'LRouter': 'src/LRouter',
   },
 
   // we have to kickoff jasmine, as it is asynchronous

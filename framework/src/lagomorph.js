@@ -4,7 +4,6 @@ define([
           "Handlebars", 
           "Fiber", 
           "dexie", 
-          "bluebird", 
           "himalaya", 
           "LBase", 
           "LModule", 
@@ -20,9 +19,11 @@ define([
           "objectUtils",
           "uiStringsLibrary",
           "templateUtils",
-          "pageLibrary"
+          "pageLibrary",
+          "director",
+          "LRouter"
         ], 
-function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils, uiStringsLibrary, templateUtils, pageLibrary ) {
+function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils, uiStringsLibrary, templateUtils, pageLibrary, director, LRouter ) {
 
   var framework = { //anything we want to expose on the window for the end user needs to be added here
     scanner: scanner,
@@ -30,7 +31,6 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
     LBase: LBase,
     LModule: LModule,
     dexie: dexie, //api for indexedDB local storage DB -> http://dexie.org/docs/ 
-    bluebird: bluebird, //promise library -> http://bluebirdjs.com/
     himalaya: himalaya, //html to json parser -> https://github.com/andrejewski/himalaya
     $: $,
     _: _,
@@ -45,6 +45,7 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
     connectorUtils: connectorUtils,
     objectUtils: objectUtils,
     pageLibrary: pageLibrary,
+    LRouter: LRouter, //TODO: not working as module
 
     /*
     * componentConfig = json to instantiate components, in lieu of or addition to that in the html itself
@@ -121,12 +122,16 @@ function($, _, Handlebars, Fiber, dexie, bluebird, himalaya, LBase, LModule, sca
 
             switch (promiseId) {
               case 'pages':
-                var pageDefinitions = schemas[i].returnedData;
-                self.pageLibrary.initializePageLibrary( pageDefinitions );
+                var routerInfo = schemas[i].returnedData;
+                // self.pageLibrary.initializePageLibrary( pageDefinitions );
+                self.LRouter.startRouter(routerInfo.pages, routerInfo.homepage);
               break;
             }
-
           }
+
+       
+
+        
 
 
           //*******when processing is done, load initial page into the pageWrapperSelector

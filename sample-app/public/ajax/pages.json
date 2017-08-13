@@ -1,12 +1,14 @@
 {
 	"success": true,
 	"data": {
-		"pages": {
-			"home": {
-	      "route": "",
-	      "template": "<div>homepage</div>"
-	    }
-
+		"routerInfo": {
+			"homepage": "/home",
+			"pages": {
+				"/home": {
+		      "template": "<div>homepage</div>"
+		    }
+			}
 		}
+		
 	}
 }
