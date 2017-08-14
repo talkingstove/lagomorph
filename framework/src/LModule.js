@@ -90,15 +90,7 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 
                //untested assumption: when.all returns schemas in matching order
                for (var j=0; j<schemas.length; j++) {
-                  var thisDataContract = self.dataContracts[j];
-
-                  //TODO: move into ajaxRequest
-                  // var connector = connectorLibrary.getConnectorByName( thisDataContract.connector ); //json
-                  // var serverData = objectUtils.getDataFromObjectByPath( schemas[j].returnedData, connector.srcPath );
-                  var dataTarget = connector.destinationPath;
-
-                  // var processedData = connectorUtils.processData(serverData, connector.objectMap);
-                  self.setData(serverData, processedData);
+                  self.setData(schemas[j].destinationPath, schemas[j].returnedData);
                }
 
                self.renderView(targetSelector);

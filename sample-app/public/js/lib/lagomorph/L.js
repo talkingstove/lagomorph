@@ -9455,7 +9455,7 @@
                     return;
                 }
 
-                if (!overwriteInstance && ComponentInstanceLibrary.getItem(id)) {
+                if (!overwriteInstance && this.ComponentInstanceLibrary.getItem(id)) {
                     console.error('attempted to register dupe component with id:', id);
                     return;
                 }
@@ -9746,7 +9746,8 @@
                     //return the data the server gave us, along with meta-info like the name we gave the promise
                     var returnObj = {
                         promiseId: promiseId,
-                        returnedData: processedData
+                        returnedData: processedData,
+                        destinationPath: connector.destinationPath
                     };
 
                     deferred.resolve(returnObj);
@@ -9816,19 +9817,21 @@
 
                     base.init(params);
 
-                    if (params.template) {
-                        //override template per instance when desired!
-                        this.template = params.template;
-                    }
+                    this.template = params.template ? params.template : '\n            <div>\n              <span>DO NOT USE ME3</span>\n            </div>\n          ';
+
+                    // if (params.template) { //override template per instance when desired!
+                    //   this.template = params.template;
+                    // }
+
 
                     this.compiledTemplate = templateUtils.compileTemplate(this.template); //TODO: cache standard templates in a libary
                 },
 
                 //Handlebars template
                 //overridable via the JSON config of any given instance of the component
-                template: '\n            <div>\n              <span>DO NOT USE ME</span>\n            </div>\n          ',
 
-                compiledTemplate: null,
+
+                // compiledTemplate: null,
 
                 setData: function (targetPath, data) {
                     //TODO: deep set with dot path
@@ -9882,8 +9885,7 @@
                             // var serverData = objectUtils.getDataFromObjectByPath( schemas[j].returnedData, connector.srcPath );
                             var dataTarget = connector.destinationPath;
 
-                            // var processedData = connectorUtils.processData(serverData, connector.objectMap);
-                            self.setData(serverData, processedData);
+                            self.setData(schemas[j].destinationPath, schemas[j].returnedData);
                         }
 
                         self.renderView(targetSelector);
@@ -9986,6 +9988,11 @@
             return {
 
                 init: function (params) {
+                    params = params || {};
+                    if (params.template) {
+                        //override template per instance when desired!
+                        this.template = params.template;
+                    }
 
                     base.init(params);
 
@@ -10388,7 +10395,14 @@
             return {
 
                 init: function (params) {
+                    params = params || {};
+                    if (params.template) {
+                        //override template per instance when desired!
+                        this.template = params.template;
+                    }
+
                     base.init(params);
+
                     this.id = 'page_' + params.id;
                     this.useCachedData = params.useCachedData || false;
                 },
@@ -10399,7 +10413,7 @@
                     this.$parentSelector = $pageWrapperSelector; //??/
 
                     this.loadComponent($pageWrapperSelector);
-                    scanner.scan($pageWrapperSelector);
+                    scanner.scan($pageWrapperSelector, this.useCachedData);
                 }
 
                 // "pages": {
@@ -10431,7 +10445,7 @@
                 _.each(pages, function (pageDef, key) {
                     var routeName = key;
                     routes[routeName] = $.noop;
-                });
+                }, this);
 
                 var router = Router(routes);
 
@@ -10449,16 +10463,21 @@
             },
 
             renderPage: function () {
+                var self = this;
                 //TODO: if page not found, go back to last one in the history! ??????
+                _.defer(function () {
+                    //wait out uri change
+                    var pageKey = window.location.hash.slice(1);
+                    var pageClass = self.pageClassLibrary.getPageByRoute(pageKey);
 
-                var pageKey = window.location.hash.slice(1);
-                var pageClass = this.pageClassLibrary.getPageByRoute(pageKey);
+                    if (!pageClass) {
+                        console.log('creating class for page:', pageKey);
+                        pageClass = new LPage(self.pageDefinitions[pageKey]);
+                        self.pageClassLibrary.getLibrary().addItem(pageKey, pageClass);
+                    }
 
-                if (!pageClass) {
-                    pageClass = new LPage(this.pageDefinitions[pageKey]);
-                }
-
-                pageClass.renderPage(this.pageWrapperSelector);
+                    pageClass.renderPage(self.pageWrapperSelector);
+                });
             }
 
         };
