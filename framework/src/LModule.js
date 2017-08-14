@@ -22,6 +22,8 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
             </div>
           `;
 
+          this.viewParams = params.viewParams || {}; //passed in template inputs
+
           this.dataContracts = []; //specifies remote data source(s) and specific ways they should be loaded into this module 
 
           //**** TODO: proper model with getters and setters

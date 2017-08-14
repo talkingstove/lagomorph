@@ -22,7 +22,7 @@ lParams = {
       "dataStructure": {} //todo
     },
     "lPages": {
-      "url": '/ajax/pages.json',
+      "url": '/ajax/pages-output.json',
       "method": "GET",
       "dataStructure": {} //todo
     }

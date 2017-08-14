@@ -47,6 +47,7 @@ define(["pageClassLibrary", "LPage"], function(pageClassLibrary, LPage) {
         // if (!pageClass) { //TODO: would be nice to re-use classes but won;'t work!!'
           console.log('creating class for page:', pageKey);      
           pageClass = new LPage( this.pageDefinitions[pageKey] );
+         
           this.pageClassLibrary.getLibrary().addItem(pageKey, pageClass, true);
         // }
 

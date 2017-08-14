@@ -14,13 +14,14 @@ define(["Handlebars", "LModule", "viewUtils", "componentInstanceLibrary", "ajaxR
         
         base.init(params);
 
-        var compViewData = params.viewParams || {};
+        // this.viewData = params.viewData || {};//why???
+        // var compViewData = this.viewData || {};
         var compDataContracts = params.dataContracts || [];
 
         //TODO: add default attrs like unique id, class name etc
-        var id = compViewData.id;
-        var type = compViewData.type;
-        var $parentSelector = compViewData.$parentSelector;
+        var id = this.viewParams.id;
+        var type = this.viewParams.type;
+        var $parentSelector = this.viewParams.$parentSelector;
 
         if (!id) {
           console.error('attempted to created component without id!');
@@ -35,7 +36,7 @@ define(["Handlebars", "LModule", "viewUtils", "componentInstanceLibrary", "ajaxR
         this.type = type;
         this.$parentSelector = $parentSelector;
         this.dataContracts = compDataContracts;
-        this.viewData = compViewData;
+        // this.viewData = compViewData;
 
         componentInstanceLibrary.registerComponent(this);
       
