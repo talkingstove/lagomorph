@@ -11,20 +11,25 @@ define(["pageClassLibrary", "LPage"], function(pageClassLibrary, LPage) {
       this.LPage = LPage;
 
       var routes = {};
+      var self = this;
+
 
       _.each(pages, function(pageDef, key) {
-        var routeName = key;
-        routes[routeName] = $.noop;
-      });
+        routes[key] = function() {self.renderPage(key)};
+      }, this);
 
       var router = Router(routes);
 
-      router.configure({
-        on: this.renderPage.apply(this)
-      });
+      // router.configure({
+      //   on: this.renderPage.apply(this)
+      // });
 
       router.init();
-      this.navigateToPage(homepageName);
+
+      if (!window.location.hash || window.location.hash.length <= 1) {
+        this.navigateToPage(homepageName);
+      }
+      
     },
 
     navigateToPage: function(pageName) {
@@ -32,17 +37,23 @@ define(["pageClassLibrary", "LPage"], function(pageClassLibrary, LPage) {
       window.location.href = uri + '#' + pageName;
     },
 
-    renderPage: function() {
+    renderPage: function(key) {
       //TODO: if page not found, go back to last one in the history! ??????
+      // _.defer(function() { //wait out uri change
+      //   debugger;
+        var pageKey = key;//window.location.hash.slice(1);
+        var pageClass = this.pageClassLibrary.getPageByRoute(pageKey);
 
-      var pageKey = window.location.hash.slice(1);
-      var pageClass = this.pageClassLibrary.getPageByRoute(pageKey);
+        // if (!pageClass) { //TODO: would be nice to re-use classes but won;'t work!!'
+          console.log('creating class for page:', pageKey);      
+          pageClass = new LPage( this.pageDefinitions[pageKey] );
+         
+          this.pageClassLibrary.getLibrary().addItem(pageKey, pageClass, true);
+        // }
 
-      if (!pageClass) {
-        pageClass = new LPage( this.pageDefinitions[pageKey] );
-      }
-
-      pageClass.renderPage( this.pageWrapperSelector );
+        pageClass.renderPage( this.pageWrapperSelector );
+      // });
+      
     }
 
 
