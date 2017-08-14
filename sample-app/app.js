@@ -5,9 +5,11 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongo = require('mongodb').MongoClient;
-
+var db;
 var index = require('./routes/index');
 var users = require('./routes/users');
+var JsonDAO = require('./dao/jsons').JsonDAO;
+var jsonDAO = new JsonDAO();
 
 var app = express();
 
@@ -23,8 +25,15 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+
+app.use(function(req, res, next){
+    req.db = db;
+    next();
+});
+
 app.use('/', index);
 app.use('/users', users);
+app.get('/jsons', jsonDAO.get);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -46,10 +55,10 @@ app.use(function(err, req, res, next) {
 
 var url = 'mongodb://localhost:27017/lagomorph';
 
-mongo.connect(url, (err, db) => {
+mongo.connect(url, (err, _db) => {
     if(err) throw new Error(err);
     console.log("Connected successfully to db");
-
+    db = _db;
     var server = app.listen(4000, function() {
       var port = server.address().port;
       console.log('server listening on port %s.', port);
