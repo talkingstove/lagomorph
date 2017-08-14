@@ -7,7 +7,13 @@ define(["Handlebars", "LModule", "viewUtils", "componentInstanceLibrary", "ajaxR
     return {
 
       init: function(params) {    
+        params = params || {};
+        if (params.template) { //override template per instance when desired!
+          this.template = params.template;
+        }
+
         base.init(params);
+        
         this.id = 'page_' + params.id;
         this.useCachedData = params.useCachedData || false;
       
@@ -19,7 +25,7 @@ define(["Handlebars", "LModule", "viewUtils", "componentInstanceLibrary", "ajaxR
         this.$parentSelector = $pageWrapperSelector; //??/
 
         this.loadComponent($pageWrapperSelector);
-        scanner.scan($pageWrapperSelector);
+        scanner.scan($pageWrapperSelector, this.useCachedData);
       }
 
       // "pages": {

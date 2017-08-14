@@ -22,10 +22,16 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
             
             base.init(params);
 
-            if (params.template) { //override template per instance when desired!
-              this.template = params.template;
-            }
-            
+            this.template = params.template ? params.template  : `
+            <div>
+              <span>DO NOT USE ME3</span>
+            </div>
+          `;
+
+            // if (params.template) { //override template per instance when desired!
+            //   this.template = params.template;
+            // }
+
             
 
             this.compiledTemplate = templateUtils.compileTemplate(this.template); //TODO: cache standard templates in a libary
@@ -35,13 +41,9 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 
         //Handlebars template
         //overridable via the JSON config of any given instance of the component
-        template: `
-            <div>
-              <span>DO NOT USE ME</span>
-            </div>
-          `,
+        
 
-        compiledTemplate: null,
+        // compiledTemplate: null,
 
         setData: function(targetPath, data) {
           //TODO: deep set with dot path

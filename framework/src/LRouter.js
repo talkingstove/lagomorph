@@ -12,10 +12,11 @@ define(["pageClassLibrary", "LPage"], function(pageClassLibrary, LPage) {
 
       var routes = {};
 
+
       _.each(pages, function(pageDef, key) {
         var routeName = key;
         routes[routeName] = $.noop;
-      });
+      }, this);
 
       var router = Router(routes);
 
@@ -33,16 +34,21 @@ define(["pageClassLibrary", "LPage"], function(pageClassLibrary, LPage) {
     },
 
     renderPage: function() {
+      var self = this;
       //TODO: if page not found, go back to last one in the history! ??????
+      _.defer(function() { //wait out uri change
+        var pageKey = window.location.hash.slice(1);
+        var pageClass = self.pageClassLibrary.getPageByRoute(pageKey);
 
-      var pageKey = window.location.hash.slice(1);
-      var pageClass = this.pageClassLibrary.getPageByRoute(pageKey);
+        if (!pageClass) {
+          console.log('creating class for page:', pageKey);      
+          pageClass = new LPage( self.pageDefinitions[pageKey] );
+          self.pageClassLibrary.getLibrary().addItem(pageKey, pageClass);
+        }
 
-      if (!pageClass) {
-        pageClass = new LPage( this.pageDefinitions[pageKey] );
-      }
-
-      pageClass.renderPage( this.pageWrapperSelector );
+        pageClass.renderPage( self.pageWrapperSelector );
+      });
+      
     }
 
 

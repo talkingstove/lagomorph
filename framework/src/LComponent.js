@@ -7,7 +7,11 @@ define(["Handlebars", "LModule", "viewUtils", "componentInstanceLibrary", "ajaxR
     return {
 
       init: function(params) {
-          
+        params = params || {};
+        if (params.template) { //override template per instance when desired!
+          this.template = params.template;
+        }
+        
         base.init(params);
 
         var compViewData = params.viewParams || {};
