@@ -9,18 +9,12 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 
         self: this,
         Handlebars: Handlebars,
-        dataContracts: [], //specifies remote data source(s) and specific ways they should be loaded into this module 
-
-        //**** TODO: proper model with getters and setters
-        //**** TODO: each one should be associated with passable render method
-        data: { //after connector does its work, data is deposited here with predictible names for every instance of a given component 
-
-        },
+        
 
         // The `init` method serves as the constructor.
         init: function(params) {
             
-            base.init(params);
+          base.init(params);
 
            var template = params.template ? params.template  : `
             <div>
@@ -28,7 +22,15 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
             </div>
           `;
 
-            this.compiledTemplate = templateUtils.compileTemplate(template); //TODO: cache standard templates in a libary
+          this.dataContracts = []; //specifies remote data source(s) and specific ways they should be loaded into this module 
+
+          //**** TODO: proper model with getters and setters
+          //**** TODO: each one should be associated with passable render method
+          this.data = { //after connector does its work, data is deposited here with predictible names for every instance of a given component 
+
+          };
+
+          this.compiledTemplate = templateUtils.compileTemplate(template); //TODO: cache standard templates in a libary
         },
 
         

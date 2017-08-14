@@ -9804,13 +9804,6 @@
 
                 self: this,
                 Handlebars: Handlebars,
-                dataContracts: [], //specifies remote data source(s) and specific ways they should be loaded into this module 
-
-                //**** TODO: proper model with getters and setters
-                //**** TODO: each one should be associated with passable render method
-                data: {//after connector does its work, data is deposited here with predictible names for every instance of a given component 
-
-                },
 
                 // The `init` method serves as the constructor.
                 init: function (params) {
@@ -9819,10 +9812,13 @@
 
                     var template = params.template ? params.template : '\n            <div>\n              <span>DO NOT USE ME</span>\n            </div>\n          ';
 
-                    // if (params.template) { //override template per instance when desired!
-                    //   this.template = params.template;
-                    // }
+                    this.dataContracts = []; //specifies remote data source(s) and specific ways they should be loaded into this module 
 
+                    //**** TODO: proper model with getters and setters
+                    //**** TODO: each one should be associated with passable render method
+                    this.data = {//after connector does its work, data is deposited here with predictible names for every instance of a given component 
+
+                    };
 
                     this.compiledTemplate = templateUtils.compileTemplate(template); //TODO: cache standard templates in a libary
                 },
@@ -10024,28 +10020,20 @@
                 // The `init` method serves as the constructor.
                 init: function (params) {
                     params = params || {};
-
                     base.init(params);
 
-                    if (params.listItemTemplate) {
-                        //override template per instance when desired!
-                        this.listItemTemplate = params.listItemTemplate;
-                    }
+                    this.template = params.template || '\n            <span data-ui_string="i18n.key1">\n              loading...\n            </span>\n            <ul data-data_binding="listItems" data-template_binding="compiledListItemTemplate">        \n            </ul>\n          ';
+
+                    this.listItemTemplate = params.listItemTemplate || '\n            <li>\n              {{caption}}\n            </li>\n          ';
+
+                    this.data = {
+                        listItems: null //expect []
+                    };
 
                     //give it its own template not that of the superclass!!
                     this.compiledTemplate = templateUtils.compileTemplate(this.template); //this.Handlebars.compile(this.template);
                     this.compiledListItemTemplate = templateUtils.compileTemplate(this.listItemTemplate); //this.Handlebars.compile(this.listItemTemplate);
-                },
-
-                data: {
-                    listItems: null //expect []
-                },
-
-                //listItems maps to the data which is returned from the Connector
-                //if array, data-template_binding is used for each item!
-                template: '\n            <span data-ui_string="i18n.key1">\n              loading...\n            </span>\n            <ul data-data_binding="listItems" data-template_binding="compiledListItemTemplate">        \n            </ul>\n          ',
-
-                listItemTemplate: '\n            <li>\n              {{caption}}\n            </li>\n          '
+                }
 
             };
         });
