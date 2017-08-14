@@ -31,7 +31,7 @@ define(["LLibrary"], function(LLibrary) {
         return;
       }
 
-      if (!overwriteInstance && ComponentInstanceLibrary.getItem(id) ) {
+      if (!overwriteInstance && this.ComponentInstanceLibrary.getItem(id) ) {
         console.error('attempted to register dupe component with id:', id);
         return;
       }

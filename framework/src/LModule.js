@@ -9,39 +9,37 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 
         self: this,
         Handlebars: Handlebars,
-        dataContracts: [], //specifies remote data source(s) and specific ways they should be loaded into this module 
-
-        //**** TODO: proper model with getters and setters
-        //**** TODO: each one should be associated with passable render method
-        data: { //after connector does its work, data is deposited here with predictible names for every instance of a given component 
-
-        },
+        
 
         // The `init` method serves as the constructor.
         init: function(params) {
             
-            base.init(params);
+          base.init(params);
 
-            if (params.template) { //override template per instance when desired!
-              this.template = params.template;
-            }
-            
-            
+           var template = params.template ? params.template  : `
+            <div>
+              <span>DO NOT USE ME</span>
+            </div>
+          `;
 
-            this.compiledTemplate = templateUtils.compileTemplate(this.template); //TODO: cache standard templates in a libary
+          this.dataContracts = []; //specifies remote data source(s) and specific ways they should be loaded into this module 
+
+          //**** TODO: proper model with getters and setters
+          //**** TODO: each one should be associated with passable render method
+          this.data = { //after connector does its work, data is deposited here with predictible names for every instance of a given component 
+
+          };
+
+          this.compiledTemplate = templateUtils.compileTemplate(template); //TODO: cache standard templates in a libary
         },
 
         
 
         //Handlebars template
         //overridable via the JSON config of any given instance of the component
-        template: `
-            <div>
-              <span>DO NOT USE ME</span>
-            </div>
-          `,
+        
 
-        compiledTemplate: null,
+        // compiledTemplate: null,
 
         setData: function(targetPath, data) {
           //TODO: deep set with dot path
@@ -84,19 +82,9 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
           }
           
           $.when.all(allPromises).then(function(schemas) {
-               console.log("DONE", this, schemas); // 'schemas' is now an array
-
                //untested assumption: when.all returns schemas in matching order
                for (var j=0; j<schemas.length; j++) {
-                  var thisDataContract = self.dataContracts[j];
-
-                  //TODO: move into ajaxRequest
-                  // var connector = connectorLibrary.getConnectorByName( thisDataContract.connector ); //json
-                  // var serverData = objectUtils.getDataFromObjectByPath( schemas[j].returnedData, connector.srcPath );
-                  var dataTarget = connector.destinationPath;
-
-                  // var processedData = connectorUtils.processData(serverData, connector.objectMap);
-                  self.setData(serverData, processedData);
+                  self.setData(schemas[j].destinationPath, schemas[j].returnedData);
                }
 
                self.renderView(targetSelector);
@@ -112,6 +100,7 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
         */
         renderView: function(targetSelector) {
           var html = this.compiledTemplate(this.viewData);
+
           viewUtils.renderDomElement(targetSelector, html);
           this.renderDataIntoBindings();
         },
@@ -154,7 +143,7 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
           }
 
           this.isDestroyed = true;
-          componentInstanceLibrary.deleteItem( this.id, true );
+          componentInstanceLibrary.getLibrary().deleteItem( this.id, true );
         }       
     }
 

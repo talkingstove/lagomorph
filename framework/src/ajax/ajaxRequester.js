@@ -70,7 +70,8 @@ define(["jquery", "underscore", "dataSourceLibrary", "connectorUtils"], function
         //return the data the server gave us, along with meta-info like the name we gave the promise
         var returnObj = {
           promiseId: promiseId,
-          returnedData: processedData
+          returnedData: processedData,
+          destinationPath: connector.destinationPath
         }
 
         deferred.resolve(returnObj);

@@ -9455,7 +9455,7 @@
                     return;
                 }
 
-                if (!overwriteInstance && ComponentInstanceLibrary.getItem(id)) {
+                if (!overwriteInstance && this.ComponentInstanceLibrary.getItem(id)) {
                     console.error('attempted to register dupe component with id:', id);
                     return;
                 }
@@ -9746,7 +9746,8 @@
                     //return the data the server gave us, along with meta-info like the name we gave the promise
                     var returnObj = {
                         promiseId: promiseId,
-                        returnedData: processedData
+                        returnedData: processedData,
+                        destinationPath: connector.destinationPath
                     };
 
                     deferred.resolve(returnObj);
@@ -9803,32 +9804,30 @@
 
                 self: this,
                 Handlebars: Handlebars,
-                dataContracts: [], //specifies remote data source(s) and specific ways they should be loaded into this module 
-
-                //**** TODO: proper model with getters and setters
-                //**** TODO: each one should be associated with passable render method
-                data: {//after connector does its work, data is deposited here with predictible names for every instance of a given component 
-
-                },
 
                 // The `init` method serves as the constructor.
                 init: function (params) {
 
                     base.init(params);
 
-                    if (params.template) {
-                        //override template per instance when desired!
-                        this.template = params.template;
-                    }
+                    var template = params.template ? params.template : '\n            <div>\n              <span>DO NOT USE ME</span>\n            </div>\n          ';
 
-                    this.compiledTemplate = templateUtils.compileTemplate(this.template); //TODO: cache standard templates in a libary
+                    this.dataContracts = []; //specifies remote data source(s) and specific ways they should be loaded into this module 
+
+                    //**** TODO: proper model with getters and setters
+                    //**** TODO: each one should be associated with passable render method
+                    this.data = {//after connector does its work, data is deposited here with predictible names for every instance of a given component 
+
+                    };
+
+                    this.compiledTemplate = templateUtils.compileTemplate(template); //TODO: cache standard templates in a libary
                 },
 
                 //Handlebars template
                 //overridable via the JSON config of any given instance of the component
-                template: '\n            <div>\n              <span>DO NOT USE ME</span>\n            </div>\n          ',
 
-                compiledTemplate: null,
+
+                // compiledTemplate: null,
 
                 setData: function (targetPath, data) {
                     //TODO: deep set with dot path
@@ -9871,19 +9870,9 @@
                     }
 
                     $.when.all(allPromises).then(function (schemas) {
-                        console.log("DONE", this, schemas); // 'schemas' is now an array
-
                         //untested assumption: when.all returns schemas in matching order
                         for (var j = 0; j < schemas.length; j++) {
-                            var thisDataContract = self.dataContracts[j];
-
-                            //TODO: move into ajaxRequest
-                            // var connector = connectorLibrary.getConnectorByName( thisDataContract.connector ); //json
-                            // var serverData = objectUtils.getDataFromObjectByPath( schemas[j].returnedData, connector.srcPath );
-                            var dataTarget = connector.destinationPath;
-
-                            // var processedData = connectorUtils.processData(serverData, connector.objectMap);
-                            self.setData(serverData, processedData);
+                            self.setData(schemas[j].destinationPath, schemas[j].returnedData);
                         }
 
                         self.renderView(targetSelector);
@@ -9897,6 +9886,7 @@
                 */
                 renderView: function (targetSelector) {
                     var html = this.compiledTemplate(this.viewData);
+
                     viewUtils.renderDomElement(targetSelector, html);
                     this.renderDataIntoBindings();
                 },
@@ -9937,7 +9927,7 @@
                     }
 
                     this.isDestroyed = true;
-                    componentInstanceLibrary.deleteItem(this.id, true);
+                    componentInstanceLibrary.getLibrary().deleteItem(this.id, true);
                 }
             };
 
@@ -9986,6 +9976,10 @@
             return {
 
                 init: function (params) {
+                    params = params || {};
+                    // if (params.template) { //override template per instance when desired!
+                    //   this.template = params.template;
+                    // }
 
                     base.init(params);
 
@@ -10026,28 +10020,20 @@
                 // The `init` method serves as the constructor.
                 init: function (params) {
                     params = params || {};
-
                     base.init(params);
 
-                    if (params.listItemTemplate) {
-                        //override template per instance when desired!
-                        this.listItemTemplate = params.listItemTemplate;
-                    }
+                    this.template = params.template || '\n            <span data-ui_string="i18n.key1">\n              loading...\n            </span>\n            <ul data-data_binding="listItems" data-template_binding="compiledListItemTemplate">        \n            </ul>\n          ';
+
+                    this.listItemTemplate = params.listItemTemplate || '\n            <li>\n              {{caption}}\n            </li>\n          ';
+
+                    this.data = {
+                        listItems: null //expect []
+                    };
 
                     //give it its own template not that of the superclass!!
                     this.compiledTemplate = templateUtils.compileTemplate(this.template); //this.Handlebars.compile(this.template);
                     this.compiledListItemTemplate = templateUtils.compileTemplate(this.listItemTemplate); //this.Handlebars.compile(this.listItemTemplate);
-                },
-
-                data: {
-                    listItems: null //expect []
-                },
-
-                //listItems maps to the data which is returned from the Connector
-                //if array, data-template_binding is used for each item!
-                template: '\n            <span data-ui_string="i18n.key1">\n              loading...\n            </span>\n            <ul data-data_binding="listItems" data-template_binding="compiledListItemTemplate">        \n            </ul>\n          ',
-
-                listItemTemplate: '\n            <li>\n              {{caption}}\n            </li>\n          '
+                }
 
             };
         });
@@ -10388,7 +10374,14 @@
             return {
 
                 init: function (params) {
+                    params = params || {};
                     base.init(params);
+
+                    // if (params.template) { //override template per instance when desired!
+                    //   this.template = params.template;
+                    // }
+
+
                     this.id = 'page_' + params.id;
                     this.useCachedData = params.useCachedData || false;
                 },
@@ -10399,7 +10392,7 @@
                     this.$parentSelector = $pageWrapperSelector; //??/
 
                     this.loadComponent($pageWrapperSelector);
-                    scanner.scan($pageWrapperSelector);
+                    scanner.scan($pageWrapperSelector, this.useCachedData);
                 }
 
                 // "pages": {
@@ -10427,20 +10420,25 @@
                 this.LPage = LPage;
 
                 var routes = {};
+                var self = this;
 
                 _.each(pages, function (pageDef, key) {
-                    var routeName = key;
-                    routes[routeName] = $.noop;
-                });
+                    routes[key] = function () {
+                        self.renderPage(key);
+                    };
+                }, this);
 
                 var router = Router(routes);
 
-                router.configure({
-                    on: this.renderPage.apply(this)
-                });
+                // router.configure({
+                //   on: this.renderPage.apply(this)
+                // });
 
                 router.init();
-                this.navigateToPage(homepageName);
+
+                if (!window.location.hash || window.location.hash.length <= 1) {
+                    this.navigateToPage(homepageName);
+                }
             },
 
             navigateToPage: function (pageName) {
@@ -10448,17 +10446,21 @@
                 window.location.href = uri + '#' + pageName;
             },
 
-            renderPage: function () {
+            renderPage: function (key) {
                 //TODO: if page not found, go back to last one in the history! ??????
-
-                var pageKey = window.location.hash.slice(1);
+                // _.defer(function() { //wait out uri change
+                //   debugger;
+                var pageKey = key; //window.location.hash.slice(1);
                 var pageClass = this.pageClassLibrary.getPageByRoute(pageKey);
 
-                if (!pageClass) {
-                    pageClass = new LPage(this.pageDefinitions[pageKey]);
-                }
+                // if (!pageClass) { //TODO: would be nice to re-use classes but won;'t work!!'
+                console.log('creating class for page:', pageKey);
+                pageClass = new LPage(this.pageDefinitions[pageKey]);
+                this.pageClassLibrary.getLibrary().addItem(pageKey, pageClass, true);
+                // }
 
                 pageClass.renderPage(this.pageWrapperSelector);
+                // });
             }
 
         };
