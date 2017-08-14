@@ -22,19 +22,13 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
             
             base.init(params);
 
-            this.template = params.template ? params.template  : `
+           var template = params.template ? params.template  : `
             <div>
-              <span>DO NOT USE ME3</span>
+              <span>DO NOT USE ME</span>
             </div>
           `;
 
-            // if (params.template) { //override template per instance when desired!
-            //   this.template = params.template;
-            // }
-
-            
-
-            this.compiledTemplate = templateUtils.compileTemplate(this.template); //TODO: cache standard templates in a libary
+            this.compiledTemplate = templateUtils.compileTemplate(template); //TODO: cache standard templates in a libary
         },
 
         
@@ -86,8 +80,6 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
           }
           
           $.when.all(allPromises).then(function(schemas) {
-               console.log("DONE", this, schemas); // 'schemas' is now an array
-
                //untested assumption: when.all returns schemas in matching order
                for (var j=0; j<schemas.length; j++) {
                   self.setData(schemas[j].destinationPath, schemas[j].returnedData);
@@ -106,6 +98,7 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
         */
         renderView: function(targetSelector) {
           var html = this.compiledTemplate(this.viewData);
+
           viewUtils.renderDomElement(targetSelector, html);
           this.renderDataIntoBindings();
         },
@@ -148,7 +141,7 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
           }
 
           this.isDestroyed = true;
-          componentInstanceLibrary.deleteItem( this.id, true );
+          componentInstanceLibrary.getLibrary().deleteItem( this.id, true );
         }       
     }
 

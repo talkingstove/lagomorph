@@ -8,6 +8,11 @@
 					"id": "homepage",
 		      "template": "<div><div data-lagomorph-component='{\"isGlobal\": false,\"viewParams\": {\"type\": \"L_List\",\"id\": \"list1\"},\"dataContracts\": [{ \"dataSource\": \"samplePhotoListInfo\",\"connector\": \"genericPhotoListConnector\"} ]}'></div><button data-navlink={'route': '/testpage'}>Navigate</button></div>",
 		      "useCachedData": false
+		    },
+		    "/testpage": {
+					"id": "testpage",
+		      "template": "<div>oh hai mark</div>",
+		      "useCachedData": false
 		    }
 			}
 		}

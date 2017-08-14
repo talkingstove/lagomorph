@@ -9817,14 +9817,14 @@
 
                     base.init(params);
 
-                    this.template = params.template ? params.template : '\n            <div>\n              <span>DO NOT USE ME3</span>\n            </div>\n          ';
+                    var template = params.template ? params.template : '\n            <div>\n              <span>DO NOT USE ME</span>\n            </div>\n          ';
 
                     // if (params.template) { //override template per instance when desired!
                     //   this.template = params.template;
                     // }
 
 
-                    this.compiledTemplate = templateUtils.compileTemplate(this.template); //TODO: cache standard templates in a libary
+                    this.compiledTemplate = templateUtils.compileTemplate(template); //TODO: cache standard templates in a libary
                 },
 
                 //Handlebars template
@@ -9874,17 +9874,8 @@
                     }
 
                     $.when.all(allPromises).then(function (schemas) {
-                        console.log("DONE", this, schemas); // 'schemas' is now an array
-
                         //untested assumption: when.all returns schemas in matching order
                         for (var j = 0; j < schemas.length; j++) {
-                            var thisDataContract = self.dataContracts[j];
-
-                            //TODO: move into ajaxRequest
-                            // var connector = connectorLibrary.getConnectorByName( thisDataContract.connector ); //json
-                            // var serverData = objectUtils.getDataFromObjectByPath( schemas[j].returnedData, connector.srcPath );
-                            var dataTarget = connector.destinationPath;
-
                             self.setData(schemas[j].destinationPath, schemas[j].returnedData);
                         }
 
@@ -9899,6 +9890,7 @@
                 */
                 renderView: function (targetSelector) {
                     var html = this.compiledTemplate(this.viewData);
+
                     viewUtils.renderDomElement(targetSelector, html);
                     this.renderDataIntoBindings();
                 },
@@ -9939,7 +9931,7 @@
                     }
 
                     this.isDestroyed = true;
-                    componentInstanceLibrary.deleteItem(this.id, true);
+                    componentInstanceLibrary.getLibrary().deleteItem(this.id, true);
                 }
             };
 
@@ -9989,10 +9981,9 @@
 
                 init: function (params) {
                     params = params || {};
-                    if (params.template) {
-                        //override template per instance when desired!
-                        this.template = params.template;
-                    }
+                    // if (params.template) { //override template per instance when desired!
+                    //   this.template = params.template;
+                    // }
 
                     base.init(params);
 
@@ -10396,12 +10387,12 @@
 
                 init: function (params) {
                     params = params || {};
-                    if (params.template) {
-                        //override template per instance when desired!
-                        this.template = params.template;
-                    }
-
                     base.init(params);
+
+                    // if (params.template) { //override template per instance when desired!
+                    //   this.template = params.template;
+                    // }
+
 
                     this.id = 'page_' + params.id;
                     this.useCachedData = params.useCachedData || false;
@@ -10441,20 +10432,25 @@
                 this.LPage = LPage;
 
                 var routes = {};
+                var self = this;
 
                 _.each(pages, function (pageDef, key) {
-                    var routeName = key;
-                    routes[routeName] = $.noop;
+                    routes[key] = function () {
+                        self.renderPage(key);
+                    };
                 }, this);
 
                 var router = Router(routes);
 
-                router.configure({
-                    on: this.renderPage.apply(this)
-                });
+                // router.configure({
+                //   on: this.renderPage.apply(this)
+                // });
 
                 router.init();
-                this.navigateToPage(homepageName);
+
+                if (!window.location.hash || window.location.hash.length <= 1) {
+                    this.navigateToPage(homepageName);
+                }
             },
 
             navigateToPage: function (pageName) {
@@ -10462,22 +10458,21 @@
                 window.location.href = uri + '#' + pageName;
             },
 
-            renderPage: function () {
-                var self = this;
+            renderPage: function (key) {
                 //TODO: if page not found, go back to last one in the history! ??????
-                _.defer(function () {
-                    //wait out uri change
-                    var pageKey = window.location.hash.slice(1);
-                    var pageClass = self.pageClassLibrary.getPageByRoute(pageKey);
+                // _.defer(function() { //wait out uri change
+                //   debugger;
+                var pageKey = key; //window.location.hash.slice(1);
+                var pageClass = this.pageClassLibrary.getPageByRoute(pageKey);
 
-                    if (!pageClass) {
-                        console.log('creating class for page:', pageKey);
-                        pageClass = new LPage(self.pageDefinitions[pageKey]);
-                        self.pageClassLibrary.getLibrary().addItem(pageKey, pageClass);
-                    }
+                // if (!pageClass) { //TODO: would be nice to re-use classes but won;'t work!!'
+                console.log('creating class for page:', pageKey);
+                pageClass = new LPage(this.pageDefinitions[pageKey]);
+                this.pageClassLibrary.getLibrary().addItem(pageKey, pageClass, true);
+                // }
 
-                    pageClass.renderPage(self.pageWrapperSelector);
-                });
+                pageClass.renderPage(this.pageWrapperSelector);
+                // });
             }
 
         };
