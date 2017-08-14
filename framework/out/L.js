@@ -9812,6 +9812,8 @@
 
                     var template = params.template ? params.template : '\n            <div>\n              <span>DO NOT USE ME</span>\n            </div>\n          ';
 
+                    this.viewParams = params.viewParams || {}; //passed in template inputs
+
                     this.dataContracts = []; //specifies remote data source(s) and specific ways they should be loaded into this module 
 
                     //**** TODO: proper model with getters and setters
@@ -9983,13 +9985,14 @@
 
                     base.init(params);
 
-                    var compViewData = params.viewParams || {};
+                    // this.viewData = params.viewData || {};//why???
+                    // var compViewData = this.viewData || {};
                     var compDataContracts = params.dataContracts || [];
 
                     //TODO: add default attrs like unique id, class name etc
-                    var id = compViewData.id;
-                    var type = compViewData.type;
-                    var $parentSelector = compViewData.$parentSelector;
+                    var id = this.viewParams.id;
+                    var type = this.viewParams.type;
+                    var $parentSelector = this.viewParams.$parentSelector;
 
                     if (!id) {
                         console.error('attempted to created component without id!');
@@ -10004,7 +10007,7 @@
                     this.type = type;
                     this.$parentSelector = $parentSelector;
                     this.dataContracts = compDataContracts;
-                    this.viewData = compViewData;
+                    // this.viewData = compViewData;
 
                     componentInstanceLibrary.registerComponent(this);
                 }
@@ -10024,6 +10027,8 @@
 
                     this.template = params.template || '\n            <span data-ui_string="i18n.key1">\n              loading...\n            </span>\n            <ul data-data_binding="listItems" data-template_binding="compiledListItemTemplate">        \n            </ul>\n          ';
 
+                    //TODO: should also take in a list of components instead of just templates!!! CAN IT?????
+                    //json compoent config can be TEMPLATE PARAMS!!!!111
                     this.listItemTemplate = params.listItemTemplate || '\n            <li>\n              {{caption}}\n            </li>\n          ';
 
                     this.data = {
@@ -10380,7 +10385,7 @@
                     // if (params.template) { //override template per instance when desired!
                     //   this.template = params.template;
                     // }
-
+                    this.data = params.data || {};
 
                     this.id = 'page_' + params.id;
                     this.useCachedData = params.useCachedData || false;
@@ -10456,6 +10461,7 @@
                 // if (!pageClass) { //TODO: would be nice to re-use classes but won;'t work!!'
                 console.log('creating class for page:', pageKey);
                 pageClass = new LPage(this.pageDefinitions[pageKey]);
+
                 this.pageClassLibrary.getLibrary().addItem(pageKey, pageClass, true);
                 // }
 

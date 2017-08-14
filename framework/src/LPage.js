@@ -14,6 +14,7 @@ define(["Handlebars", "LModule", "viewUtils", "componentInstanceLibrary", "ajaxR
         // if (params.template) { //override template per instance when desired!
         //   this.template = params.template;
         // }
+        this.data = params.data || {};
 
         
         

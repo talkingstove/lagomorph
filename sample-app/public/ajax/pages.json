@@ -11,7 +11,10 @@
 		    },
 		    "/testpage": {
 					"id": "testpage",
-		      "template": "<div>oh hai mark</div>",
+					"data": {
+						"name": "Ryan"
+					},
+		      "template": "<div>oh hai {{name}}</div>",
 		      "useCachedData": false
 		    }
 			}
