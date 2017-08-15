@@ -15,8 +15,6 @@ define(["Handlebars", "underscore", "LComponent", "viewUtils", "templateUtils"],
             </ul>
           `;
 
-          //TODO: should also take in a list of components instead of just templates!!! CAN IT?????
-          //json compoent config can be TEMPLATE PARAMS!!!!111
           this.listItemTemplate = params.listItemTemplate || `
             <li>
               {{caption}}

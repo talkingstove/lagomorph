@@ -47,6 +47,24 @@ function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_Li
     pageClassLibrary: pageClassLibrary,
     LRouter: LRouter,
 
+    initialize: function(params) {
+      var self = this;
+
+      if (!params.service) {
+        console.error('L.initialize needs a service to set up the app!');
+        return;
+      }
+
+
+
+      var initPromise = ajaxRequester.createAjaxCallPromise(null, "init", null, params.service);
+
+      $.when(initPromise).done(function(result) {
+        console.log('initializing app with params', result.returnedData);
+        self.start(result.returnedData);
+      });
+    },
+
     /*
     * componentConfig = json to instantiate components, in lieu of or addition to that in the html itself
     * dataSources = json config of endpoints, including data contracts of what to expect from the server

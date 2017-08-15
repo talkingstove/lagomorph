@@ -9675,13 +9675,14 @@
 
         };
     });
-    define('ajaxRequester', ["jquery", "underscore", "dataSourceLibrary", "connectorUtils"], function ($, _, dataSourceLibrary, connectorUtils) {
+    define('ajaxRequester', ["jquery", "underscore", "dataSourceLibrary", "connectorUtils", "templateUtils"], function ($, _, dataSourceLibrary, connectorUtils, templateUtils) {
 
         return {
 
-            createAjaxCallPromise: function (dataSourceName, promiseId, connector) {
+            createAjaxCallPromise: function (dataSourceName, promiseId, connector, optionsObj) {
+                optionsObj = optionsObj || null;
                 //look up datasource from library and get options to create the promise
-                var dataSourceDefinition = dataSourceLibrary.getDataSourceByName(dataSourceName);
+                var dataSourceDefinition = optionsObj ? optionsObj : dataSourceLibrary.getDataSourceByName(dataSourceName);
                 promiseId = promiseId || 'unknown'; //TODO: random
                 connector = connector || null;
 
@@ -9741,13 +9742,15 @@
 
                     if (connector) {
                         processedData = connectorUtils.processData(rawData, connector);
+                    } else {
+                        processedData = templateUtils.replaceUIStringKeys(processedData);
                     }
 
                     //return the data the server gave us, along with meta-info like the name we gave the promise
                     var returnObj = {
                         promiseId: promiseId,
                         returnedData: processedData,
-                        destinationPath: connector.destinationPath
+                        destinationPath: connector ? connector.destinationPath : null
                     };
 
                     deferred.resolve(returnObj);
@@ -9887,7 +9890,7 @@
                 *
                 */
                 renderView: function (targetSelector) {
-                    var html = this.compiledTemplate(this.viewData);
+                    var html = this.compiledTemplate(this.viewParams);
 
                     viewUtils.renderDomElement(targetSelector, html);
                     this.renderDataIntoBindings();
@@ -10027,8 +10030,6 @@
 
                     this.template = params.template || '\n            <span data-ui_string="i18n.key1">\n              loading...\n            </span>\n            <ul data-data_binding="listItems" data-template_binding="compiledListItemTemplate">        \n            </ul>\n          ';
 
-                    //TODO: should also take in a list of components instead of just templates!!! CAN IT?????
-                    //json compoent config can be TEMPLATE PARAMS!!!!111
                     this.listItemTemplate = params.listItemTemplate || '\n            <li>\n              {{caption}}\n            </li>\n          ';
 
                     this.data = {
@@ -10451,6 +10452,10 @@
                 window.location.href = uri + '#' + pageName;
             },
 
+            /*
+            * FEATURE: literally zero wait time to load initial html
+            * html -> data -> component -> data -> html etc, always bubbles down
+            */
             renderPage: function (key) {
                 //TODO: if page not found, go back to last one in the history! ??????
                 // _.defer(function() { //wait out uri change
@@ -10500,6 +10505,22 @@
             objectUtils: objectUtils,
             pageClassLibrary: pageClassLibrary,
             LRouter: LRouter,
+
+            initialize: function (params) {
+                var self = this;
+
+                if (!params.service) {
+                    console.error('L.initialize needs a service to set up the app!');
+                    return;
+                }
+
+                var initPromise = ajaxRequester.createAjaxCallPromise(null, "init", null, params.service);
+
+                $.when(initPromise).done(function (result) {
+                    console.log('initializing app with params', result.returnedData);
+                    self.start(result.returnedData);
+                });
+            },
 
             /*
             * componentConfig = json to instantiate components, in lieu of or addition to that in the html itself

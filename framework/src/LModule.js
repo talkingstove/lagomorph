@@ -101,7 +101,7 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
         *
         */
         renderView: function(targetSelector) {
-          var html = this.compiledTemplate(this.viewData);
+          var html = this.compiledTemplate(this.viewParams);
 
           viewUtils.renderDomElement(targetSelector, html);
           this.renderDataIntoBindings();

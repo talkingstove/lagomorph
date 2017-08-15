@@ -1,0 +1,46 @@
+{
+  "pageWrapperSelector": "#page-wrapper",
+  "pages": { 
+    "dataSourceName": "lPages",
+    "connectorName": "pagesConnector"
+  },
+  "initialRoute": "home",
+  "dataSources": {
+    "samplePhotoListInfo": {
+      "url": "/ajax/test-photo-info.json",
+      "method": "GET",
+      "dataStructure": {}
+    },
+    "lPages": {
+      "url": "/ajax/pages-output.json",
+      "method": "GET",
+      "dataStructure": {}
+    }
+  },
+  "connectors": {
+    "genericPhotoListConnector": {
+      "srcPath": "data.photos",
+      "destinationPath": "listItems",
+      "objectMap": {
+        "dataType": "array",
+        "eachChildDefinition": {
+          "dataType": "object",
+          "srcPath": null,
+          "destinationPath": null
+        }
+      }
+    },
+    "pagesConnector": {
+      "srcPath": "data.routerInfo",
+      "objectMap": {
+        "dataType": "object"
+      }
+    }
+  },
+  "stringData": {
+    "i18n": {
+      "key1": "This is a test string",
+      "key2": "This is a test string 2"
+    }
+  }
+}

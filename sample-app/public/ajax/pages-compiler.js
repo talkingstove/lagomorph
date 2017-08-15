@@ -17,6 +17,14 @@ var body = {
 					},
 		      "template": "<div>oh hai {{name}}</div>",
 		      "useCachedData": false
+		    },
+		    "/testpage2": {
+					"id": "testpage2",
+					"viewParams": {
+						"name": "Joaquin"
+					},
+		      "template": "<div>oh hai {{name}}</div>",
+		      "useCachedData": false
 		    }
 			}
 		}
