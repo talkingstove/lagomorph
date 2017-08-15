@@ -1,10 +1,11 @@
-define(["jquery", "underscore", "dataSourceLibrary", "connectorUtils"], function($, _, dataSourceLibrary, connectorUtils) {
+define(["jquery", "underscore", "dataSourceLibrary", "connectorUtils", "templateUtils"], function($, _, dataSourceLibrary, connectorUtils, templateUtils) {
 
   return {
 
-    createAjaxCallPromise: function(dataSourceName, promiseId, connector) {
+    createAjaxCallPromise: function(dataSourceName, promiseId, connector, optionsObj) {
+      optionsObj = optionsObj || null;
       //look up datasource from library and get options to create the promise
-      var dataSourceDefinition = dataSourceLibrary.getDataSourceByName(dataSourceName);
+      var dataSourceDefinition = optionsObj ? optionsObj : dataSourceLibrary.getDataSourceByName(dataSourceName);
       promiseId = promiseId || 'unknown'; //TODO: random
       connector = connector || null;
 
@@ -66,12 +67,15 @@ define(["jquery", "underscore", "dataSourceLibrary", "connectorUtils"], function
         if (connector) {
           processedData = connectorUtils.processData(rawData, connector);
         }
+        else {
+          processedData = templateUtils.replaceUIStringKeys(processedData);
+        }
 
         //return the data the server gave us, along with meta-info like the name we gave the promise
         var returnObj = {
           promiseId: promiseId,
           returnedData: processedData,
-          destinationPath: connector.destinationPath
+          destinationPath: connector ? connector.destinationPath : null
         }
 
         deferred.resolve(returnObj);

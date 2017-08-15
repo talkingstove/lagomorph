@@ -37,6 +37,10 @@ define(["pageClassLibrary", "LPage"], function(pageClassLibrary, LPage) {
       window.location.href = uri + '#' + pageName;
     },
 
+    /*
+    * FEATURE: literally zero wait time to load initial html
+    * html -> data -> component -> data -> html etc, always bubbles down
+    */
     renderPage: function(key) {
       //TODO: if page not found, go back to last one in the history! ??????
       // _.defer(function() { //wait out uri change
@@ -47,7 +51,7 @@ define(["pageClassLibrary", "LPage"], function(pageClassLibrary, LPage) {
         // if (!pageClass) { //TODO: would be nice to re-use classes but won;'t work!!'
           console.log('creating class for page:', pageKey);      
           pageClass = new LPage( this.pageDefinitions[pageKey] );
-         
+
           this.pageClassLibrary.getLibrary().addItem(pageKey, pageClass, true);
         // }
 
