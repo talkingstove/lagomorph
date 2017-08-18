@@ -15,7 +15,7 @@ define(["LBase", "objectUtils"], function(LBase, objectUtils) {
       },
 
       get: function(path) {
-        objectUtils.getDataFromObjectByPath(this.values, path);
+        return objectUtils.getDataFromObjectByPath(this.values, path);
       },
 
       set: function(path, data) {

@@ -9343,41 +9343,145 @@
 
         return LBase;
     });
-    define('viewUtils', ["Handlebars"], function (Handlebars) {
+    define('objectUtils', [], function () {
 
         return {
 
-            /*
-            * 
-            */
-            renderDomElement: function ($containerSelector, html, renderType, callback, forceImmediateRender) {
-                renderType = renderType || 'replace';
-                callback = callback || null;
-                forceImmediateRender = forceImmediateRender || false;
+            getDataFromObjectByPath: function (object, path) {
+                var nameArray = path.split('.');
+                var currentObject = object;
 
-                //if !currentphatomPage --> make phatntom page, modify, set timeout to put it back into page
-                //else add change to currnet phantom page
-                //thus, sync changes line up in a queue!
-
-                //problem if container is page??
-
-                //needs to take a callback so that can be sure to happen after dom update
-
-                switch (renderType) {
-                    case 'replace':
-                        if (_.isObject($containerSelector)) {
-                            //jquery obj passed in
-                            $containerSelector.html(html);
-                        } else {
-                            $(containerSelector).html(html);
-                        }
-
+                for (var i = 0; i < nameArray.length; i++) {
+                    if (_.isUndefined(currentObject[nameArray[i]])) {
+                        currentObject = null;
                         break;
+                    } else {
+                        currentObject = currentObject[nameArray[i]];
+                    }
+                }
+
+                return currentObject;
+            },
+
+            setDataToObjectByPath: function (object, path, dataToSet) {
+                var nameArray = path.split('.');
+                var currentObject = object;
+
+                for (var i = 0; i < nameArray.length; i++) {
+                    if (i === nameArray.length - 1) {
+                        currentObject[nameArray[i]] = dataToSet; //will it work???
+                        return;
+                    }
+
+                    if (_.isUndefined(currentObject[nameArray[i]])) {
+                        currentObject[nameArray[i]] = {};
+                    }
+
+                    currentObject = currentObject[nameArray[i]];
                 }
             }
 
         };
     });
+
+    /*
+    * 
+    */
+    define('LModel', ["LBase", "objectUtils"], function (LBase, objectUtils) {
+
+        return LBase.extend(function (base) {
+            return {
+                // The `init` method serves as the constructor.
+                init: function (params) {
+                    params = params || {};
+
+                    base.init(params);
+                    this.values = params.values || {};
+                },
+
+                get: function (path) {
+                    return objectUtils.getDataFromObjectByPath(this.values, path);
+                },
+
+                set: function (path, data) {
+                    objectUtils.setDataToObjectByPath(this.values, path, data);
+                }
+
+            };
+        });
+    });
+    define('DOMModel', ["LModel"], function (LModel) {
+
+        //makes the singleton avaible to the global window.L, or via require
+        return {
+
+            DOMModel: null,
+
+            initializeDOMModel: function () {
+                if (this.DOMModel !== null) {
+                    console.warn('DOMModel singleton already initialized');
+                    return;
+                }
+
+                this.DOMModel = new LModel();
+                this.getDOMModel().set('currentShadowDOM', null);
+            },
+
+            getDOMModel: function () {
+                return this.DOMModel;
+            },
+
+            registerCurrentPage: function (pageClass) {
+                this.getDOMModel().set('currentPageClass', pageClass);
+            },
+
+            getCurrentPage: function () {
+                return this.getDOMModel().get('currentPageClass');
+            },
+
+            getCurrentShadowDOM: function () {
+                return this.getDOMModel().get('currentShadowDOM');
+            },
+
+            setCurrentShadowDOM: function ($shadowDOM) {
+                return this.getDOMModel().set('currentShadowDOM', $shadowDOM);
+            },
+
+            getCurrentPageDOMSelector: function () {
+                return this.getDOMModel().get('currentPageClass') ? this.getDOMModel().get('currentPageClass').getDOMElement() : null;
+            },
+
+            alterShadowDOM: function ($containerSelector, html, renderType) {
+                if (!this.getCurrentShadowDOM()) {
+                    console.warn('attempted to alter non-existent shadow DOM');
+                    return;
+                };
+
+                var $shadowDOM = this.getCurrentShadowDOM();
+
+                if (!_.isObject($containerSelector)) {
+                    $containerSelector = $($containerSelector);
+                }
+
+                //default to parent ??TODO: bad
+                var $shadowEl = $shadowDOM.find($containerSelector).length ? $shadowDOM.find($containerSelector) : $shadowDOM;
+
+                switch (renderType) {
+                    case 'replace':
+                        $shadowEl.html(html);
+
+                        break;
+                }
+            },
+
+            writeShadowDOMToBrowser: function () {
+                console.log('rendering shadow DOM to page');
+                this.getCurrentPageDOMSelector().html(this.getCurrentShadowDOM().html());
+            }
+
+        };
+    });
+
     define('LLibrary', ["Fiber"], function (Fiber) {
 
         return Fiber.extend(function (base) {
@@ -9475,6 +9579,116 @@
 
         };
     });
+    define('scanner', ["componentInstanceLibrary"], function (componentInstanceLibrary) {
+
+        return {
+            scan: function ($target) {
+                console.log('SCANNING:', $target);
+                var $components = $target.find('[data-lagomorph-component], [data-lc]');
+
+                _.each($components, function (component) {
+                    var $component = $(component);
+
+                    //definition must provide at minimum a type and id in the json
+                    var compData = $component.data('lagomorph-component'); //jquery converts to object for free
+
+
+                    if (!_.isObject(compData)) {
+                        console.warn('Invalid data JSON for component:', component);
+                        return;
+                    }
+
+                    var compViewData = compData.viewParams;
+                    // var compDataSources = compData.dataSources;
+
+                    var moduleClass = L.componentDefinitions[compViewData.type]; //todo: bad name -- component
+                    compViewData.$parentSelector = $component; //todo: bad name -- componentWrapper
+                    var moduleInstance = new moduleClass(compData);
+
+                    moduleInstance.loadComponent($component);
+                }, this);
+            }
+
+        };
+    });
+    define('viewUtils', ["Handlebars", "DOMModel", "scanner"], function (Handlebars, DOMModel, scanner) {
+
+        return {
+
+            /*
+            * 
+            */
+            renderDomElement: function ($containerSelector, html, renderType, callback, forceImmediateRender) {
+                renderType = renderType || 'replace';
+                callback = callback || null;
+                forceImmediateRender = forceImmediateRender || false;
+
+                DOMModel.callbacks = DOMModel.callbacks || [];
+                if (callback) {
+                    DOMModel.callbacks.push(callback);
+                }
+
+                if (forceImmediateRender) {
+                    $containerSelector.html(html);
+                    return;
+                }
+
+                //if !currentphatomPage --> make phatntom page, modify, set timeout to put it back into page
+                //else add change to currnet phantom page
+                //thus, sync changes line up in a queue!
+
+                var $shadowDOM = DOMModel.getCurrentShadowDOM();
+
+                // if (!$shadowDOM) {
+                //   debugger;
+                if (!$shadowDOM) {
+                    DOMModel.setCurrentShadowDOM(DOMModel.getCurrentPageDOMSelector().clone());
+                }
+
+                DOMModel.alterShadowDOM($containerSelector, html, renderType);
+                scanner.scan(DOMModel.getCurrentShadowDOM());
+
+                if (!DOMModel.renderinProgress) {
+                    //block multiple simaltaneous shadow DOM renders
+                    DOMModel.renderinProgress = true;
+
+                    _.defer(function () {
+
+                        _.each(DOMModel.callbacks, function (callback) {
+                            callback();
+                        });
+
+                        DOMModel.writeShadowDOMToBrowser(); //make all enqueued changes
+                        DOMModel.renderinProgress = false;
+                        DOMModel.callbacks = [];
+                        DOMModel.setCurrentShadowDOM(null);
+                    });
+                }
+
+                // }
+
+
+                // getCurrentPageDOMSelector
+
+                //problem if container is page??
+
+                //needs to take a callback so that can be sure to happen after dom update
+
+                // switch(renderType) {
+                //   case 'replace':
+                //     if ( _.isObject($containerSelector) ) { //jquery obj passed in
+                //       $containerSelector.html(html);
+                //     }
+                //     else {
+                //       $(containerSelector).html(html);
+                //     }
+
+                //   break;
+                // }
+            }
+
+        };
+    });
     define('dataSourceLibrary', ["LLibrary"], function (LLibrary) {
 
         //makes the singleton avaible to the global window.L, or via require
@@ -9502,46 +9716,6 @@
 
             getDataSourceByName: function (name) {
                 return this.getLibrary() ? this.getLibrary().storage[name] : null;
-            }
-
-        };
-    });
-    define('objectUtils', [], function () {
-
-        return {
-
-            getDataFromObjectByPath: function (object, path) {
-                var nameArray = path.split('.');
-                var currentObject = object;
-
-                for (var i = 0; i < nameArray.length; i++) {
-                    if (_.isUndefined(currentObject[nameArray[i]])) {
-                        currentObject = null;
-                        break;
-                    } else {
-                        currentObject = currentObject[nameArray[i]];
-                    }
-                }
-
-                return currentObject;
-            },
-
-            setDataToObjectByPath: function (object, path, dataToSet) {
-                var nameArray = path.split('.');
-                var currentObject = object;
-
-                for (var i = 0; i < nameArray.length; i++) {
-                    if (i === nameArray.length - 1) {
-                        currentObject[nameArray[i]] = dataToSet; //will it work???
-                        return;
-                    }
-
-                    if (_.isUndefined(currentObject[nameArray[i]])) {
-                        currentObject[nameArray[i]] = {};
-                    }
-
-                    currentObject = currentObject[nameArray[i]];
-                }
             }
 
         };
@@ -9807,7 +9981,7 @@
     /*
     * Root class for LComponents and Lpages
     */
-    define('LModule', ["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxRequester", "connectorLibrary", "connectorUtils", "objectUtils", "templateUtils"], function (Handlebars, LBase, viewUtils, componentInstanceLibrary, ajaxRequester, connectorLibrary, connectorUtils, objectUtils, templateUtils) {
+    define('LModule', ["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxRequester", "connectorLibrary", "connectorUtils", "objectUtils", "templateUtils", "DOMModel"], function (Handlebars, LBase, viewUtils, componentInstanceLibrary, ajaxRequester, connectorLibrary, connectorUtils, objectUtils, templateUtils, DOMModel) {
 
         return LBase.extend(function (base) {
 
@@ -9864,7 +10038,7 @@
                 *
                 * We cannot use "Phantom DOM" here b/c every component load is async!
                 */
-                loadComponent: function (targetSelector) {
+                loadComponent: function (targetSelector, directRender) {
                     var self = this;
 
                     /*
@@ -9890,7 +10064,7 @@
                             self.setData(schemas[j].destinationPath, schemas[j].returnedData);
                         }
 
-                        self.renderView(targetSelector);
+                        self.renderView(targetSelector, directRender);
                     }, function (e) {
                         console.log("My ajax failed");
                     });
@@ -9899,15 +10073,20 @@
                 /*
                 *
                 */
-                renderView: function (targetSelector) {
+                renderView: function (targetSelector, directRender) {
                     var html = this.compiledTemplate(this.viewParams);
 
-                    viewUtils.renderDomElement(targetSelector, html);
-                    this.renderDataIntoBindings();
+                    //TODO#$$$$$$ callback not needed if we always operate on shadow??????????
+
+                    // $containerSelector, html, renderType, callback, forceImmediateRender
+                    viewUtils.renderDomElement(targetSelector, html, 'replace', $.proxy(this.renderDataIntoBindings, this), directRender);
+                    // this.renderDataIntoBindings();
                 },
 
                 renderDataIntoBindings: function () {
-                    var $dataBindings = this.$parentSelector.find('[data-data_binding]');
+                    console.log('BINDGS!!');
+                    var $selector = DOMModel.getCurrentShadowDOM(); // || this.$parentSelector; //?????
+                    var $dataBindings = $selector.find('[data-data_binding]');
 
                     _.each($dataBindings, function (dataBinding) {
                         var $dataBindingDOMElement = $(dataBinding);
@@ -9950,38 +10129,6 @@
         });
     });
 
-    define('scanner', ["componentInstanceLibrary"], function (componentInstanceLibrary) {
-
-        return {
-            scan: function ($target) {
-                console.log('SCANNING:', $target);
-                var $components = $target.find('[data-lagomorph-component], [data-lc]');
-
-                _.each($components, function (component) {
-                    var $component = $(component);
-
-                    //definition must provide at minimum a type and id in the json
-                    var compData = $component.data('lagomorph-component'); //jquery converts to object for free
-
-
-                    if (!_.isObject(compData)) {
-                        console.warn('Invalid data JSON for component:', component);
-                        return;
-                    }
-
-                    var compViewData = compData.viewParams;
-                    // var compDataSources = compData.dataSources;
-
-                    var moduleClass = L.componentDefinitions[compViewData.type]; //todo: bad name -- component
-                    compViewData.$parentSelector = $component; //todo: bad name -- componentWrapper
-                    var moduleInstance = new moduleClass(compData);
-
-                    moduleInstance.loadComponent($component);
-                }, this);
-            }
-
-        };
-    });
     /*
     */
     define('LComponent', ["Handlebars", "LModule", "viewUtils", "componentInstanceLibrary", "ajaxRequester", "connectorLibrary", "connectorUtils", "objectUtils", "templateUtils"], function (Handlebars, LModule, viewUtils, componentInstanceLibrary, ajaxRequester, connectorLibrary, connectorUtils, objectUtils, templateUtils) {
@@ -10383,7 +10530,7 @@
 
     /*
     */
-    define('LPage', ["Handlebars", "LModule", "viewUtils", "componentInstanceLibrary", "ajaxRequester", "connectorLibrary", "connectorUtils", "objectUtils", "templateUtils", "scanner"], function (Handlebars, LModule, viewUtils, componentInstanceLibrary, ajaxRequester, connectorLibrary, connectorUtils, objectUtils, templateUtils, scanner) {
+    define('LPage', ["LModule", "scanner", "DOMModel"], function (LModule, scanner, DOMModel) {
 
         return LModule.extend(function (base) {
 
@@ -10393,9 +10540,6 @@
                     params = params || {};
                     base.init(params);
 
-                    // if (params.template) { //override template per instance when desired!
-                    //   this.template = params.template;
-                    // }
                     this.data = params.data || {};
 
                     this.id = 'page_' + params.id;
@@ -10403,29 +10547,29 @@
                 },
 
                 renderPage: function (pageWrapperSelector) {
+                    var self = this;
                     //TODO: optional data caching
                     var $pageWrapperSelector = $(pageWrapperSelector);
                     this.$parentSelector = $pageWrapperSelector; //??/
 
                     this.loadComponent($pageWrapperSelector);
-                    scanner.scan($pageWrapperSelector, this.useCachedData);
+                    var $selector = $pageWrapperSelector;
 
-                    //TODO: register as current page somewhere global!!
+                    // setTimeout(function() { //wait for phantom dom TODO: nad
+                    //  scanner.scan($selector, self.useCachedData);
+                    // }, 2);
+
+                },
+
+                getDOMElement: function () {
+                    return this.$parentSelector;
                 }
-
-                // "pages": {
-                //   "/home": {
-                //     "template": "<div>homepage<button data-navlink={'route': '/testpage'}>Navigate</button></div>",
-                //     "useCachedData": false
-                //   }
-                // }
-
 
             };
         });
     });
 
-    define('LRouter', ["pageClassLibrary", "LPage"], function (pageClassLibrary, LPage) {
+    define('LRouter', ["pageClassLibrary", "LPage", "DOMModel"], function (pageClassLibrary, LPage, DOMModel) {
 
         return {
 
@@ -10470,8 +10614,7 @@
             */
             renderPage: function (key) {
                 //TODO: if page not found, go back to last one in the history! ??????
-                // _.defer(function() { //wait out uri change
-                //   debugger;
+
                 var pageKey = key; //window.location.hash.slice(1);
                 var pageClass = this.pageClassLibrary.getPageByRoute(pageKey);
 
@@ -10482,8 +10625,10 @@
                 this.pageClassLibrary.getLibrary().addItem(pageKey, pageClass, true);
                 // }
 
+                //register current page with DOMModel
+                DOMModel.registerCurrentPage(pageClass);
+
                 pageClass.renderPage(this.pageWrapperSelector);
-                // });
             }
 
         };
@@ -10494,55 +10639,6 @@
     //         '/books': listBooks
     //       };
 
-
-    /*
-    * 
-    */
-    define('LModel', ["LBase", "objectUtils"], function (LBase, objectUtils) {
-
-        return LBase.extend(function (base) {
-            return {
-                // The `init` method serves as the constructor.
-                init: function (params) {
-                    params = params || {};
-
-                    base.init(params);
-                    this.values = params.values || {};
-                },
-
-                get: function (path) {
-                    objectUtils.getDataFromObjectByPath(this.values, path);
-                },
-
-                set: function (path, data) {
-                    objectUtils.setDataToObjectByPath(this.values, path, data);
-                }
-
-            };
-        });
-    });
-    define('DOMModel', ["LModel"], function (LModel) {
-
-        //makes the singleton avaible to the global window.L, or via require
-        return {
-
-            DOMModel: null,
-
-            initializeDOMModel: function () {
-                if (this.DOMModel !== null) {
-                    console.warn('DOMModel singleton already initialized');
-                    return;
-                }
-
-                this.DOMModel = new LModel();
-            },
-
-            getDOMModel: function () {
-                return this.DOMModel;
-            }
-
-        };
-    });
     define('lagomorph', ["jquery", "underscore", "Handlebars", "Fiber", "dexie", "himalaya", "LBase", "LModule", "scanner", "L_List", "componentInstanceLibrary", "viewUtils", "ajaxRequester", "agreementsTester", "dataSourceLibrary", "connectorLibrary", "connectorUtils", "objectUtils", "uiStringsLibrary", "templateUtils", "pageClassLibrary", "director", "LRouter", "LModel", "DOMModel"], function ($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils, uiStringsLibrary, templateUtils, pageClassLibrary, director, LRouter, LModel, DOMModel) {
 
         var framework = { //anything we want to expose on the window for the end user needs to be added here
