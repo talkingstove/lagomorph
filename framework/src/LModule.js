@@ -62,6 +62,8 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
         /*
         * entry point from scanner.js (or called directly)
         * get any necessary data and do anything else needed before rendering the view to the DOM
+        *
+        * We cannot use "Phantom DOM" here b/c every component load is async!
         */
         loadComponent: function(targetSelector) {
           var self = this;
@@ -133,7 +135,7 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
               html = template(data);
             }
 
-            $dataBindingDOMElement.html(html);
+            viewUtils.renderDomElement($dataBindingDOMElement, html);
 
           }, this);
         },

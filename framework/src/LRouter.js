@@ -43,8 +43,7 @@ define(["pageClassLibrary", "LPage"], function(pageClassLibrary, LPage) {
     */
     renderPage: function(key) {
       //TODO: if page not found, go back to last one in the history! ??????
-      // _.defer(function() { //wait out uri change
-      //   debugger;
+      
         var pageKey = key;//window.location.hash.slice(1);
         var pageClass = this.pageClassLibrary.getPageByRoute(pageKey);
 
@@ -55,8 +54,10 @@ define(["pageClassLibrary", "LPage"], function(pageClassLibrary, LPage) {
           this.pageClassLibrary.getLibrary().addItem(pageKey, pageClass, true);
         // }
 
+        //register current page with DOMModel
+
         pageClass.renderPage( this.pageWrapperSelector );
-      // });
+     
       
     }
 

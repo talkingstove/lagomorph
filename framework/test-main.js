@@ -47,6 +47,8 @@ require.config({
     'pageClassLibrary': 'src/pageClassLibrary',
     'director': 'lib/director.min',
     'LRouter': 'src/LRouter',
+    'LModel': 'src/LModel',
+    'DOMModel': 'src/DOMModel'
   },
 
   // we have to kickoff jasmine, as it is asynchronous

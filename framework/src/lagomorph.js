@@ -21,9 +21,11 @@ define([
           "templateUtils",
           "pageClassLibrary",
           "director",
-          "LRouter"
+          "LRouter",
+          "LModel",
+          "DOMModel"
         ], 
-function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils, uiStringsLibrary, templateUtils, pageClassLibrary, director, LRouter ) {
+function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils, uiStringsLibrary, templateUtils, pageClassLibrary, director, LRouter, LModel, DOMModel ) {
 
   var framework = { //anything we want to expose on the window for the end user needs to be added here
     scanner: scanner,
@@ -46,6 +48,8 @@ function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_Li
     objectUtils: objectUtils,
     pageClassLibrary: pageClassLibrary,
     LRouter: LRouter,
+    LModel: LModel,
+    DOMModel: DOMModel,
 
     initialize: function(params) {
       var self = this;
@@ -54,8 +58,6 @@ function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_Li
         console.error('L.initialize needs a service to set up the app!');
         return;
       }
-
-
 
       var initPromise = ajaxRequester.createAjaxCallPromise(null, "init", null, params.service);
 
@@ -106,7 +108,7 @@ function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_Li
         console.log('Lagomorph started with no string/i18nDataSource config');
       }
 
-      
+      this.DOMModel.initializeDOMModel();
 
       this.componentInstanceLibrary.initializeComponentInstanceLibrary(); //model that holds all instances of created components for lookup
 

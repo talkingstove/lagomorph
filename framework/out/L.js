@@ -9348,16 +9348,26 @@
         return {
 
             /*
-            * abstracted from jQuery in case we ever want to remove it or even use React, etc
+            * 
             */
-            renderDomElement: function (containerSelector, html, renderType) {
+            renderDomElement: function ($containerSelector, html, renderType, callback, forceImmediateRender) {
                 renderType = renderType || 'replace';
+                callback = callback || null;
+                forceImmediateRender = forceImmediateRender || false;
+
+                //if !currentphatomPage --> make phatntom page, modify, set timeout to put it back into page
+                //else add change to currnet phantom page
+                //thus, sync changes line up in a queue!
+
+                //problem if container is page??
+
+                //needs to take a callback so that can be sure to happen after dom update
 
                 switch (renderType) {
                     case 'replace':
-                        if (_.isObject(containerSelector)) {
+                        if (_.isObject($containerSelector)) {
                             //jquery obj passed in
-                            containerSelector.html(html);
+                            $containerSelector.html(html);
                         } else {
                             $(containerSelector).html(html);
                         }
@@ -9370,7 +9380,7 @@
     });
     define('LLibrary', ["Fiber"], function (Fiber) {
 
-        var LLibrary = Fiber.extend(function (base) {
+        return Fiber.extend(function (base) {
             return {
                 // The `init` method serves as the constructor.
                 init: function (params) {
@@ -9419,8 +9429,6 @@
 
             };
         });
-
-        return LLibrary;
     });
     define('componentInstanceLibrary', ["LLibrary"], function (LLibrary) {
 
@@ -9853,6 +9861,8 @@
                 /*
                 * entry point from scanner.js (or called directly)
                 * get any necessary data and do anything else needed before rendering the view to the DOM
+                *
+                * We cannot use "Phantom DOM" here b/c every component load is async!
                 */
                 loadComponent: function (targetSelector) {
                     var self = this;
@@ -9921,7 +9931,7 @@
                             html = template(data);
                         }
 
-                        $dataBindingDOMElement.html(html);
+                        viewUtils.renderDomElement($dataBindingDOMElement, html);
                     }, this);
                 },
 
@@ -10399,6 +10409,8 @@
 
                     this.loadComponent($pageWrapperSelector);
                     scanner.scan($pageWrapperSelector, this.useCachedData);
+
+                    //TODO: register as current page somewhere global!!
                 }
 
                 // "pages": {
@@ -10482,7 +10494,56 @@
     //         '/books': listBooks
     //       };
 
-    define('lagomorph', ["jquery", "underscore", "Handlebars", "Fiber", "dexie", "himalaya", "LBase", "LModule", "scanner", "L_List", "componentInstanceLibrary", "viewUtils", "ajaxRequester", "agreementsTester", "dataSourceLibrary", "connectorLibrary", "connectorUtils", "objectUtils", "uiStringsLibrary", "templateUtils", "pageClassLibrary", "director", "LRouter"], function ($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils, uiStringsLibrary, templateUtils, pageClassLibrary, director, LRouter) {
+
+    /*
+    * 
+    */
+    define('LModel', ["LBase", "objectUtils"], function (LBase, objectUtils) {
+
+        return LBase.extend(function (base) {
+            return {
+                // The `init` method serves as the constructor.
+                init: function (params) {
+                    params = params || {};
+
+                    base.init(params);
+                    this.values = params.values || {};
+                },
+
+                get: function (path) {
+                    objectUtils.getDataFromObjectByPath(this.values, path);
+                },
+
+                set: function (path, data) {
+                    objectUtils.setDataToObjectByPath(this.values, path, data);
+                }
+
+            };
+        });
+    });
+    define('DOMModel', ["LModel"], function (LModel) {
+
+        //makes the singleton avaible to the global window.L, or via require
+        return {
+
+            DOMModel: null,
+
+            initializeDOMModel: function () {
+                if (this.DOMModel !== null) {
+                    console.warn('DOMModel singleton already initialized');
+                    return;
+                }
+
+                this.DOMModel = new LModel();
+            },
+
+            getDOMModel: function () {
+                return this.DOMModel;
+            }
+
+        };
+    });
+    define('lagomorph', ["jquery", "underscore", "Handlebars", "Fiber", "dexie", "himalaya", "LBase", "LModule", "scanner", "L_List", "componentInstanceLibrary", "viewUtils", "ajaxRequester", "agreementsTester", "dataSourceLibrary", "connectorLibrary", "connectorUtils", "objectUtils", "uiStringsLibrary", "templateUtils", "pageClassLibrary", "director", "LRouter", "LModel", "DOMModel"], function ($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils, uiStringsLibrary, templateUtils, pageClassLibrary, director, LRouter, LModel, DOMModel) {
 
         var framework = { //anything we want to expose on the window for the end user needs to be added here
             scanner: scanner,
@@ -10505,6 +10566,8 @@
             objectUtils: objectUtils,
             pageClassLibrary: pageClassLibrary,
             LRouter: LRouter,
+            LModel: LModel,
+            DOMModel: DOMModel,
 
             initialize: function (params) {
                 var self = this;
@@ -10561,6 +10624,8 @@
                 if (!params.stringData) {
                     console.log('Lagomorph started with no string/i18nDataSource config');
                 }
+
+                this.DOMModel.initializeDOMModel();
 
                 this.componentInstanceLibrary.initializeComponentInstanceLibrary(); //model that holds all instances of created components for lookup
 
