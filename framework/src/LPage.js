@@ -1,45 +1,43 @@
 /*
 */
-define(["Handlebars", "LModule", "viewUtils", "componentInstanceLibrary", "ajaxRequester", "connectorLibrary", "connectorUtils", "objectUtils", "templateUtils", "scanner"], function(Handlebars, LModule, viewUtils, componentInstanceLibrary, ajaxRequester, connectorLibrary, connectorUtils, objectUtils, templateUtils, scanner) {
+define(["LModule", "scanner", "DOMModel"], function(LModule, scanner, DOMModel) {
 
   return LModule.extend(function(base) {
       
     return {
 
       init: function(params) {    
-         params = params || {};
+        params = params || {};
         base.init(params);
-
        
-        // if (params.template) { //override template per instance when desired!
-        //   this.template = params.template;
-        // }
         this.data = params.data || {};
 
-        
-        
         this.id = 'page_' + params.id;
         this.useCachedData = params.useCachedData || false;
       
       },
 
       renderPage: function(pageWrapperSelector) {
+        var self = this;
         //TODO: optional data caching
         var $pageWrapperSelector = $(pageWrapperSelector);
         this.$parentSelector = $pageWrapperSelector; //??/
 
         this.loadComponent($pageWrapperSelector);
-        scanner.scan($pageWrapperSelector, this.useCachedData);
+var $selector = $pageWrapperSelector; 
+       
+       // setTimeout(function() { //wait for phantom dom TODO: nad
+       //  scanner.scan($selector, self.useCachedData);
+       // }, 2);
+       
+   
+        
+      },
+
+      getDOMElement: function() {
+        return this.$parentSelector;
       }
 
-      // "pages": {
-      //   "/home": {
-      //     "template": "<div>homepage<button data-navlink={'route': '/testpage'}>Navigate</button></div>",
-      //     "useCachedData": false
-      //   }
-      // }
-
-     
     }
 
   });

@@ -1,7 +1,7 @@
 /*
 * Root class for LComponents and Lpages
 */
-define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxRequester", "connectorLibrary", "connectorUtils", "objectUtils", "templateUtils"], function(Handlebars, LBase, viewUtils, componentInstanceLibrary, ajaxRequester, connectorLibrary, connectorUtils, objectUtils, templateUtils) {
+define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxRequester", "connectorLibrary", "connectorUtils", "objectUtils", "templateUtils", "DOMModel"], function(Handlebars, LBase, viewUtils, componentInstanceLibrary, ajaxRequester, connectorLibrary, connectorUtils, objectUtils, templateUtils, DOMModel) {
 
   return LBase.extend(function(base) {
       
@@ -62,8 +62,10 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
         /*
         * entry point from scanner.js (or called directly)
         * get any necessary data and do anything else needed before rendering the view to the DOM
+        *
+        * We cannot use "Phantom DOM" here b/c every component load is async!
         */
-        loadComponent: function(targetSelector) {
+        loadComponent: function(targetSelector, directRender) {
           var self = this;
     
           /*
@@ -89,7 +91,7 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
                   self.setData(schemas[j].destinationPath, schemas[j].returnedData);
                }
 
-               self.renderView(targetSelector);
+               self.renderView(targetSelector, directRender);
           }, function(e) {
                console.log("My ajax failed");
           });
@@ -100,15 +102,21 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
         /*
         *
         */
-        renderView: function(targetSelector) {
+        renderView: function(targetSelector, directRender) {
           var html = this.compiledTemplate(this.viewParams);
 
-          viewUtils.renderDomElement(targetSelector, html);
-          this.renderDataIntoBindings();
+          //TODO#$$$$$$ callback not needed if we always operate on shadow??????????
+
+// $containerSelector, html, renderType, callback, forceImmediateRender
+          viewUtils.renderDomElement(targetSelector, html, 'replace', $.proxy(this.renderDataIntoBindings, this), directRender);
+          // this.renderDataIntoBindings();
         },
 
         renderDataIntoBindings: function() {
-          var $dataBindings = this.$parentSelector.find('[data-data_binding]');
+          console.log('BINDGS!!');
+          var $selector = DOMModel.getCurrentShadowDOM(); // || this.$parentSelector; //?????
+          var $dataBindings = $selector.find('[data-data_binding]');
+
 
           _.each($dataBindings, function(dataBinding) {
             var $dataBindingDOMElement = $(dataBinding);
@@ -133,7 +141,7 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
               html = template(data);
             }
 
-            $dataBindingDOMElement.html(html);
+            viewUtils.renderDomElement($dataBindingDOMElement, html);
 
           }, this);
         },
