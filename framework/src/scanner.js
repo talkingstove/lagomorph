@@ -24,6 +24,10 @@ define(["componentInstanceLibrary"], function(componentInstanceLibrary) {
         compViewData.$parentSelector = $component; //todo: bad name -- componentWrapper
         var moduleInstance = new moduleClass(compData);
 
+        $target.find('[data-lagomorph-component], [data-lc]').removeAttr('data-lagomorph-component').removeAttr('data-lc');
+
+       
+
         moduleInstance.loadComponent($component);
 
       }, this);

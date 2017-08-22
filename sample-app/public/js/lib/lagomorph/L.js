@@ -9464,7 +9464,11 @@
                 }
 
                 //default to parent ??TODO: bad
-                var $shadowEl = $shadowDOM.find($containerSelector).length ? $shadowDOM.find($containerSelector) : $shadowDOM;
+                var $shadowEl = $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')).length ? $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')) : $shadowDOM;
+                console.log('$containerSelector', $containerSelector);
+                console.log('$shadowEl', $shadowEl);
+
+                debugger;
 
                 switch (renderType) {
                     case 'replace':
@@ -9604,6 +9608,8 @@
                     var moduleClass = L.componentDefinitions[compViewData.type]; //todo: bad name -- component
                     compViewData.$parentSelector = $component; //todo: bad name -- componentWrapper
                     var moduleInstance = new moduleClass(compData);
+
+                    $target.find('[data-lagomorph-component], [data-lc]').removeAttr('data-lagomorph-component').removeAttr('data-lc');
 
                     moduleInstance.loadComponent($component);
                 }, this);
@@ -10185,7 +10191,7 @@
                     params = params || {};
                     base.init(params);
 
-                    this.template = params.template || '\n            <span data-ui_string="i18n.key1">\n              loading...\n            </span>\n            <ul data-data_binding="listItems" data-template_binding="compiledListItemTemplate">        \n            </ul>\n          ';
+                    this.template = params.template || '\n            <span data-ui_string="i18n.key1">\n              loading...\n            </span>\n            <ul class="wweew" data-data_binding="listItems" data-template_binding="compiledListItemTemplate">        \n            </ul>\n          ';
 
                     this.listItemTemplate = params.listItemTemplate || '\n            <li>\n              {{caption}}\n            </li>\n          ';
 

@@ -52,7 +52,11 @@ define(["LModel"], function(LModel) {
       }
 
       //default to parent ??TODO: bad
-      var $shadowEl = $shadowDOM.find($containerSelector).length ? $shadowDOM.find($containerSelector) : $shadowDOM;
+      var $shadowEl = $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')).length ? $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')) : $shadowDOM;
+      console.log('$containerSelector', $containerSelector);
+      console.log('$shadowEl', $shadowEl);
+
+      debugger;
 
       switch(renderType) {
         case 'replace':

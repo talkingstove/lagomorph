@@ -11,7 +11,7 @@ define(["Handlebars", "underscore", "LComponent", "viewUtils", "templateUtils"],
             <span data-ui_string="i18n.key1">
               loading...
             </span>
-            <ul data-data_binding="listItems" data-template_binding="compiledListItemTemplate">        
+            <ul class="wweew" data-data_binding="listItems" data-template_binding="compiledListItemTemplate">        
             </ul>
           `;
 
