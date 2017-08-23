@@ -9463,12 +9463,18 @@
                     $containerSelector = $($containerSelector);
                 }
 
-                //default to parent ??TODO: bad
-                var $shadowEl = $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')).length ? $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')) : $shadowDOM;
+                var $shadowEl;
+                //***TODO: resolve problem of classless elements
+                //TODO: address parent issue
+                //https://stackoverflow.com/questions/9382028/get-the-current-jquery-selector-string
+                if ($containerSelector.is('#page-wrapper')) {
+                    $shadowEl = $shadowDOM;
+                } else {
+                    $shadowEl = $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')).length ? $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')) : null;
+                }
+
                 console.log('$containerSelector', $containerSelector);
                 console.log('$shadowEl', $shadowEl);
-
-                debugger;
 
                 switch (renderType) {
                     case 'replace':
@@ -9588,7 +9594,7 @@
         return {
             scan: function ($target) {
                 console.log('SCANNING:', $target);
-                var $components = $target.find('[data-lagomorph-component], [data-lc]');
+                var $components = $target.find('[data-lagomorph-component], [data-lc]').not('[data-rendered]');
 
                 _.each($components, function (component) {
                     var $component = $(component);
@@ -9605,11 +9611,12 @@
                     var compViewData = compData.viewParams;
                     // var compDataSources = compData.dataSources;
 
-                    var moduleClass = L.componentDefinitions[compViewData.type]; //todo: bad name -- component
+                    var moduleClass = L.componentDefinitions[compViewData.type];
                     compViewData.$parentSelector = $component; //todo: bad name -- componentWrapper
                     var moduleInstance = new moduleClass(compData);
 
-                    $target.find('[data-lagomorph-component], [data-lc]').removeAttr('data-lagomorph-component').removeAttr('data-lc');
+                    //****IMPORTANT!!! mark as rendered or it will re-render in an infinite loop on subsequent scans!!
+                    $component.attr('data-rendered', true);
 
                     moduleInstance.loadComponent($component);
                 }, this);
@@ -10085,6 +10092,8 @@
                     //TODO#$$$$$$ callback not needed if we always operate on shadow??????????
 
                     // $containerSelector, html, renderType, callback, forceImmediateRender
+
+                    //TODO: add arb class if needed
                     viewUtils.renderDomElement(targetSelector, html, 'replace', $.proxy(this.renderDataIntoBindings, this), directRender);
                     // this.renderDataIntoBindings();
                 },
@@ -10116,6 +10125,7 @@
                             html = template(data);
                         }
 
+                        //TODO: add arb class if needed
                         viewUtils.renderDomElement($dataBindingDOMElement, html);
                     }, this);
                 },
@@ -10731,7 +10741,7 @@
 
                 this.componentInstanceLibrary.initializeComponentInstanceLibrary(); //model that holds all instances of created components for lookup
 
-                //data source library (server data lookuos)
+                //data source library (server data lookups)
                 this.dataSourceLibrary.initializeDataSourceLibrary(params.dataSources);
 
                 //connector library
