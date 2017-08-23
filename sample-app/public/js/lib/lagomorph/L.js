@@ -9463,12 +9463,19 @@
                     $containerSelector = $($containerSelector);
                 }
 
+                var $shadowEl;
                 //default to parent ??TODO: bad
-                var $shadowEl = $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')).length ? $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')) : $shadowDOM;
+                //***TODO: resolve problem of classless elements
+                //TODO: address parent issue
+                //https://stackoverflow.com/questions/9382028/get-the-current-jquery-selector-string
+                if ($containerSelector.is('#page-wrapper')) {
+                    $shadowEl = $shadowDOM;
+                } else {
+                    $shadowEl = $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')).length ? $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')) : null;
+                }
+
                 console.log('$containerSelector', $containerSelector);
                 console.log('$shadowEl', $shadowEl);
-
-                debugger;
 
                 switch (renderType) {
                     case 'replace':
@@ -9605,10 +9612,11 @@
                     var compViewData = compData.viewParams;
                     // var compDataSources = compData.dataSources;
 
-                    var moduleClass = L.componentDefinitions[compViewData.type]; //todo: bad name -- component
+                    var moduleClass = L.componentDefinitions[compViewData.type];
                     compViewData.$parentSelector = $component; //todo: bad name -- componentWrapper
                     var moduleInstance = new moduleClass(compData);
 
+                    //****IMPORTANT!!! remove data els or it will re-render in an infinite loop on subsequent scans!!
                     $target.find('[data-lagomorph-component], [data-lc]').removeAttr('data-lagomorph-component').removeAttr('data-lc');
 
                     moduleInstance.loadComponent($component);
