@@ -9470,6 +9470,11 @@
                 if ($containerSelector.is('#page-wrapper')) {
                     $shadowEl = $shadowDOM;
                 } else {
+                    if (!$containerSelector.attr('class')) {
+                        console.error('Cant use shadowDOM on el with no Class:', $containerSelector);
+                        return;
+                    }
+
                     $shadowEl = $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')).length ? $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')) : null;
                 }
 
@@ -10021,6 +10026,7 @@
                     };
 
                     this.compiledTemplate = templateUtils.compileTemplate(template); //TODO: cache standard templates in a libary
+                    this.elClassIterator = 0;
                 },
 
                 //Handlebars template
@@ -10060,6 +10066,14 @@
                     * at the end, data will be added to this.processedData
                     * for view data, name will map to 1-N data-data_source_name's in html template
                     */
+                    $(targetSelector).addClass(this.id + "_el" + this.elClassIterator);
+                    this.elClassIterator++;
+
+                    var $allEls = $(targetSelector).find('*'); //todo: possible bad performance on v large comps
+                    _.each($allEls, function (el) {
+                        $(el).addClass(this.id + "_el" + this.elClassIterator);
+                        this.elClassIterator++;
+                    }, this);
 
                     var allPromises = []; //if no promises it resolves immediately
 
@@ -10093,7 +10107,7 @@
 
                     // $containerSelector, html, renderType, callback, forceImmediateRender
 
-                    //TODO: add arb class if needed
+
                     viewUtils.renderDomElement(targetSelector, html, 'replace', $.proxy(this.renderDataIntoBindings, this), directRender);
                     // this.renderDataIntoBindings();
                 },
@@ -10125,7 +10139,8 @@
                             html = template(data);
                         }
 
-                        //TODO: add arb class if needed
+                        $dataBindingDOMElement.addClass(this.id + "_el" + this.elClassIterator);
+                        this.elClassIterator++;
                         viewUtils.renderDomElement($dataBindingDOMElement, html);
                     }, this);
                 },
@@ -10201,7 +10216,7 @@
                     params = params || {};
                     base.init(params);
 
-                    this.template = params.template || '\n            <span data-ui_string="i18n.key1">\n              loading...\n            </span>\n            <ul class="wweew" data-data_binding="listItems" data-template_binding="compiledListItemTemplate">        \n            </ul>\n          ';
+                    this.template = params.template || '\n            <span data-ui_string="i18n.key1">\n              loading...\n            </span>\n            <ul data-data_binding="listItems" data-template_binding="compiledListItemTemplate">        \n            </ul>\n          ';
 
                     this.listItemTemplate = params.listItemTemplate || '\n            <li>\n              {{caption}}\n            </li>\n          ';
 

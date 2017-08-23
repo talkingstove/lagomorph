@@ -59,6 +59,11 @@ define(["LModel"], function(LModel) {
         $shadowEl = $shadowDOM;
       }
       else {
+        if (!($containerSelector.attr('class'))) {
+          console.error('Cant use shadowDOM on el with no Class:', $containerSelector);
+          return;
+        }
+
         $shadowEl = $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')).length ? $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')) : null;
       }
 
