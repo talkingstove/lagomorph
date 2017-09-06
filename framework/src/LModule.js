@@ -33,6 +33,7 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
           };
 
           this.compiledTemplate = templateUtils.compileTemplate(template); //TODO: cache standard templates in a libary
+          this.elClassIterator = 0;
         },
 
         
@@ -74,6 +75,15 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
           * at the end, data will be added to this.processedData
           * for view data, name will map to 1-N data-data_source_name's in html template
           */
+          $(targetSelector).addClass(this.id + "_el" + this.elClassIterator);
+          this.elClassIterator++;
+
+          //maybe better to do at compile time??
+          var $allEls = $(targetSelector).find('*'); //todo: possible bad performance on v large comps
+          _.each($allEls, function(el) {
+            $(el).addClass(this.id + "_el" + this.elClassIterator);
+            this.elClassIterator++;
+          }, this);
         
           var allPromises = []; //if no promises it resolves immediately
 
@@ -108,6 +118,9 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
           //TODO#$$$$$$ callback not needed if we always operate on shadow??????????
 
 // $containerSelector, html, renderType, callback, forceImmediateRender
+
+          
+    //TODO: pass in parent name and do the adding of classes in here, before creating shadow
           viewUtils.renderDomElement(targetSelector, html, 'replace', $.proxy(this.renderDataIntoBindings, this), directRender);
           // this.renderDataIntoBindings();
         },
@@ -141,6 +154,9 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
               html = template(data);
             }
 
+
+            $dataBindingDOMElement.addClass(this.id + "_el" + this.elClassIterator);
+            this.elClassIterator++;
             viewUtils.renderDomElement($dataBindingDOMElement, html);
 
           }, this);

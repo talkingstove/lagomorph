@@ -9463,8 +9463,23 @@
                     $containerSelector = $($containerSelector);
                 }
 
-                //default to parent ??TODO: bad
-                var $shadowEl = $shadowDOM.find($containerSelector).length ? $shadowDOM.find($containerSelector) : $shadowDOM;
+                var $shadowEl;
+                //***TODO: resolve problem of classless elements
+                //TODO: address parent issue
+                //https://stackoverflow.com/questions/9382028/get-the-current-jquery-selector-string
+                if ($containerSelector.is('#page-wrapper')) {
+                    $shadowEl = $shadowDOM;
+                } else {
+                    if (!$containerSelector.attr('class')) {
+                        console.error('Cant use shadowDOM on el with no Class:', $containerSelector);
+                        return;
+                    }
+
+                    $shadowEl = $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')).length ? $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')) : null;
+                }
+
+                console.log('$containerSelector', $containerSelector);
+                console.log('$shadowEl', $shadowEl);
 
                 switch (renderType) {
                     case 'replace':
@@ -9584,7 +9599,7 @@
         return {
             scan: function ($target) {
                 console.log('SCANNING:', $target);
-                var $components = $target.find('[data-lagomorph-component], [data-lc]');
+                var $components = $target.find('[data-lagomorph-component], [data-lc]').not('[data-rendered]');
 
                 _.each($components, function (component) {
                     var $component = $(component);
@@ -9601,9 +9616,12 @@
                     var compViewData = compData.viewParams;
                     // var compDataSources = compData.dataSources;
 
-                    var moduleClass = L.componentDefinitions[compViewData.type]; //todo: bad name -- component
+                    var moduleClass = L.componentDefinitions[compViewData.type];
                     compViewData.$parentSelector = $component; //todo: bad name -- componentWrapper
                     var moduleInstance = new moduleClass(compData);
+
+                    //****IMPORTANT!!! mark as rendered or it will re-render in an infinite loop on subsequent scans!!
+                    $component.attr('data-rendered', true);
 
                     moduleInstance.loadComponent($component);
                 }, this);
@@ -10008,6 +10026,7 @@
                     };
 
                     this.compiledTemplate = templateUtils.compileTemplate(template); //TODO: cache standard templates in a libary
+                    this.elClassIterator = 0;
                 },
 
                 //Handlebars template
@@ -10047,6 +10066,14 @@
                     * at the end, data will be added to this.processedData
                     * for view data, name will map to 1-N data-data_source_name's in html template
                     */
+                    $(targetSelector).addClass(this.id + "_el" + this.elClassIterator);
+                    this.elClassIterator++;
+
+                    var $allEls = $(targetSelector).find('*'); //todo: possible bad performance on v large comps
+                    _.each($allEls, function (el) {
+                        $(el).addClass(this.id + "_el" + this.elClassIterator);
+                        this.elClassIterator++;
+                    }, this);
 
                     var allPromises = []; //if no promises it resolves immediately
 
@@ -10079,6 +10106,8 @@
                     //TODO#$$$$$$ callback not needed if we always operate on shadow??????????
 
                     // $containerSelector, html, renderType, callback, forceImmediateRender
+
+
                     viewUtils.renderDomElement(targetSelector, html, 'replace', $.proxy(this.renderDataIntoBindings, this), directRender);
                     // this.renderDataIntoBindings();
                 },
@@ -10110,6 +10139,8 @@
                             html = template(data);
                         }
 
+                        $dataBindingDOMElement.addClass(this.id + "_el" + this.elClassIterator);
+                        this.elClassIterator++;
                         viewUtils.renderDomElement($dataBindingDOMElement, html);
                     }, this);
                 },
@@ -10725,7 +10756,7 @@
 
                 this.componentInstanceLibrary.initializeComponentInstanceLibrary(); //model that holds all instances of created components for lookup
 
-                //data source library (server data lookuos)
+                //data source library (server data lookups)
                 this.dataSourceLibrary.initializeDataSourceLibrary(params.dataSources);
 
                 //connector library
