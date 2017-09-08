@@ -1,19 +1,22 @@
 <html>
   <head>
     <title>No app</title>
+
     <link rel='stylesheet' href='http://localhost:4000/stylesheets/style.css' />
     <link rel='stylesheet' href='http://localhost:4000/stylesheets/lagomorph/styles.css' />
     <script src="http://localhost:4000/js/lib/lagomorph/L.js"></script>  
+    <script src="http://localhost:4000/js/userDefinedComponents.js"></script>  
+
   </head>
   <body>
     <script language="javascript">
       $(function() {
         L.initialize({
           service: {
-            url: 'http://localhost:4000/ajax/site-config.json' //for realz: pass user auth and instructions of what kind of site to request --- login.html succeeds and redirects with url cached in local storage or something!... now this page is anyapp.html --- literally two html pages ever
-            //url: localStorage.configUrl (this wont work for offline tho)
-            //that needs mysite.com/app1, mysite.com/app2
-          }        
+
+            url: 'http://localhost:4000/ajax/site-config.json'
+          },
+          userDefinedComponents: userDefinedComponents        
         });
       });
     </script>

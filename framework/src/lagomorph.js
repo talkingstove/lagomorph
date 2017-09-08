@@ -1,6 +1,5 @@
 define([ 
           "jquery", 
-          "underscore", 
           "Handlebars", 
           "Fiber", 
           "dexie", 
@@ -23,9 +22,11 @@ define([
           "director",
           "LRouter",
           "LModel",
-          "DOMModel"
+          "DOMModel",
+          "LComponent",
+          "userDefinedComponentDefinitionLibrary"
         ], 
-function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils, uiStringsLibrary, templateUtils, pageClassLibrary, director, LRouter, LModel, DOMModel ) {
+function($, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils, uiStringsLibrary, templateUtils, pageClassLibrary, director, LRouter, LModel, DOMModel, LComponent, userDefinedComponentDefinitionLibrary ) {
 
   var framework = { //anything we want to expose on the window for the end user needs to be added here
     scanner: scanner,
@@ -35,9 +36,8 @@ function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_Li
     dexie: dexie, //api for indexedDB local storage DB -> http://dexie.org/docs/ 
     himalaya: himalaya, //html to json parser -> https://github.com/andrejewski/himalaya
     $: $,
-    _: _,
     Handlebars: Handlebars,
-    componentDefinitions: { //all available component classes that come standard with the framework
+    componentDefinitions: { //all available component classes that come standard with the framework + user defined
       L_List: L_List
     }, //todo: move to model
     componentInstanceLibrary: componentInstanceLibrary, //look up instances of components created on the current page/app
@@ -49,10 +49,19 @@ function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_Li
     pageClassLibrary: pageClassLibrary,
     LRouter: LRouter,
     LModel: LModel,
+    LComponent: LComponent,
     DOMModel: DOMModel,
+    userDefinedComponentDefinitionLibrary: userDefinedComponentDefinitionLibrary,
+    templateUtils: templateUtils,
 
     initialize: function(params) {
       var self = this;
+      params = params || {};
+      var userDefinedComponents = params.userDefinedComponents || null;
+
+      if (userDefinedComponents) {
+        this.componentDefinitions = _.extend(this.componentDefinitions, userDefinedComponents);
+      }
 
       if (!params.service) {
         console.error('L.initialize needs a service to set up the app!');
@@ -63,7 +72,7 @@ function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_Li
 
       $.when(initPromise).done(function(result) {
         console.log('initializing app with params', result.returnedData);
-        self.start(result.returnedData);
+        self.start(result.returnedData, userDefinedComponents);
       });
     },
 
@@ -79,10 +88,11 @@ function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_Li
     * i18nDataSource = user-passed internationalization data for use in a "noneolith"
     *
     **/
-    start: function(params) {
+    start: function(params, userDefinedComponents) {
 
       var self = this;
       params = params || {};
+      var userDefinedComponents = params.userDefinedComponents || null;
 
       if (!params.pageWrapperSelector) {
         console.warn('Lagomorph started with no pageWrapperSelector');
@@ -122,7 +132,9 @@ function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_Li
 
 
       //user-defined components library (class definitions, not instances)
-      //created instances are in componentInstanceLibrary
+      //purpose: reference of what components were imported, what they do, and make sure they're valid
+      //make sure they get added to L.componentDefinitions for usage
+      this.userDefinedComponentDefinitionLibrary.initializeUserDefinedComponentDefinitionLibrary( userDefinedComponents );
 
 
       //string (i18n) library (usually i18n, but could be any lookup for arbitrary text to be displayed in UI)

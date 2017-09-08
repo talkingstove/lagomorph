@@ -3,7 +3,7 @@
 a metacomponent might always show the same component type but with different data contracts or other params
 a different route might use the same template with different data
 -->
-  <div data-lagomorph-component='{
+  <div class="list1" data-lagomorph-component='{
     "isGlobal": false,
     "viewParams": {
       "type": "L_List",
@@ -16,7 +16,16 @@ a different route might use the same template with different data
   }'>
   </div>
   <button data-navlink={'route': '/testpage'}>Navigate</button>
+
+  <br />
+  <h3>User defined component</h3>
+  <div class="ud1" data-lagomorph-component='{
+    "isGlobal": false,
+    "viewParams": {
+      "type": "myComp",
+      "id": "ud1"
+    }
+  }'>
+  </div>
 </div>
 
-<!-- for hackathon: simplify the component concept-> just make it a url and template 
-maybe a user profile that takes in name and img url-->
