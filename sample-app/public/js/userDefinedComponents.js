@@ -10,6 +10,9 @@ userDefinedComponents = {
              <div>Mycomp demo user component</div>
           `;
 
+          //give it its own template not that of the superclass!!
+          this.compiledTemplate = L.templateUtils.compileTemplate(this.template); //use L w/o require - user's choice
+
         }  
       }
   })

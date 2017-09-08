@@ -52,6 +52,7 @@ function($, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List,
     LComponent: LComponent,
     DOMModel: DOMModel,
     userDefinedComponentDefinitionLibrary: userDefinedComponentDefinitionLibrary,
+    templateUtils: templateUtils,
 
     initialize: function(params) {
       var self = this;

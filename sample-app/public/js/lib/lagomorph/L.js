@@ -10729,6 +10729,7 @@
             LComponent: LComponent,
             DOMModel: DOMModel,
             userDefinedComponentDefinitionLibrary: userDefinedComponentDefinitionLibrary,
+            templateUtils: templateUtils,
 
             initialize: function (params) {
                 var self = this;
