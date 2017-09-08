@@ -121,7 +121,7 @@ function($, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List,
 
       this.componentInstanceLibrary.initializeComponentInstanceLibrary(); //model that holds all instances of created components for lookup
 
-      //data source library (server data lookuos)
+      //data source library (server data lookups)
       this.dataSourceLibrary.initializeDataSourceLibrary( params.dataSources );
 
       //connector library

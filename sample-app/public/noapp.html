@@ -1,17 +1,20 @@
 <html>
   <head>
     <title>No app</title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-    <link rel='stylesheet' href='/stylesheets/lagomorph/styles.css' />
-    <script src="js/lib/lagomorph/L.js"></script>  
-    <script src="js/userDefinedComponents.js"></script>  
+
+    <link rel='stylesheet' href='http://localhost:4000/stylesheets/style.css' />
+    <link rel='stylesheet' href='http://localhost:4000/stylesheets/lagomorph/styles.css' />
+    <script src="http://localhost:4000/js/lib/lagomorph/L.js"></script>  
+    <script src="http://localhost:4000/js/userDefinedComponents.js"></script>  
+
   </head>
   <body>
     <script language="javascript">
       $(function() {
         L.initialize({
           service: {
-            url: '/ajax/site-config.json'
+
+            url: 'http://localhost:4000/ajax/site-config.json'
           },
           userDefinedComponents: userDefinedComponents        
         });

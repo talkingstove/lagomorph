@@ -51,8 +51,26 @@ define(["LModel"], function(LModel) {
         $containerSelector = $($containerSelector);
       }
 
-      //default to parent ??TODO: bad
-      var $shadowEl = $shadowDOM.find($containerSelector).length ? $shadowDOM.find($containerSelector) : $shadowDOM;
+      var $shadowEl;
+      //***TODO: resolve problem of classless elements
+      //TODO: address parent issue
+      //https://stackoverflow.com/questions/9382028/get-the-current-jquery-selector-string
+      if ($containerSelector.is('#page-wrapper')) {
+        $shadowEl = $shadowDOM;
+      }
+      else {
+        if (!($containerSelector.attr('class'))) {
+          console.error('Cant use shadowDOM on el with no Class:', $containerSelector);
+          return;
+        }
+
+        $shadowEl = $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')).length ? $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')) : null;
+      }
+
+      console.log('$containerSelector', $containerSelector);
+      console.log('$shadowEl', $shadowEl);
+
+   
 
       switch(renderType) {
         case 'replace':

@@ -9033,6 +9033,93 @@
             };
         });
     });
+    define('DOMModel', ["LModel"], function (LModel) {
+
+        //makes the singleton avaible to the global window.L, or via require
+        return {
+
+            DOMModel: null,
+
+            initializeDOMModel: function () {
+                if (this.DOMModel !== null) {
+                    console.warn('DOMModel singleton already initialized');
+                    return;
+                }
+
+                this.DOMModel = new LModel();
+                this.getDOMModel().set('currentShadowDOM', null);
+            },
+
+            getDOMModel: function () {
+                return this.DOMModel;
+            },
+
+            registerCurrentPage: function (pageClass) {
+                this.getDOMModel().set('currentPageClass', pageClass);
+            },
+
+            getCurrentPage: function () {
+                return this.getDOMModel().get('currentPageClass');
+            },
+
+            getCurrentShadowDOM: function () {
+                return this.getDOMModel().get('currentShadowDOM');
+            },
+
+            setCurrentShadowDOM: function ($shadowDOM) {
+                return this.getDOMModel().set('currentShadowDOM', $shadowDOM);
+            },
+
+            getCurrentPageDOMSelector: function () {
+                return this.getDOMModel().get('currentPageClass') ? this.getDOMModel().get('currentPageClass').getDOMElement() : null;
+            },
+
+            alterShadowDOM: function ($containerSelector, html, renderType) {
+                if (!this.getCurrentShadowDOM()) {
+                    console.warn('attempted to alter non-existent shadow DOM');
+                    return;
+                };
+
+                var $shadowDOM = this.getCurrentShadowDOM();
+
+                if (!_.isObject($containerSelector)) {
+                    $containerSelector = $($containerSelector);
+                }
+
+                var $shadowEl;
+                //***TODO: resolve problem of classless elements
+                //TODO: address parent issue
+                //https://stackoverflow.com/questions/9382028/get-the-current-jquery-selector-string
+                if ($containerSelector.is('#page-wrapper')) {
+                    $shadowEl = $shadowDOM;
+                } else {
+                    if (!$containerSelector.attr('class')) {
+                        console.error('Cant use shadowDOM on el with no Class:', $containerSelector);
+                        return;
+                    }
+
+                    $shadowEl = $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')).length ? $shadowDOM.find('.' + $containerSelector.attr('class').split(" ").join('.')) : null;
+                }
+
+                console.log('$containerSelector', $containerSelector);
+                console.log('$shadowEl', $shadowEl);
+
+                switch (renderType) {
+                    case 'replace':
+                        $shadowEl.html(html);
+
+                        break;
+                }
+            },
+
+            writeShadowDOMToBrowser: function () {
+                console.log('rendering shadow DOM to page');
+                this.getCurrentPageDOMSelector().html(this.getCurrentShadowDOM().html());
+            }
+
+        };
+    });
+
     define('LLibrary', ["Fiber"], function (Fiber) {
 
         return Fiber.extend(function (base) {
@@ -9135,14 +9222,13 @@
         return {
             scan: function ($target) {
                 console.log('SCANNING:', $target);
-                //TODO: could as easily scan json page definitions?
-                var $components = $target.find('[data-lagomorph-component], [data-lc]');
+                var $components = $target.find('[data-lagomorph-component], [data-lc]').not('[data-rendered]');
 
                 _.each($components, function (component) {
-                    var $componentHtmlDefinition = $(component);
+                    var $component = $(component);
 
                     //definition must provide at minimum a type and id in the json
-                    var compData = $componentHtmlDefinition.data('lagomorph-component'); //jquery converts to object for free
+                    var compData = $component.data('lagomorph-component'); //jquery converts to object for free
 
 
                     if (!_.isObject(compData)) {
@@ -9153,91 +9239,19 @@
                     var compViewData = compData.viewParams;
                     // var compDataSources = compData.dataSources;
 
-                    var compClass = L.componentDefinitions[compViewData.type];
-                    compViewData.$parentSelector = $componentHtmlDefinition;
-                    var compInstance = new compClass(compData);
+                    var moduleClass = L.componentDefinitions[compViewData.type];
+                    compViewData.$parentSelector = $component; //todo: bad name -- componentWrapper
+                    var moduleInstance = new moduleClass(compData);
 
-                    debugger;
+                    //****IMPORTANT!!! mark as rendered or it will re-render in an infinite loop on subsequent scans!!
+                    $component.attr('data-rendered', true);
 
-                    compInstance.loadComponent($componentHtmlDefinition);
+                    moduleInstance.loadComponent($component);
                 }, this);
             }
 
         };
     });
-    define('DOMModel', ["LModel", "scanner"], function (LModel, scanner) {
-
-        //makes the singleton avaible to the global window.L, or via require
-        return {
-
-            DOMModel: null,
-
-            initializeDOMModel: function () {
-                if (this.DOMModel !== null) {
-                    console.warn('DOMModel singleton already initialized');
-                    return;
-                }
-
-                this.DOMModel = new LModel();
-                this.getDOMModel().set('currentShadowDOM', null);
-            },
-
-            getDOMModel: function () {
-                return this.DOMModel;
-            },
-
-            registerCurrentPage: function (pageClass) {
-                this.getDOMModel().set('currentPageClass', pageClass);
-            },
-
-            getCurrentPage: function () {
-                return this.getDOMModel().get('currentPageClass');
-            },
-
-            getCurrentShadowDOM: function () {
-                return this.getDOMModel().get('currentShadowDOM');
-            },
-
-            setCurrentShadowDOM: function ($shadowDOM) {
-                return this.getDOMModel().set('currentShadowDOM', $shadowDOM);
-            },
-
-            getCurrentPageDOMSelector: function () {
-                return this.getDOMModel().get('currentPageClass') ? this.getDOMModel().get('currentPageClass').getDOMElement() : null;
-            },
-
-            alterShadowDOM: function ($containerSelector, html, renderType) {
-                if (!this.getCurrentShadowDOM()) {
-                    console.warn('attempted to alter non-existent shadow DOM');
-                    return;
-                };
-
-                var $shadowDOM = this.getCurrentShadowDOM();
-
-                if (!_.isObject($containerSelector)) {
-                    $containerSelector = $($containerSelector);
-                }
-
-                //default to parent ??TODO: bad
-                var $shadowEl = $shadowDOM.find($containerSelector).length ? $shadowDOM.find($containerSelector) : $shadowDOM;
-
-                switch (renderType) {
-                    case 'replace':
-                        $shadowEl.html(html);
-
-                        break;
-                }
-            },
-
-            writeShadowDOMToBrowser: function () {
-                console.log('rendering shadow DOM to page and scanning');
-                this.getCurrentPageDOMSelector().html(this.getCurrentShadowDOM().html());
-                scanner.scan(this.getCurrentPageDOMSelector());
-            }
-
-        };
-    });
-
     define('viewUtils', ["Handlebars", "DOMModel", "scanner"], function (Handlebars, DOMModel, scanner) {
 
         return {
@@ -9273,7 +9287,7 @@
                 }
 
                 DOMModel.alterShadowDOM($containerSelector, html, renderType);
-                // scanner.scan(DOMModel.getCurrentShadowDOM());
+                scanner.scan(DOMModel.getCurrentShadowDOM());
 
                 if (!DOMModel.renderinProgress) {
                     //block multiple simaltaneous shadow DOM renders
@@ -9285,9 +9299,7 @@
                             callback();
                         });
 
-                        // scanner.scan(DOMModel.getCurrentShadowDOM());
-
-                        DOMModel.writeShadowDOMToBrowser(); //make all enqueued changes and then scan
+                        DOMModel.writeShadowDOMToBrowser(); //make all enqueued changes
                         DOMModel.renderinProgress = false;
                         DOMModel.callbacks = [];
                         DOMModel.setCurrentShadowDOM(null);
@@ -10014,6 +10026,7 @@
                     };
 
                     this.compiledTemplate = templateUtils.compileTemplate(template); //TODO: cache standard templates in a libary
+                    this.elClassIterator = 0;
                 },
 
                 //Handlebars template
@@ -10053,6 +10066,15 @@
                     * at the end, data will be added to this.processedData
                     * for view data, name will map to 1-N data-data_source_name's in html template
                     */
+                    $(targetSelector).addClass(this.id + "_el" + this.elClassIterator);
+                    this.elClassIterator++;
+
+                    //maybe better to do at compile time??
+                    var $allEls = $(targetSelector).find('*'); //todo: possible bad performance on v large comps
+                    _.each($allEls, function (el) {
+                        $(el).addClass(this.id + "_el" + this.elClassIterator);
+                        this.elClassIterator++;
+                    }, this);
 
                     var allPromises = []; //if no promises it resolves immediately
 
@@ -10084,14 +10106,16 @@
 
                     //TODO#$$$$$$ callback not needed if we always operate on shadow??????????
 
-                    debugger;
-
                     // $containerSelector, html, renderType, callback, forceImmediateRender
+
+
+                    //TODO: pass in parent name and do the adding of classes in here, before creating shadow
                     viewUtils.renderDomElement(targetSelector, html, 'replace', $.proxy(this.renderDataIntoBindings, this), directRender);
                     // this.renderDataIntoBindings();
                 },
 
                 renderDataIntoBindings: function () {
+                    console.log('BINDGS!!');
                     var $selector = DOMModel.getCurrentShadowDOM(); // || this.$parentSelector; //?????
                     var $dataBindings = $selector.find('[data-data_binding]');
 
@@ -10117,6 +10141,8 @@
                             html = template(data);
                         }
 
+                        $dataBindingDOMElement.addClass(this.id + "_el" + this.elClassIterator);
+                        this.elClassIterator++;
                         viewUtils.renderDomElement($dataBindingDOMElement, html);
                     }, this);
                 },
@@ -10771,7 +10797,7 @@
 
                 this.componentInstanceLibrary.initializeComponentInstanceLibrary(); //model that holds all instances of created components for lookup
 
-                //data source library (server data lookuos)
+                //data source library (server data lookups)
                 this.dataSourceLibrary.initializeDataSourceLibrary(params.dataSources);
 
                 //connector library
