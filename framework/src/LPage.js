@@ -24,7 +24,7 @@ define(["LModule", "scanner", "DOMModel"], function(LModule, scanner, DOMModel) 
         this.$parentSelector = $pageWrapperSelector; //??/
 
         this.loadComponent($pageWrapperSelector);
-var $selector = $pageWrapperSelector; 
+        var $selector = $pageWrapperSelector; 
        
        // setTimeout(function() { //wait for phantom dom TODO: nad
        //  scanner.scan($selector, self.useCachedData);

@@ -35,6 +35,7 @@ require.config({
     'himalaya': 'lib/himalaya',
     'viewUtils': 'src/utils/viewUtils',
     'componentInstanceLibrary': 'src/componentInstanceLibrary',
+    'userDefinedComponentDefinitionLibrary': 'src/userDefinedComponentDefinitionLibrary',
     'dataSourceLibrary': 'src/dataSourceLibrary',
     'LLibrary': 'src/library/LLibrary',
     'ajaxRequester': 'src/ajax/ajaxRequester',

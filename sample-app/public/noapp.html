@@ -4,6 +4,7 @@
     <link rel='stylesheet' href='/stylesheets/style.css' />
     <link rel='stylesheet' href='/stylesheets/lagomorph/styles.css' />
     <script src="js/lib/lagomorph/L.js"></script>  
+    <script src="js/userDefinedComponents.js"></script>  
   </head>
   <body>
     <script language="javascript">
@@ -11,7 +12,8 @@
         L.initialize({
           service: {
             url: '/ajax/site-config.json'
-          }        
+          },
+          userDefinedComponents: userDefinedComponents        
         });
       });
     </script>

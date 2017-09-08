@@ -34,6 +34,7 @@
       'uiStringsLibrary': '../src/uiStringsLibrary',
       'connectorUtils': '../src/ajax/connector/connectorUtils',
       'objectUtils': '../src/utils/objectUtils',
-      'templateUtils': '../src/utils/templateUtils'
+      'templateUtils': '../src/utils/templateUtils',
+      'userDefinedComponentDefinitionLibrary': '../src/userDefinedComponentDefinitionLibrary',
     }
 })
