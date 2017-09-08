@@ -7,13 +7,18 @@
     <script src="http://localhost:4000/js/lib/lagomorph/L.js"></script>  
     <script src="http://localhost:4000/js/userDefinedComponents.js"></script>  
 
+    
+
   </head>
   <body>
     <script language="javascript">
+      if (navigator.serviceWorker) { //should work chrome, FF, some others... http://caniuse.com/#feat=serviceworkers
+        navigator.serviceWorker.register('lagomorph-sample-service-worker2.js');
+      }
+
       $(function() {
         L.initialize({
           service: {
-
             url: 'http://localhost:4000/ajax/site-config.json'
           },
           userDefinedComponents: userDefinedComponents        
