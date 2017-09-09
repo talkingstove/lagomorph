@@ -63,17 +63,42 @@ function($, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List,
         this.componentDefinitions = _.extend(this.componentDefinitions, userDefinedComponents);
       }
 
-      if (!params.service) {
-        console.error('L.initialize needs a service to set up the app!');
+      if (!params.services) {
+        console.error('L.initialize needs at least one service to set up the app!');
         return;
       }
 
-      var initPromise = ajaxRequester.createAjaxCallPromise(null, "init", null, params.service);
+      var allAppStartData = {}; //extend with each service result until all needed data is compiled
+      var allPromises = [];
 
-      $.when(initPromise).done(function(result) {
-        console.log('initializing app with params', result.returnedData);
-        self.start(result.returnedData, userDefinedComponents);
-      });
+      for (var i=0; i<params.services.length; i++) {
+        //dataSourceName, promiseId, connector, optionsObj, hardcodedDataSource
+        var promise = ajaxRequester.createAjaxCallPromise(null, null, null, null, params.services[i]);
+        allPromises.push( promise );
+      }
+
+      $.when.all(allPromises).then(
+        function(returnedDataObjects) {
+          for (var i=0; i<returnedDataObjects.length; i++) {
+            var thisData = returnedDataObjects[i].returnedData;
+            allAppStartData = _.extend(allAppStartData, thisData);
+          }
+
+          console.log('after all promises, starting app with data:', allAppStartData);
+
+          self.start(allAppStartData, userDefinedComponents);
+        }, 
+        function(e) {
+             console.log("App start failed");
+        });
+
+
+      // var initPromise = ajaxRequester.createAjaxCallPromise(null, "init", null, params.service);
+
+      // $.when(initPromise).done(function(result) {
+      //   console.log('initializing app with params', result.returnedData);
+      //   self.start(result.returnedData, userDefinedComponents);
+      // });
     },
 
     /*
@@ -151,7 +176,8 @@ function($, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List,
       }
 
       //***** Determine which promises need to be resolved before we can actually start the app
-      $.when.all(allPromises).then(function(schemas) {
+      $.when.all(allPromises).then(
+        function(schemas) {
           for (var i=0; i<schemas.length; i++) {
             var promiseId = schemas[i].promiseId;
 
@@ -164,26 +190,10 @@ function($, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List,
             }
           }
 
-       
-
-        
-
-
-          //*******when processing is done, load initial page into the pageWrapperSelector
-          //page then users the scanner to scan itself
-
-              
-          // self.scanner.scan($(params.pageWrapperSelector));
-
-          }, function(e) {
-               console.log("App start failed");
-          });
-
-
- //       pages: { //just json, can be hardcoded or via endpoint
-  //   dataSourceName: "lPages",
-  //   pageDefinitions: {}
-  // },
+        }, 
+        function(e) {
+             console.log("App start failed");
+        });
 
       
     }

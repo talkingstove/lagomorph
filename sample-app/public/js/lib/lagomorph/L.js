@@ -9245,6 +9245,7 @@
 
                     //****IMPORTANT!!! mark as rendered or it will re-render in an infinite loop on subsequent scans!!
                     $component.attr('data-rendered', true);
+                    $component.addClass('rendered');
 
                     moduleInstance.loadComponent($component);
                 }, this);
@@ -9879,19 +9880,20 @@
 
         return {
 
-            createAjaxCallPromise: function (dataSourceName, promiseId, connector, optionsObj) {
+            createAjaxCallPromise: function (dataSourceName, promiseId, connector, optionsObj, hardcodedDataSource) {
                 optionsObj = optionsObj || null;
                 //look up datasource from library and get options to create the promise
                 var dataSourceDefinition = optionsObj ? optionsObj : dataSourceLibrary.getDataSourceByName(dataSourceName);
                 promiseId = promiseId || 'unknown'; //TODO: random
                 connector = connector || null;
+                hardcodedDataSource = hardcodedDataSource || null;
 
-                if (!dataSourceDefinition) {
-                    console.error("Cannot make AJAX request; can't find datasource with name:", dataSourceName);
+                if (!dataSourceDefinition && !hardcodedDataSource) {
+                    console.error("Cannot make AJAX request; need a valid datasource or hardcodedDataSource");
                     return;
                 }
 
-                var options = dataSourceDefinition;
+                var options = dataSourceDefinition || hardcodedDataSource;
 
                 var method = options.method || 'GET';
                 var url = options.url;
@@ -10070,6 +10072,8 @@
                     this.elClassIterator++;
 
                     //maybe better to do at compile time??
+                    //make sure everything has a css class, otherwise DOMModel will have a problem finding things in shadowDOM
+                    //TODO: doesn't seem to work right! targetSelector is off
                     var $allEls = $(targetSelector).find('*'); //todo: possible bad performance on v large comps
                     _.each($allEls, function (el) {
                         $(el).addClass(this.id + "_el" + this.elClassIterator);
@@ -10115,7 +10119,7 @@
                 },
 
                 renderDataIntoBindings: function () {
-                    console.log('BINDGS!!');
+                    console.log('BINDINGS!!');
                     var $selector = DOMModel.getCurrentShadowDOM(); // || this.$parentSelector; //?????
                     var $dataBindings = $selector.find('[data-data_binding]');
 
@@ -10740,17 +10744,39 @@
                     this.componentDefinitions = _.extend(this.componentDefinitions, userDefinedComponents);
                 }
 
-                if (!params.service) {
-                    console.error('L.initialize needs a service to set up the app!');
+                if (!params.services) {
+                    console.error('L.initialize needs at least one service to set up the app!');
                     return;
                 }
 
-                var initPromise = ajaxRequester.createAjaxCallPromise(null, "init", null, params.service);
+                var allAppStartData = {}; //extend with each service result until all needed data is compiled
+                var allPromises = [];
 
-                $.when(initPromise).done(function (result) {
-                    console.log('initializing app with params', result.returnedData);
-                    self.start(result.returnedData, userDefinedComponents);
+                for (var i = 0; i < params.services.length; i++) {
+                    //dataSourceName, promiseId, connector, optionsObj, hardcodedDataSource
+                    var promise = ajaxRequester.createAjaxCallPromise(null, null, null, null, params.services[i]);
+                    allPromises.push(promise);
+                }
+
+                $.when.all(allPromises).then(function (returnedDataObjects) {
+                    for (var i = 0; i < returnedDataObjects.length; i++) {
+                        var thisData = returnedDataObjects[i].returnedData;
+                        allAppStartData = _.extend(allAppStartData, thisData);
+                    }
+
+                    console.log('after all promises, starting app with data:', allAppStartData);
+
+                    self.start(allAppStartData, userDefinedComponents);
+                }, function (e) {
+                    console.log("App start failed");
                 });
+
+                // var initPromise = ajaxRequester.createAjaxCallPromise(null, "init", null, params.service);
+
+                // $.when(initPromise).done(function(result) {
+                //   console.log('initializing app with params', result.returnedData);
+                //   self.start(result.returnedData, userDefinedComponents);
+                // });
             },
 
             /*
@@ -10836,21 +10862,9 @@
                                 break;
                         }
                     }
-
-                    //*******when processing is done, load initial page into the pageWrapperSelector
-                    //page then users the scanner to scan itself
-
-
-                    // self.scanner.scan($(params.pageWrapperSelector));
                 }, function (e) {
                     console.log("App start failed");
                 });
-
-                //       pages: { //just json, can be hardcoded or via endpoint
-                //   dataSourceName: "lPages",
-                //   pageDefinitions: {}
-                // },
-
             }
         };
 

@@ -2,19 +2,20 @@ define(["jquery", "underscore", "dataSourceLibrary", "connectorUtils", "template
 
   return {
 
-    createAjaxCallPromise: function(dataSourceName, promiseId, connector, optionsObj) {
+    createAjaxCallPromise: function(dataSourceName, promiseId, connector, optionsObj, hardcodedDataSource) {
       optionsObj = optionsObj || null;
       //look up datasource from library and get options to create the promise
       var dataSourceDefinition = optionsObj ? optionsObj : dataSourceLibrary.getDataSourceByName(dataSourceName);
       promiseId = promiseId || 'unknown'; //TODO: random
       connector = connector || null;
+      hardcodedDataSource = hardcodedDataSource || null;
 
-      if (!dataSourceDefinition) {
-        console.error("Cannot make AJAX request; can't find datasource with name:", dataSourceName);
+      if (!dataSourceDefinition && !hardcodedDataSource) {
+        console.error("Cannot make AJAX request; need a valid datasource or hardcodedDataSource");
         return;
       }
 
-      var options = dataSourceDefinition;
+      var options = dataSourceDefinition || hardcodedDataSource;
 
       var method = options.method || 'GET';
       var url = options.url;
