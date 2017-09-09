@@ -72,7 +72,6 @@ function($, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List,
       var allPromises = [];
 
       for (var i=0; i<params.services.length; i++) {
-        //dataSourceName, promiseId, connector, optionsObj, hardcodedDataSource
         var promise = ajaxRequester.createAjaxCallPromise(null, null, null, null, params.services[i]);
         allPromises.push( promise );
       }
@@ -91,14 +90,6 @@ function($, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List,
         function(e) {
              console.log("App start failed");
         });
-
-
-      // var initPromise = ajaxRequester.createAjaxCallPromise(null, "init", null, params.service);
-
-      // $.when(initPromise).done(function(result) {
-      //   console.log('initializing app with params', result.returnedData);
-      //   self.start(result.returnedData, userDefinedComponents);
-      // });
     },
 
     /*
