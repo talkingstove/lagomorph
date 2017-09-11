@@ -14,7 +14,7 @@
 // Names of the two caches used in this version of the service worker.
 // Change to v2, etc. when you update any of the local resources, which will
 // in turn trigger the install event again.
-const PRECACHE = 'precache-v3';
+const PRECACHE = 'precache-v4';
 const RUNTIME = 'runtime';
 
 // A list of local resources we always want to be cached.
@@ -53,18 +53,40 @@ self.addEventListener('install', event => {
 // from the network before returning it to the page.
 self.addEventListener('fetch', event => {
   // Skip cross-origin requests, like those for Google Analytics.
+
+//*********************************************************
+  //"runtime" is just a name we made up
+  //if we match to a single cache instead of all... https://developer.mozilla.org/en-US/docs/Web/API/Cache/match
+  //then the user could say... "use cache 20170901"
+  //then he will use the files he cached on that day if he wants a solid versiob
+  //would need to resuse this logic with a user inputted name instead of the const RUNTIME:
+  // return caches.open(RUNTIME).then(cache => {
+  //         return fetch(event.request).then(response => {
+  //           // Put a copy of the response in the runtime cache.
+  //           return cache.put(event.request, response.clone()).then(() => {
+  //             return response;
+  //           });
+  //         });
+
+//this would probably work best with syncAPI bc it's more intentional than just listening to any fetch (??)
+//actully probably need a list of urls and call them, then fetch listener does its thing
+//*********************************************************
+
+// return caches.open(OFFLINE_CACHE).then(function(cache) {
+//           return cache.match(OFFLINE_URL);
+//         });
   
   if (event.request.url.startsWith(self.location.origin)) {
     event.respondWith(
       caches.match(event.request).then(cachedResponse => {
         if (cachedResponse) {
           console.log('loading cached file via service worker:', event.request.url);
-          return cachedResponse;
+          return cachedResponse; //stop, file loaded from cache
         }
 
-        return caches.open(RUNTIME).then(cache => {
-          return fetch(event.request).then(response => {
-            // Put a copy of the response in the runtime cache.
+        return caches.open('20171007').then(cache => {
+          return fetch(event.request).then(response => { //actual fetch from server if we made it this fae
+            // Put a copy of the server response in the specified cache.
             return cache.put(event.request, response.clone()).then(() => {
               return response;
             });

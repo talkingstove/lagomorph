@@ -26,6 +26,7 @@ define(["componentInstanceLibrary"], function(componentInstanceLibrary) {
 
         //****IMPORTANT!!! mark as rendered or it will re-render in an infinite loop on subsequent scans!!
         $component.attr('data-rendered', true);
+        $component.addClass('rendered');
 
         moduleInstance.loadComponent($component);
 

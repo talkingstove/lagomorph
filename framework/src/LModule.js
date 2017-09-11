@@ -79,6 +79,8 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
           this.elClassIterator++;
 
           //maybe better to do at compile time??
+          //make sure everything has a css class, otherwise DOMModel will have a problem finding things in shadowDOM
+          //TODO: doesn't seem to work right! targetSelector is off
           var $allEls = $(targetSelector).find('*'); //todo: possible bad performance on v large comps
           _.each($allEls, function(el) {
             $(el).addClass(this.id + "_el" + this.elClassIterator);
@@ -126,7 +128,7 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
         },
 
         renderDataIntoBindings: function() {
-          console.log('BINDGS!!');
+          console.log('BINDINGS!!');
           var $selector = DOMModel.getCurrentShadowDOM(); // || this.$parentSelector; //?????
           var $dataBindings = $selector.find('[data-data_binding]');
 
