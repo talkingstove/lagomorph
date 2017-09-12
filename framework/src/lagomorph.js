@@ -58,6 +58,8 @@ function($, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List,
       var self = this;
       params = params || {};
       var userDefinedComponents = params.userDefinedComponents || null;
+      var initializeCallback = params.callback || null;
+      params.stringData = params.stringData || {};
 
       if (userDefinedComponents) {
         this.componentDefinitions = _.extend(this.componentDefinitions, userDefinedComponents);
@@ -68,6 +70,9 @@ function($, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List,
         return;
       }
 
+    
+
+      
       var allAppStartData = {}; //extend with each service result until all needed data is compiled
       var allPromises = [];
 
@@ -84,8 +89,20 @@ function($, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List,
           }
 
           console.log('after all promises, starting app with data:', allAppStartData);
+          self.uiStringsLibrary.initializeUIStringsLibrary(allAppStartData.stringData);
 
-          self.start(allAppStartData, userDefinedComponents);
+          var startFunc = function() {
+            self.start(allAppStartData, userDefinedComponents);
+          }
+
+          if (initializeCallback) {
+            initializeCallback(returnedDataObjects, startFunc);
+          }
+          else {
+            startFunc();
+          }
+
+          
         }, 
         function(e) {
              console.log("App start failed");
@@ -154,7 +171,7 @@ function($, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List,
 
 
       //string (i18n) library (usually i18n, but could be any lookup for arbitrary text to be displayed in UI)
-      this.uiStringsLibrary.initializeUIStringsLibrary(params.stringData);
+      
 
 
       var allPromises = []; //add anything that is needed before the initial scan/app start

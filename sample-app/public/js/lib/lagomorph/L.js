@@ -10739,6 +10739,8 @@
                 var self = this;
                 params = params || {};
                 var userDefinedComponents = params.userDefinedComponents || null;
+                var initializeCallback = params.callback || null;
+                params.stringData = params.stringData || {};
 
                 if (userDefinedComponents) {
                     this.componentDefinitions = _.extend(this.componentDefinitions, userDefinedComponents);
@@ -10753,7 +10755,6 @@
                 var allPromises = [];
 
                 for (var i = 0; i < params.services.length; i++) {
-                    //dataSourceName, promiseId, connector, optionsObj, hardcodedDataSource
                     var promise = ajaxRequester.createAjaxCallPromise(null, null, null, null, params.services[i]);
                     allPromises.push(promise);
                 }
@@ -10765,18 +10766,20 @@
                     }
 
                     console.log('after all promises, starting app with data:', allAppStartData);
+                    self.uiStringsLibrary.initializeUIStringsLibrary(allAppStartData.stringData);
 
-                    self.start(allAppStartData, userDefinedComponents);
+                    var startFunc = function () {
+                        self.start(allAppStartData, userDefinedComponents);
+                    };
+
+                    if (initializeCallback) {
+                        initializeCallback(returnedDataObjects, startFunc);
+                    } else {
+                        startFunc();
+                    }
                 }, function (e) {
                     console.log("App start failed");
                 });
-
-                // var initPromise = ajaxRequester.createAjaxCallPromise(null, "init", null, params.service);
-
-                // $.when(initPromise).done(function(result) {
-                //   console.log('initializing app with params', result.returnedData);
-                //   self.start(result.returnedData, userDefinedComponents);
-                // });
             },
 
             /*
@@ -10838,7 +10841,7 @@
                 this.userDefinedComponentDefinitionLibrary.initializeUserDefinedComponentDefinitionLibrary(userDefinedComponents);
 
                 //string (i18n) library (usually i18n, but could be any lookup for arbitrary text to be displayed in UI)
-                this.uiStringsLibrary.initializeUIStringsLibrary(params.stringData);
+
 
                 var allPromises = []; //add anything that is needed before the initial scan/app start
 
