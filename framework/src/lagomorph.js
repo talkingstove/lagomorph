@@ -58,6 +58,8 @@ function($, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List,
       var self = this;
       params = params || {};
       var userDefinedComponents = params.userDefinedComponents || null;
+      var initializeCallback = params.callback || null;
+      params.stringData = params.stringData || {};
 
       if (userDefinedComponents) {
         this.componentDefinitions = _.extend(this.componentDefinitions, userDefinedComponents);
@@ -67,6 +69,22 @@ function($, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List,
         console.error('L.initialize needs at least one service to set up the app!');
         return;
       }
+
+      this.DOMModel.initializeDOMModel();
+
+      this.componentInstanceLibrary.initializeComponentInstanceLibrary(); //model that holds all instances of created components for lookup
+
+      //data source library (server data lookups)
+      this.dataSourceLibrary.initializeDataSourceLibrary();
+      this.connectorLibrary.initializeConnectorLibrary();
+      this.pageClassLibrary.initializePageClassLibrary();
+      this.uiStringsLibrary.initializeUIStringsLibrary();
+
+
+      //user-defined components library (class definitions, not instances)
+      //purpose: reference of what components were imported, what they do, and make sure they're valid
+      //make sure they get added to L.componentDefinitions for usage
+      this.userDefinedComponentDefinitionLibrary.initializeUserDefinedComponentDefinitionLibrary( userDefinedComponents );
 
       var allAppStartData = {}; //extend with each service result until all needed data is compiled
       var allPromises = [];
@@ -85,7 +103,28 @@ function($, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List,
 
           console.log('after all promises, starting app with data:', allAppStartData);
 
-          self.start(allAppStartData, userDefinedComponents);
+          //if found, put setup data into the appropriate libraries
+          if (allAppStartData.stringData) {
+            self.uiStringsLibrary.getLibrary().addItem('allUiStrings', allAppStartData.stringData, true);
+          }
+          if (allAppStartData.dataSources) {
+            self.dataSourceLibrary.getLibrary().addMultipleItems( allAppStartData.dataSources );
+          }
+          if (allAppStartData.dataSources) {
+            self.connectorLibrary.getLibrary().addMultipleItems( allAppStartData.connectors );
+          }
+
+          var startFunc = function() {
+            self.start(allAppStartData, userDefinedComponents);
+          }
+
+          if (initializeCallback) {
+            initializeCallback(returnedDataObjects, startFunc);
+          }
+          else {
+            startFunc();
+          }
+          
         }, 
         function(e) {
              console.log("App start failed");
@@ -124,37 +163,37 @@ function($, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List,
       // if (!params.routeConfig) {
       //   console.warn('Lagomorph started with no routeConfig');
       // }
-      if (!params.componentConfig) {
-        console.log('Lagomorph started with no component config');
-      }
-      if (!params.dataSources) {
-        console.log('Lagomorph started with no dataSources config');
-      }
-      if (!params.stringData) {
-        console.log('Lagomorph started with no string/i18nDataSource config');
-      }
+      // if (!params.componentConfig) {
+      //   console.log('Lagomorph started with no component config');
+      // }
+      // if (!params.dataSources) {
+      //   console.log('Lagomorph started with no dataSources config');
+      // }
+      // if (!params.stringData) {
+      //   console.log('Lagomorph started with no string/i18nDataSource config');
+      // }
 
-      this.DOMModel.initializeDOMModel();
+      // this.DOMModel.initializeDOMModel();
 
-      this.componentInstanceLibrary.initializeComponentInstanceLibrary(); //model that holds all instances of created components for lookup
+      // this.componentInstanceLibrary.initializeComponentInstanceLibrary(); //model that holds all instances of created components for lookup
 
-      //data source library (server data lookups)
-      this.dataSourceLibrary.initializeDataSourceLibrary( params.dataSources );
+      // //data source library (server data lookups)
+      // this.dataSourceLibrary.initializeDataSourceLibrary( params.dataSources );
 
-      //connector library
-      this.connectorLibrary.initializeConnectorLibrary( params.connectors );
+      // //connector library
+      // this.connectorLibrary.initializeConnectorLibrary( params.connectors );
 
-      this.pageClassLibrary.initializePageClassLibrary();
+      // this.pageClassLibrary.initializePageClassLibrary();
 
 
-      //user-defined components library (class definitions, not instances)
-      //purpose: reference of what components were imported, what they do, and make sure they're valid
-      //make sure they get added to L.componentDefinitions for usage
-      this.userDefinedComponentDefinitionLibrary.initializeUserDefinedComponentDefinitionLibrary( userDefinedComponents );
+      // //user-defined components library (class definitions, not instances)
+      // //purpose: reference of what components were imported, what they do, and make sure they're valid
+      // //make sure they get added to L.componentDefinitions for usage
+      // this.userDefinedComponentDefinitionLibrary.initializeUserDefinedComponentDefinitionLibrary( userDefinedComponents );
 
 
       //string (i18n) library (usually i18n, but could be any lookup for arbitrary text to be displayed in UI)
-      this.uiStringsLibrary.initializeUIStringsLibrary(params.stringData);
+      
 
 
       var allPromises = []; //add anything that is needed before the initial scan/app start
