@@ -79,6 +79,8 @@ define(["jquery", "underscore", "dataSourceLibrary", "connectorUtils", "template
           destinationPath: connector ? connector.destinationPath : null
         }
 
+
+        //TODO: possibly don't resolve until chained indexedDB promises do!!
         deferred.resolve(returnObj);
       })
       .error(function() {
