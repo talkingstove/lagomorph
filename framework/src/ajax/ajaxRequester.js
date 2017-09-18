@@ -36,7 +36,7 @@ define(["jquery", "underscore", "dataSourceLibrary", "connectorUtils", "template
         dataType: dataTypeReturned,
         data: requestParams
       })
-      .success(function(rawData) {
+      .done(function(rawData) {
         //if we have one or more agreements about what data was expected from the server,
         //check to see that they have been met
         // if (dataAgreements && dataAgreements.length) { 
@@ -83,7 +83,7 @@ define(["jquery", "underscore", "dataSourceLibrary", "connectorUtils", "template
         //TODO: possibly don't resolve until chained indexedDB promises do!!
         deferred.resolve(returnObj);
       })
-      .error(function() {
+      .fail(function() {
         // errorHandler();
         deferred.reject();
       });

@@ -108,10 +108,10 @@ function($, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List,
             self.uiStringsLibrary.getLibrary().addItem('allUiStrings', allAppStartData.stringData, true);
           }
           if (allAppStartData.dataSources) {
-            self.dataSourceLibrary.getLibrary().addMultipleItems( params.dataSources );
+            self.dataSourceLibrary.getLibrary().addMultipleItems( allAppStartData.dataSources );
           }
           if (allAppStartData.dataSources) {
-            self.connectorLibrary.getLibrary().addMultipleItems( params.connectors );
+            self.connectorLibrary.getLibrary().addMultipleItems( allAppStartData.connectors );
           }
 
           var startFunc = function() {
