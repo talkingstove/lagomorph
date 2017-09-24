@@ -1,7 +1,7 @@
 define(["LLibrary"], function(LLibrary) {
 
   //makes the component library singleton avaible to the global window.L, or via require
-	return {
+  return {
 
     ComponentInstanceLibrary: null,
 

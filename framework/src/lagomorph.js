@@ -160,43 +160,10 @@ function($, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List,
       if (!params.initialRoute) {
         console.warn('Lagomorph started with no initialRoute');
       }
-      // if (!params.routeConfig) {
-      //   console.warn('Lagomorph started with no routeConfig');
-      // }
-      // if (!params.componentConfig) {
-      //   console.log('Lagomorph started with no component config');
-      // }
-      // if (!params.dataSources) {
-      //   console.log('Lagomorph started with no dataSources config');
-      // }
-      // if (!params.stringData) {
-      //   console.log('Lagomorph started with no string/i18nDataSource config');
-      // }
-
-      // this.DOMModel.initializeDOMModel();
-
-      // this.componentInstanceLibrary.initializeComponentInstanceLibrary(); //model that holds all instances of created components for lookup
-
-      // //data source library (server data lookups)
-      // this.dataSourceLibrary.initializeDataSourceLibrary( params.dataSources );
-
-      // //connector library
-      // this.connectorLibrary.initializeConnectorLibrary( params.connectors );
-
-      // this.pageClassLibrary.initializePageClassLibrary();
-
-
-      // //user-defined components library (class definitions, not instances)
-      // //purpose: reference of what components were imported, what they do, and make sure they're valid
-      // //make sure they get added to L.componentDefinitions for usage
-      // this.userDefinedComponentDefinitionLibrary.initializeUserDefinedComponentDefinitionLibrary( userDefinedComponents );
-
-
-      //string (i18n) library (usually i18n, but could be any lookup for arbitrary text to be displayed in UI)
-      
-
 
       var allPromises = []; //add anything that is needed before the initial scan/app start
+      //typically this would be getting the pages so the router can start
+      //initialize already made sure all libraries are ready with data sources, connectors, i18n, etc
 
       if (params.pages && params.pages.dataSourceName) {
         var connector = this.connectorLibrary.getConnectorByName( params.pages.connectorName );
@@ -205,7 +172,8 @@ function($, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List,
         allPromises.push( pagesPromise );
       }
 
-      //***** Determine which promises need to be resolved before we can actually start the app
+      var routerInfo = null;
+
       $.when.all(allPromises).then(
         function(schemas) {
           for (var i=0; i<schemas.length; i++) {
@@ -213,13 +181,15 @@ function($, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List,
 
             switch (promiseId) {
               case 'pages':
-                var routerInfo = schemas[i].returnedData;
-                // self.pageLibrary.initializePageLibrary( pageDefinitions );
-                self.LRouter.startRouter(routerInfo.pages, routerInfo.homepage, params.pageWrapperSelector);
+                routerInfo = schemas[i].returnedData;   
               break;
             }
           }
 
+          if (routerInfo) {
+            self.LRouter.startRouter(routerInfo.pages, routerInfo.homepage, params.pageWrapperSelector);
+          }
+          
         }, 
         function(e) {
              console.log("App start failed");
