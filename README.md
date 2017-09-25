@@ -22,3 +22,8 @@ Run mongod from terminal
 Go to /sample-app and run `npm install` and `node app.js`
 
 Local app will be available at http://localhost:4000/, with your changes copied into its L.js by the build script!
+
+UNIT TESTS (for framework):
+cd to framework
+karma start
+karma run (known issue: tests fail in phantom.js)
