@@ -1,4 +1,4 @@
-define(["pageClassLibrary", "LPage"], function(pageClassLibrary, LPage) {
+define(["pageClassLibrary", "LPage", "DOMModel"], function(pageClassLibrary, LPage, DOMModel) {
 
   return {
 
@@ -43,29 +43,25 @@ define(["pageClassLibrary", "LPage"], function(pageClassLibrary, LPage) {
     */
     renderPage: function(key) {
       //TODO: if page not found, go back to last one in the history! ??????
-      // _.defer(function() { //wait out uri change
-      //   debugger;
-        var pageKey = key;//window.location.hash.slice(1);
-        var pageClass = this.pageClassLibrary.getPageByRoute(pageKey);
+      
+      var pageKey = key;//window.location.hash.slice(1);
+      var pageClass = this.pageClassLibrary.getPageByRoute(pageKey);
 
-        // if (!pageClass) { //TODO: would be nice to re-use classes but won;'t work!!'
-          console.log('creating class for page:', pageKey);      
-          pageClass = new LPage( this.pageDefinitions[pageKey] );
+      // if (!pageClass) { //TODO: would be nice to re-use classes but won;'t work!!'
+        console.log('creating class for page:', pageKey);      
+        pageClass = new LPage( this.pageDefinitions[pageKey] );
 
-          this.pageClassLibrary.getLibrary().addItem(pageKey, pageClass, true);
-        // }
+        this.pageClassLibrary.getLibrary().addItem(pageKey, pageClass, true);
+      // }
 
-        pageClass.renderPage( this.pageWrapperSelector );
-      // });
+      //register current page with DOMModel
+      DOMModel.registerCurrentPage(pageClass);
+
+      pageClass.renderPage( this.pageWrapperSelector );
+     
       
     }
 
 
   }
 });
-
-
-// var routes = {
-//         '/author': showAuthorInfo,
-//         '/books': listBooks
-//       };

@@ -2,19 +2,20 @@ define(["jquery", "underscore", "dataSourceLibrary", "connectorUtils", "template
 
   return {
 
-    createAjaxCallPromise: function(dataSourceName, promiseId, connector, optionsObj) {
+    createAjaxCallPromise: function(dataSourceName, promiseId, connector, optionsObj, hardcodedDataSource) {
       optionsObj = optionsObj || null;
       //look up datasource from library and get options to create the promise
       var dataSourceDefinition = optionsObj ? optionsObj : dataSourceLibrary.getDataSourceByName(dataSourceName);
       promiseId = promiseId || 'unknown'; //TODO: random
       connector = connector || null;
+      hardcodedDataSource = hardcodedDataSource || null;
 
-      if (!dataSourceDefinition) {
-        console.error("Cannot make AJAX request; can't find datasource with name:", dataSourceName);
+      if (!dataSourceDefinition && !hardcodedDataSource) {
+        console.error("Cannot make AJAX request; need a valid datasource or hardcodedDataSource");
         return;
       }
 
-      var options = dataSourceDefinition;
+      var options = dataSourceDefinition || hardcodedDataSource;
 
       var method = options.method || 'GET';
       var url = options.url;
@@ -35,7 +36,7 @@ define(["jquery", "underscore", "dataSourceLibrary", "connectorUtils", "template
         dataType: dataTypeReturned,
         data: requestParams
       })
-      .success(function(rawData) {
+      .done(function(rawData) {
         //if we have one or more agreements about what data was expected from the server,
         //check to see that they have been met
         // if (dataAgreements && dataAgreements.length) { 
@@ -78,9 +79,11 @@ define(["jquery", "underscore", "dataSourceLibrary", "connectorUtils", "template
           destinationPath: connector ? connector.destinationPath : null
         }
 
+
+        //TODO: possibly don't resolve until chained indexedDB promises do!!
         deferred.resolve(returnObj);
       })
-      .error(function() {
+      .fail(function() {
         // errorHandler();
         deferred.reject();
       });

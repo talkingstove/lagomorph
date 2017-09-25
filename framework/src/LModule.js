@@ -1,7 +1,7 @@
 /*
 * Root class for LComponents and Lpages
 */
-define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxRequester", "connectorLibrary", "connectorUtils", "objectUtils", "templateUtils"], function(Handlebars, LBase, viewUtils, componentInstanceLibrary, ajaxRequester, connectorLibrary, connectorUtils, objectUtils, templateUtils) {
+define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxRequester", "connectorLibrary", "connectorUtils", "objectUtils", "templateUtils", "DOMModel"], function(Handlebars, LBase, viewUtils, componentInstanceLibrary, ajaxRequester, connectorLibrary, connectorUtils, objectUtils, templateUtils, DOMModel) {
 
   return LBase.extend(function(base) {
       
@@ -10,7 +10,6 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
         self: this,
         Handlebars: Handlebars,
         
-
         // The `init` method serves as the constructor.
         init: function(params) {
             
@@ -26,13 +25,13 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 
           this.dataContracts = []; //specifies remote data source(s) and specific ways they should be loaded into this module 
 
-          //**** TODO: proper model with getters and setters
           //**** TODO: each one should be associated with passable render method
           this.data = { //after connector does its work, data is deposited here with predictible names for every instance of a given component 
 
           };
 
           this.compiledTemplate = templateUtils.compileTemplate(template); //TODO: cache standard templates in a libary
+          this.elClassIterator = 0;
         },
 
         
@@ -62,8 +61,10 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
         /*
         * entry point from scanner.js (or called directly)
         * get any necessary data and do anything else needed before rendering the view to the DOM
+        *
+        * We cannot use "Phantom DOM" here b/c every component load is async!
         */
-        loadComponent: function(targetSelector) {
+        loadComponent: function(targetSelector, directRender) {
           var self = this;
     
           /*
@@ -72,6 +73,17 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
           * at the end, data will be added to this.processedData
           * for view data, name will map to 1-N data-data_source_name's in html template
           */
+          $(targetSelector).addClass(this.id + "_el" + this.elClassIterator);
+          this.elClassIterator++;
+
+          //maybe better to do at compile time??
+          //make sure everything has a css class, otherwise DOMModel will have a problem finding things in shadowDOM
+          //TODO: doesn't seem to work right! targetSelector is off
+          var $allEls = $(targetSelector).find('*'); //todo: possible bad performance on v large comps
+          _.each($allEls, function(el) {
+            $(el).addClass(this.id + "_el" + this.elClassIterator);
+            this.elClassIterator++;
+          }, this);
         
           var allPromises = []; //if no promises it resolves immediately
 
@@ -89,7 +101,7 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
                   self.setData(schemas[j].destinationPath, schemas[j].returnedData);
                }
 
-               self.renderView(targetSelector);
+               self.renderView(targetSelector, directRender);
           }, function(e) {
                console.log("My ajax failed");
           });
@@ -100,15 +112,24 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
         /*
         *
         */
-        renderView: function(targetSelector) {
+        renderView: function(targetSelector, directRender) {
           var html = this.compiledTemplate(this.viewParams);
 
-          viewUtils.renderDomElement(targetSelector, html);
-          this.renderDataIntoBindings();
+          //TODO#$$$$$$ callback not needed if we always operate on shadow??????????
+
+// $containerSelector, html, renderType, callback, forceImmediateRender
+
+          
+    //TODO: pass in parent name and do the adding of classes in here, before creating shadow
+          viewUtils.renderDomElement(targetSelector, html, 'replace', $.proxy(this.renderDataIntoBindings, this), directRender);
+          // this.renderDataIntoBindings();
         },
 
         renderDataIntoBindings: function() {
-          var $dataBindings = this.$parentSelector.find('[data-data_binding]');
+          console.log('BINDINGS!!');
+          var $selector = DOMModel.getCurrentShadowDOM(); // || this.$parentSelector; //?????
+          var $dataBindings = $selector.find('[data-data_binding]');
+
 
           _.each($dataBindings, function(dataBinding) {
             var $dataBindingDOMElement = $(dataBinding);
@@ -133,7 +154,10 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
               html = template(data);
             }
 
-            $dataBindingDOMElement.html(html);
+
+            $dataBindingDOMElement.addClass(this.id + "_el" + this.elClassIterator);
+            this.elClassIterator++;
+            viewUtils.renderDomElement($dataBindingDOMElement, html);
 
           }, this);
         },

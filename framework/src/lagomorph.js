@@ -1,6 +1,5 @@
 define([ 
           "jquery", 
-          "underscore", 
           "Handlebars", 
           "Fiber", 
           "dexie", 
@@ -21,9 +20,13 @@ define([
           "templateUtils",
           "pageClassLibrary",
           "director",
-          "LRouter"
+          "LRouter",
+          "LModel",
+          "DOMModel",
+          "LComponent",
+          "userDefinedComponentDefinitionLibrary"
         ], 
-function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils, uiStringsLibrary, templateUtils, pageClassLibrary, director, LRouter ) {
+function($, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_List, componentInstanceLibrary, viewUtils, ajaxRequester, agreementsTester, dataSourceLibrary, connectorLibrary, connectorUtils, objectUtils, uiStringsLibrary, templateUtils, pageClassLibrary, director, LRouter, LModel, DOMModel, LComponent, userDefinedComponentDefinitionLibrary ) {
 
   var framework = { //anything we want to expose on the window for the end user needs to be added here
     scanner: scanner,
@@ -33,9 +36,8 @@ function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_Li
     dexie: dexie, //api for indexedDB local storage DB -> http://dexie.org/docs/ 
     himalaya: himalaya, //html to json parser -> https://github.com/andrejewski/himalaya
     $: $,
-    _: _,
     Handlebars: Handlebars,
-    componentDefinitions: { //all available component classes that come standard with the framework
+    componentDefinitions: { //all available component classes that come standard with the framework + user defined
       L_List: L_List
     }, //todo: move to model
     componentInstanceLibrary: componentInstanceLibrary, //look up instances of components created on the current page/app
@@ -46,23 +48,87 @@ function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_Li
     objectUtils: objectUtils,
     pageClassLibrary: pageClassLibrary,
     LRouter: LRouter,
+    LModel: LModel,
+    LComponent: LComponent,
+    DOMModel: DOMModel,
+    userDefinedComponentDefinitionLibrary: userDefinedComponentDefinitionLibrary,
+    templateUtils: templateUtils,
 
     initialize: function(params) {
       var self = this;
+      params = params || {};
+      var userDefinedComponents = params.userDefinedComponents || null;
+      var initializeCallback = params.callback || null;
+      params.stringData = params.stringData || {};
 
-      if (!params.service) {
-        console.error('L.initialize needs a service to set up the app!');
+      if (userDefinedComponents) {
+        this.componentDefinitions = _.extend(this.componentDefinitions, userDefinedComponents);
+      }
+
+      if (!params.services) {
+        console.error('L.initialize needs at least one service to set up the app!');
         return;
       }
 
+      this.DOMModel.initializeDOMModel();
+
+      this.componentInstanceLibrary.initializeComponentInstanceLibrary(); //model that holds all instances of created components for lookup
+
+      //data source library (server data lookups)
+      this.dataSourceLibrary.initializeDataSourceLibrary();
+      this.connectorLibrary.initializeConnectorLibrary();
+      this.pageClassLibrary.initializePageClassLibrary();
+      this.uiStringsLibrary.initializeUIStringsLibrary();
 
 
-      var initPromise = ajaxRequester.createAjaxCallPromise(null, "init", null, params.service);
+      //user-defined components library (class definitions, not instances)
+      //purpose: reference of what components were imported, what they do, and make sure they're valid
+      //make sure they get added to L.componentDefinitions for usage
+      this.userDefinedComponentDefinitionLibrary.initializeUserDefinedComponentDefinitionLibrary( userDefinedComponents );
 
-      $.when(initPromise).done(function(result) {
-        console.log('initializing app with params', result.returnedData);
-        self.start(result.returnedData);
-      });
+      var allAppStartData = {}; //extend with each service result until all needed data is compiled
+      var allPromises = [];
+
+      for (var i=0; i<params.services.length; i++) {
+        var promise = ajaxRequester.createAjaxCallPromise(null, null, null, null, params.services[i]);
+        allPromises.push( promise );
+      }
+
+      $.when.all(allPromises).then(
+        function(returnedDataObjects) {
+          for (var i=0; i<returnedDataObjects.length; i++) {
+            var thisData = returnedDataObjects[i].returnedData;
+            allAppStartData = _.extend(allAppStartData, thisData);
+          }
+
+          console.log('after all promises, starting app with data:', allAppStartData);
+
+          //if found, put setup data into the appropriate libraries
+          if (allAppStartData.stringData) {
+            self.uiStringsLibrary.getLibrary().addItem('allUiStrings', allAppStartData.stringData, true);
+          }
+          if (allAppStartData.dataSources) {
+            self.dataSourceLibrary.getLibrary().addMultipleItems( allAppStartData.dataSources );
+          }
+          if (allAppStartData.dataSources) {
+            self.connectorLibrary.getLibrary().addMultipleItems( allAppStartData.connectors );
+          }
+
+          var startFunc = function() {
+            self.start(allAppStartData, userDefinedComponents);
+          }
+
+          if (initializeCallback) {
+            initializeCallback(returnedDataObjects, startFunc);
+          }
+          else {
+            startFunc();
+          }
+          
+        }, 
+        function(e) {
+             console.log("App start failed");
+        });
     },
 
     /*
@@ -77,10 +143,11 @@ function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_Li
     * i18nDataSource = user-passed internationalization data for use in a "noneolith"
     *
     **/
-    start: function(params) {
+    start: function(params, userDefinedComponents) {
 
       var self = this;
       params = params || {};
+      var userDefinedComponents = params.userDefinedComponents || null;
 
       if (!params.pageWrapperSelector) {
         console.warn('Lagomorph started with no pageWrapperSelector');
@@ -93,41 +160,10 @@ function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_Li
       if (!params.initialRoute) {
         console.warn('Lagomorph started with no initialRoute');
       }
-      // if (!params.routeConfig) {
-      //   console.warn('Lagomorph started with no routeConfig');
-      // }
-      if (!params.componentConfig) {
-        console.log('Lagomorph started with no component config');
-      }
-      if (!params.dataSources) {
-        console.log('Lagomorph started with no dataSources config');
-      }
-      if (!params.stringData) {
-        console.log('Lagomorph started with no string/i18nDataSource config');
-      }
-
-      
-
-      this.componentInstanceLibrary.initializeComponentInstanceLibrary(); //model that holds all instances of created components for lookup
-
-      //data source library (server data lookuos)
-      this.dataSourceLibrary.initializeDataSourceLibrary( params.dataSources );
-
-      //connector library
-      this.connectorLibrary.initializeConnectorLibrary( params.connectors );
-
-      this.pageClassLibrary.initializePageClassLibrary();
-
-
-      //user-defined components library (class definitions, not instances)
-      //created instances are in componentInstanceLibrary
-
-
-      //string (i18n) library (usually i18n, but could be any lookup for arbitrary text to be displayed in UI)
-      this.uiStringsLibrary.initializeUIStringsLibrary(params.stringData);
-
 
       var allPromises = []; //add anything that is needed before the initial scan/app start
+      //typically this would be getting the pages so the router can start
+      //initialize already made sure all libraries are ready with data sources, connectors, i18n, etc
 
       if (params.pages && params.pages.dataSourceName) {
         var connector = this.connectorLibrary.getConnectorByName( params.pages.connectorName );
@@ -136,40 +172,28 @@ function($, _, Handlebars, Fiber, dexie, himalaya, LBase, LModule, scanner, L_Li
         allPromises.push( pagesPromise );
       }
 
-      //***** Determine which promises need to be resolved before we can actually start the app
-      $.when.all(allPromises).then(function(schemas) {
+      var routerInfo = null;
+
+      $.when.all(allPromises).then(
+        function(schemas) {
           for (var i=0; i<schemas.length; i++) {
             var promiseId = schemas[i].promiseId;
 
             switch (promiseId) {
               case 'pages':
-                var routerInfo = schemas[i].returnedData;
-                // self.pageLibrary.initializePageLibrary( pageDefinitions );
-                self.LRouter.startRouter(routerInfo.pages, routerInfo.homepage, params.pageWrapperSelector);
+                routerInfo = schemas[i].returnedData;   
               break;
             }
           }
 
-       
-
-        
-
-
-          //*******when processing is done, load initial page into the pageWrapperSelector
-          //page then users the scanner to scan itself
-
-              
-          // self.scanner.scan($(params.pageWrapperSelector));
-
-          }, function(e) {
-               console.log("App start failed");
-          });
-
-
- //       pages: { //just json, can be hardcoded or via endpoint
-  //   dataSourceName: "lPages",
-  //   pageDefinitions: {}
-  // },
+          if (routerInfo) {
+            self.LRouter.startRouter(routerInfo.pages, routerInfo.homepage, params.pageWrapperSelector);
+          }
+          
+        }, 
+        function(e) {
+             console.log("App start failed");
+        });
 
       
     }

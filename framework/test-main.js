@@ -35,6 +35,7 @@ require.config({
     'himalaya': 'lib/himalaya',
     'viewUtils': 'src/utils/viewUtils',
     'componentInstanceLibrary': 'src/componentInstanceLibrary',
+    'userDefinedComponentDefinitionLibrary': 'src/userDefinedComponentDefinitionLibrary',
     'dataSourceLibrary': 'src/dataSourceLibrary',
     'LLibrary': 'src/library/LLibrary',
     'ajaxRequester': 'src/ajax/ajaxRequester',
@@ -47,6 +48,8 @@ require.config({
     'pageClassLibrary': 'src/pageClassLibrary',
     'director': 'lib/director.min',
     'LRouter': 'src/LRouter',
+    'LModel': 'src/LModel',
+    'DOMModel': 'src/DOMModel'
   },
 
   // we have to kickoff jasmine, as it is asynchronous

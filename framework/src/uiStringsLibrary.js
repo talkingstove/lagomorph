@@ -1,7 +1,7 @@
 define(["LLibrary", "objectUtils"], function(LLibrary, objectUtils) {
 
   //makes the singleton avaible to the global window.L, or via require
-	return {
+  return {
 
     UIStringsLibrary: null,
 
@@ -26,7 +26,7 @@ define(["LLibrary", "objectUtils"], function(LLibrary, objectUtils) {
 
     getUIStringByKey: function(key) {
       return this.getLibrary() && this.getLibrary().storage.allUiStrings ? objectUtils.getDataFromObjectByPath(this.getLibrary().storage.allUiStrings, key) : null;
-    },
+    }
 
 
   }
