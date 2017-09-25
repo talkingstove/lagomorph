@@ -10,7 +10,6 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
         self: this,
         Handlebars: Handlebars,
         
-
         // The `init` method serves as the constructor.
         init: function(params) {
             
@@ -26,7 +25,6 @@ define(["Handlebars", "LBase", "viewUtils", "componentInstanceLibrary", "ajaxReq
 
           this.dataContracts = []; //specifies remote data source(s) and specific ways they should be loaded into this module 
 
-          //**** TODO: proper model with getters and setters
           //**** TODO: each one should be associated with passable render method
           this.data = { //after connector does its work, data is deposited here with predictible names for every instance of a given component 
 

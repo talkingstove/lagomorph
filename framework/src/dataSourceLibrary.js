@@ -1,7 +1,7 @@
 define(["LLibrary"], function(LLibrary) {
 
   //makes the singleton avaible to the global window.L, or via require
-	return {
+  return {
 
     DataSourceLibrary: null,
 

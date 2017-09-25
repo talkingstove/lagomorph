@@ -65,9 +65,3 @@ define(["pageClassLibrary", "LPage", "DOMModel"], function(pageClassLibrary, LPa
 
   }
 });
-
-
-// var routes = {
-//         '/author': showAuthorInfo,
-//         '/books': listBooks
-//       };

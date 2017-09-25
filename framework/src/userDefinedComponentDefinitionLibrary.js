@@ -1,7 +1,7 @@
 define(["LLibrary"], function(LLibrary) {
 
   //makes the singleton avaible to the global window.L, or via require
-	return {
+  return {
 
     UserDefinedComponentDefinitionLibrary: null,
 
@@ -26,7 +26,7 @@ define(["LLibrary"], function(LLibrary) {
 
     getUserDefinedComponentDefinitionLibraryByName: function(name) {
       return this.getLibrary() ? this.getLibrary().storage[name] : null;
-    },
+    }
 
 
   }

@@ -21,44 +21,34 @@ define(["Handlebars", "DOMModel", "scanner"], function(Handlebars, DOMModel, sca
         return;
       }
 
-      //if !currentphatomPage --> make phatntom page, modify, set timeout to put it back into page
-      //else add change to currnet phantom page
-      //thus, sync changes line up in a queue!
-
       var $shadowDOM = DOMModel.getCurrentShadowDOM();
-     
+    
+      if (!$shadowDOM ) {
+        DOMModel.setCurrentShadowDOM( DOMModel.getCurrentPageDOMSelector().clone() );
+      }
+      
+      DOMModel.alterShadowDOM($containerSelector, html, renderType);
+      
+      scanner.scan(DOMModel.getCurrentShadowDOM());
 
-      // if (!$shadowDOM) {
-      //   debugger;
-        if (!$shadowDOM ) {
-          DOMModel.setCurrentShadowDOM( DOMModel.getCurrentPageDOMSelector().clone() );
-        }
-        
-        DOMModel.alterShadowDOM($containerSelector, html, renderType);
-        scanner.scan(DOMModel.getCurrentShadowDOM());
+      if (!DOMModel.renderinProgress) { //block multiple simaltaneous shadow DOM renders
+        DOMModel.renderinProgress = true;
 
-        if (!DOMModel.renderinProgress) { //block multiple simaltaneous shadow DOM renders
-          DOMModel.renderinProgress = true;
-
-           _.defer(function() {
-            
-            
-            
-            _.each(DOMModel.callbacks, function(callback) {
-              callback();
-            });
-
-
-            DOMModel.writeShadowDOMToBrowser(); //make all enqueued changes
-            DOMModel.renderinProgress = false;
-            DOMModel.callbacks = [];
-            DOMModel.setCurrentShadowDOM(null);
-            
+         _.defer(function() {
+          _.each(DOMModel.callbacks, function(callback) {
+            callback();
           });
 
-        }
+
+          DOMModel.writeShadowDOMToBrowser(); //make all enqueued changes
+          DOMModel.renderinProgress = false;
+          DOMModel.callbacks = [];
+          DOMModel.setCurrentShadowDOM(null);        
+        });
+
+      }
        
-      // }
+    
 
       
 

@@ -1,7 +1,7 @@
 define(["LModel"], function(LModel) {
 
   //makes the singleton avaible to the global window.L, or via require
-	return {
+  return {
 
     DOMModel: null,
 
